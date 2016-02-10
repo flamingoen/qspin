@@ -1,12 +1,11 @@
-#include "runspin.h"
+#include <iostream>
+#include <cstring>
+#include <stdlib.h>
+#include <stdio.h>
+#include <mainwindow.h>
 using namespace std;
 
-runSPIN::runSPIN()
-{
-
-}
-
-string runSPIN::exec(string command) {
+string exec(string command) {
     cout << "using exec to run spin:" << endl;
     FILE *in;
     char buff[512];
@@ -22,4 +21,16 @@ string runSPIN::exec(string command) {
     }
     pclose(in);
     return out;
+}
+
+string runSim(string file){
+    string out;
+    return exec("spin -u200 -p "+file);
+}
+
+string runVer(string file){
+    string out;
+    exec("spin -a "+file);
+    exec("cc -o pan pan.c");
+    return exec("./pan " + file);
 }

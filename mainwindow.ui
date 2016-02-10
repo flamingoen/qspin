@@ -18,7 +18,7 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QPushButton" name="pushButton_3">
+       <widget class="QPushButton" name="loadButton">
         <property name="text">
          <string>Load file</string>
         </property>
@@ -32,7 +32,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="verifyButton">
         <property name="text">
          <string>Verify</string>
         </property>
@@ -41,7 +41,7 @@
      </layout>
     </item>
     <item>
-     <widget class="QTextBrowser" name="textBrowser"/>
+     <widget class="QTextBrowser" name="log"/>
     </item>
    </layout>
   </widget>

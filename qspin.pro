@@ -16,7 +16,6 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     runspin.cpp
 
-HEADERS  += mainwindow.h \
-    runspin.h
+HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui
