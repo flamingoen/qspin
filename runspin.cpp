@@ -5,6 +5,12 @@
 #include <mainwindow.h>
 using namespace std;
 
+#ifdef OS_WINDOWS
+    #define SPIN "spin/spin.exe"
+#else
+    #define SPIN "spin"
+#endif
+
 string exec(string command) {
     cout << "using exec to run spin:" << endl;
     FILE *in;
@@ -25,12 +31,12 @@ string exec(string command) {
 
 string runSim(string file){
     string out;
-    return exec("spin -u200 -p "+file);
+    return exec(SPIN " -u200 -p "+file);
 }
 
 string runVer(string file){
     string out;
-    exec("spin -a "+file);
+    exec(SPIN  "-a "+file);
     exec("cc -o pan pan.c");
     return exec("./pan " + file);
 }
