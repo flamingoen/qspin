@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <mainwindow.h>
+#include <unistd.h>
 using namespace std;
 
 #ifdef OS_WINDOWS
@@ -12,12 +13,10 @@ using namespace std;
 #endif
 
 string exec(string command) {
-    cout << "using exec to run spin:" << endl;
     FILE *in;
     char buff[512];
     char *cmd = new char[command.length()+1];
     strcpy(cmd , command.c_str());
-    cout << cmd << endl;
     string out;
     if(!(in = popen(cmd, "r"))){
         return "error";
@@ -34,9 +33,15 @@ string runSim(string file){
     return exec(SPIN " -u200 -p "+file);
 }
 
-string runVer(string file){
+string runVer(string file,string rOptions,string cOptions){
+    cout << "Running verification:" << endl;
     string out;
-    exec(SPIN  "-a "+file);
-    exec("cc -o pan pan.c");
-    return exec("./pan " + file);
+    exec("rm pan*");
+    exec(SPIN  " -a "+file);
+    cout <<"cc "+cOptions+"-o pan pan.c"<< endl;
+    usleep(100);
+    exec("cc "+cOptions+"-o pan pan.c");
+    usleep(100);
+    cout << "./pan " + rOptions << endl;
+    return exec("./pan " + rOptions);
 }

@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QFileDialog>
 #include <stdlib.h>
+#include <sstream>
 
 namespace Ui {
 class MainWindow;
@@ -24,6 +25,9 @@ private slots:
     void loadFile();
     void runSimulate();
     void runVerify();
+    void saveFile();
+    std::string getRunOptions();
+    std::string getCompileOptions();
 };
 
 #endif // MAINWINDOW_H

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>1047</width>
+    <height>645</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,29 +16,11 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QPushButton" name="loadButton">
-        <property name="text">
-         <string>Load file</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="simulateButton">
-        <property name="text">
-         <string>Simulate</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="verifyButton">
-        <property name="text">
-         <string>Verify</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
+     <widget class="QLabel" name="labelOutput">
+      <property name="text">
+       <string>Output log</string>
+      </property>
+     </widget>
     </item>
     <item>
      <widget class="QTextBrowser" name="log"/>
@@ -50,12 +32,263 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>1047</width>
      <height>27</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionOpen"/>
+    <addaction name="actionSave"/>
+   </widget>
+   <addaction name="menuFile"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QDockWidget" name="editorWidget">
+   <property name="windowTitle">
+    <string>Edito&amp;r</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="editorContent">
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="1">
+      <widget class="QTextEdit" name="editor">
+       <property name="font">
+        <font>
+         <family>Source Code Pro</family>
+        </font>
+       </property>
+       <property name="lineWrapMode">
+        <enum>QTextEdit::NoWrap</enum>
+       </property>
+       <property name="tabStopWidth">
+        <number>14</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget">
+   <property name="windowTitle">
+    <string>Too&amp;ls</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="0" column="0">
+      <widget class="QTabWidget" name="tabWidget">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="verifyContent">
+        <attribute name="title">
+         <string>Verify</string>
+        </attribute>
+        <layout class="QFormLayout" name="formLayout_2">
+         <item row="1" column="0">
+          <widget class="QPushButton" name="buttonVerify">
+           <property name="text">
+            <string>Run</string>
+           </property>
+           <property name="shortcut">
+            <string>Ctrl+R</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0" colspan="2">
+          <widget class="QGroupBox" name="groupProperty">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Properties</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_5">
+            <item>
+             <widget class="QRadioButton" name="radioSafety">
+              <property name="text">
+               <string>Safety On&amp;ly</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioAcceptance">
+              <property name="text">
+               <string>Acceptance</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioLiveness">
+              <property name="text">
+               <string>Li&amp;veness</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="checkFairness">
+              <property name="text">
+               <string>Fairness</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="4" column="0" colspan="2">
+          <widget class="QGroupBox" name="groupAdvanced">
+           <property name="title">
+            <string>options</string>
+           </property>
+           <layout class="QFormLayout" name="formLayout_3">
+            <property name="labelAlignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+            <item row="2" column="0">
+             <widget class="QCheckBox" name="checkHashSize">
+              <property name="text">
+               <string>Custom Hash Size</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QSpinBox" name="spinBoxHashSize">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="value">
+               <number>28</number>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0">
+             <widget class="QRadioButton" name="radioDCOLLAPSE">
+              <property name="text">
+               <string>DCOLLAPSE</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="autoExclusive">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="0">
+             <widget class="QRadioButton" name="radioDH4">
+              <property name="text">
+               <string>DHC&amp;4</string>
+              </property>
+              <property name="autoExclusive">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QRadioButton" name="radioNoMem">
+              <property name="text">
+               <string>&amp;No Memory Compression</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tab_2">
+        <attribute name="title">
+         <string>Tab 2</string>
+        </attribute>
+       </widget>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionLoad"/>
+   <addaction name="actionSave"/>
+  </widget>
+  <action name="actionLoad">
+   <property name="icon">
+    <iconset theme="folder">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Load</string>
+   </property>
+   <property name="toolTip">
+    <string>load file into the program</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="icon">
+    <iconset theme="document-save">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Save</string>
+   </property>
+   <property name="toolTip">
+    <string>Save file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionOpen">
+   <property name="icon">
+    <iconset theme="document-open">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Open</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
