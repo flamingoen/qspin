@@ -22,15 +22,19 @@ string exec(string command) {
         return "error";
     }
     while(fgets(buff, sizeof(buff), in)!=NULL){
+        cout << buff << endl;
         out += buff;
     }
     pclose(in);
-    return out;
+    return buff;
 }
 
-string runSim(string file){
+string runRandomSim(string file, int steps){
     string out;
-    return exec(SPIN " -u200 -p "+file);
+    stringstream ss;
+    ss << SPIN << " -u" << steps << " -p -l -g " << file;
+    cout << ss.str() << endl;
+    return exec(ss.str());
 }
 
 string runVer(string file,string rOptions,string cOptions){

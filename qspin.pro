@@ -15,8 +15,10 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    runspin.cpp
+    runspin.cpp \
+    runprocess.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    runprocess.h
 
 FORMS    += mainwindow.ui

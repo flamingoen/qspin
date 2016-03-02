@@ -5,6 +5,7 @@
 #include <QFileDialog>
 #include <stdlib.h>
 #include <sstream>
+#include <runprocess.h>
 
 namespace Ui {
 class MainWindow;
@@ -23,11 +24,13 @@ private:
 
 private slots:
     void loadFile();
-    void runSimulate();
+    void runRandomSimulation();
+    void runInteractiveSimulation();
+    void runSubmitIteracticeSimulation();
     void runVerify();
     void saveFile();
-    std::string getRunOptions();
-    std::string getCompileOptions();
+    QStringList getRunOptions();
+    QStringList getCompileOptions();
 };
 
 #endif // MAINWINDOW_H

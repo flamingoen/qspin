@@ -18,6 +18,10 @@ QCheckBox *checkFair;
 QCheckBox *checkHSize;
 
 QSpinBox *spinBoxHSize;
+QSpinBox *spinBoxSteps;
+QComboBox *comboChoice;
+
+runProcess process;
 
 FILE *file;
 
@@ -40,27 +44,36 @@ MainWindow::MainWindow(QWidget *parent) :
     radioAcceptance = this->findChild<QRadioButton *>("radioAcceptance");
     radioLiveness = this->findChild<QRadioButton *>("radioLiveness");
     checkFair = this->findChild<QCheckBox *>("checkFairness");
+    connect(verifyButton, SIGNAL(clicked()) , this, SLOT(runVerify()));
+
+    // ## Simulation tab
+    QPushButton *buttonRandomSim = this->findChild<QPushButton *>("buttonRandomSim");
+    QPushButton *buttonInteractiveSim = this->findChild<QPushButton *>("buttonInteractiveSim");
+    QPushButton *buttonSubmit = this->findChild<QPushButton *>("buttonSubmit");
+    comboChoice = this->findChild<QComboBox *>("comboChoice");
+    spinBoxSteps = this->findChild<QSpinBox *>("spinBoxSteps");
+    connect(buttonRandomSim, SIGNAL(clicked()), this, SLOT(runRandomSimulation()));
+    connect(buttonInteractiveSim, SIGNAL(clicked()), this, SLOT(runInteractiveSimulation()));
+    connect(buttonSubmit, SIGNAL(clicked()),this,SLOT(runSubmitIteracticeSimulation()));
+
 
     // options
     radioColapse = this->findChild<QRadioButton *>("radioDCOLLAPSE");
     radioDH4 = this->findChild<QRadioButton *>("radioDH4");
     checkHSize = this->findChild<QCheckBox *>("checkHashSize");
     spinBoxHSize = this->findChild<QSpinBox *>("spinBoxHashSize");
-    connect(verifyButton, SIGNAL(clicked()) , this,SLOT(runVerify()));
 
     // ## other ##
     status = this->findChild<QStatusBar *>("statusbar");
     log = this->findChild<QTextBrowser *>("log");
     editor = this->findChild<QTextEdit *>("editor");
-
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     delete ui;
 }
 
-void MainWindow::loadFile(){
+void MainWindow::loadFile() {
     path = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Promela Files (*.pml)"));
     if (path!=NULL) {
         char *cpath = new char[path.length()+1];
@@ -97,48 +110,63 @@ void MainWindow::saveFile() {
     }
 }
 
-void MainWindow::runSimulate() {
-    //    QString out;
-    //    out = QString::fromStdString(runSim(file.toStdString()));
-    //    log->setText(out);
+void MainWindow::runRandomSimulation() {
+    process.terminate();
+    log->clear();
+    saveFile();
+    QString out = process.runGetOutput("spin",QStringList() << "-u200" << "-p" << "-g" << "-l" << path);
+    log->setText(out);
+}
+
+void MainWindow::runInteractiveSimulation(){
+    process.terminate();
+    log->clear();
+    saveFile();
+    log->setText(process.runGetOutputWaitForInput("spin",QStringList() << "-i" << path));
+}
+
+void MainWindow::runSubmitIteracticeSimulation() {
+    if (!process.finished()) {
+        log->setText(process.runInputGetOutput(comboChoice->currentText()));
+    } else { process.terminate(); }
 }
 
 void MainWindow::runVerify(){
+    process.terminate();
     log->clear();
     saveFile();
-    QString out;
-    status->showMessage("Validation: running");
-    out = QString::fromStdString(runVer(path.toStdString(),getRunOptions(),getCompileOptions()));
+    process.runAndWait("spin",QStringList()<<"-a" << path);
+    process.runAndWait("cc",getCompileOptions() << "pan.c");
+    QString out = process.runGetOutput("./pan",getRunOptions());
     log->setText(out);
     status->showMessage("Validation: finished");
 }
 
-string MainWindow::getRunOptions() {
-    string out = "";
+QStringList MainWindow::getRunOptions() {
+    QStringList out;
 
     if (checkFair->isChecked()) {
         if (radioSafety->isChecked()) {
             status->showMessage("WARNING: Fairness only applicable for acceptance and liveness properties");
         }
-        else                             out+="-f ";
+        else                             out << "-f ";
     }
-    if (radioAcceptance->isChecked())    out+="-a ";
-    else if (radioLiveness->isChecked()) out+="-l ";
+    if (radioAcceptance->isChecked())    out << "-a ";
+    else if (radioLiveness->isChecked()) out << "-l ";
 
     if (checkHSize->isChecked()) {
         stringstream ss;
         ss << "-w" << spinBoxHSize->value() << " ";
-        out += ss.str();
+        out << QString::fromStdString(ss.str());
     }
-
     return out;
 }
 
-string MainWindow::getCompileOptions() {
-    string out = "";
-    if (radioColapse->isChecked())           out +="-DCOLLAPSE ";
-        else if (radioDH4->isChecked())      out +="-DH4 ";
-    if (radioSafety->isChecked())            out +="-DSAFTY ";
-        else if (radioLiveness->isChecked()) out +="-DNP ";
-    return out;
+QStringList MainWindow::getCompileOptions() {
+    QStringList out;
+    if (radioColapse->isChecked())           out << "-DCOLLAPSE ";
+    else if (radioDH4->isChecked())      out << "-DH4 ";
+    if (radioSafety->isChecked())            out <<"-DSAFTY ";
+    else if (radioLiveness->isChecked()) out <<"-DNP ";
+    return out << "-o" << "pan";
 }
