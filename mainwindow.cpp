@@ -79,27 +79,29 @@ MainWindow::~MainWindow() {
 
 void MainWindow::loadFile() {
     process.terminate();
-    if (filename!=NULL) {
-        process.runAndWait("rm",QStringList()<<filename+".trail");
-    }
+    if (filename!=NULL) process.runAndWait("rm",QStringList()<<filename+".trail");
+
     path = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Promela Files (*.pml)"));
-    QRegExp rx("/((([a-z]|[A-Z]|\\d)+).pml)");
-    rx.indexIn(path);
-    filename = rx.cap(1);
     if (path!=NULL) {
-        char *cpath = new char[path.length()+1];
-        status->showMessage("loaded: "+path);
-        char buff[512];
-        strcpy(cpath , path.toStdString().c_str());
-        string str;
-        if(!(file = fopen(cpath, "r"))){
-            status->showMessage("error in loading file: "+path);
+        editor->clear();
+        QFile file(path);
+
+        QRegExp rx("/((([a-z]|[A-Z]|\\d)+).pml)");
+        rx.indexIn(path);
+        filename = rx.cap(1);
+
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        status->showMessage("Failed to open "+path);
+        } else {
+            QTextStream in(&file);
+            while(!in.atEnd()) {
+                editor->append(in.readLine());
+            }
+            file.close();
+            status->showMessage("File loaded: "+path);
         }
-        while(fgets(buff, sizeof(buff), file)!=NULL){
-            str += buff;
-        }
-        editor->setText(QString::fromStdString(str));
-        fclose(file);
+    } else {
+        status->showMessage("No file choosen");
     }
 }
 
@@ -107,17 +109,14 @@ void MainWindow::saveFile() {
     if (path==NULL) {
         path = QFileDialog::getSaveFileName(this, tr("Open File"),"",tr("Promela Files (*.pml)"));
     }
-    QString str = editor->toPlainText();
-    char *cpath = new char[path.length()+1];
-    char *cstr = new char[str.length()+1];
-    strcpy(cpath , path.toStdString().c_str());
-    strcpy(cstr , str.toStdString().c_str());
-    file = fopen (cpath,"w");
-    if (file!=NULL)
-    {
-        fputs (cstr,file);
-        status->showMessage("Saved file to: "+path);
-        fclose (file);
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        status->showMessage("Could not save "+path);
+    } else {
+        QTextStream out(&file);
+        out << editor->toPlainText();
+        file.close();
+        status->showMessage("File saved: "+path);
     }
 }
 
