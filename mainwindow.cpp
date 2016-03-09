@@ -4,6 +4,7 @@
 using namespace std;
 
 QString path;
+QString filename;
 QStatusBar *status;
 QTextBrowser *log;
 QTextEdit *editor;
@@ -23,7 +24,7 @@ QComboBox *comboChoice;
 
 runProcess process;
 
-FILE *file;
+QFile file;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -50,12 +51,13 @@ MainWindow::MainWindow(QWidget *parent) :
     QPushButton *buttonRandomSim = this->findChild<QPushButton *>("buttonRandomSim");
     QPushButton *buttonInteractiveSim = this->findChild<QPushButton *>("buttonInteractiveSim");
     QPushButton *buttonSubmit = this->findChild<QPushButton *>("buttonSubmit");
+    QPushButton *buttonGuidedSim = this->findChild<QPushButton *>("buttonGuidedSim");
     comboChoice = this->findChild<QComboBox *>("comboChoice");
     spinBoxSteps = this->findChild<QSpinBox *>("spinBoxSteps");
     connect(buttonRandomSim, SIGNAL(clicked()), this, SLOT(runRandomSimulation()));
     connect(buttonInteractiveSim, SIGNAL(clicked()), this, SLOT(runInteractiveSimulation()));
-    connect(buttonSubmit, SIGNAL(clicked()),this,SLOT(runSubmitIteracticeSimulation()));
-
+    connect(buttonSubmit, SIGNAL(clicked()),this,SLOT(runSubmitInteractiveSimulation()));
+    connect(buttonGuidedSim, SIGNAL(clicked()),this,SLOT(runGuidedSimulation()));
 
     // options
     radioColapse = this->findChild<QRadioButton *>("radioDCOLLAPSE");
@@ -70,11 +72,20 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 MainWindow::~MainWindow() {
+    process.terminate();
+    process.runAndWait("rm",QStringList()<<filename+".trail");
     delete ui;
 }
 
 void MainWindow::loadFile() {
+    process.terminate();
+    if (filename!=NULL) {
+        process.runAndWait("rm",QStringList()<<filename+".trail");
+    }
     path = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Promela Files (*.pml)"));
+    QRegExp rx("/((([a-z]|[A-Z]|\\d)+).pml)");
+    rx.indexIn(path);
+    filename = rx.cap(1);
     if (path!=NULL) {
         char *cpath = new char[path.length()+1];
         status->showMessage("loaded: "+path);
@@ -115,19 +126,28 @@ void MainWindow::runRandomSimulation() {
     log->clear();
     saveFile();
     QString out = process.runGetOutput("spin",QStringList() << "-u200" << "-p" << "-g" << "-l" << path);
-    log->setText(out);
+    log->append(out);
 }
 
 void MainWindow::runInteractiveSimulation(){
     process.terminate();
     log->clear();
     saveFile();
-    log->setText(process.runGetOutputWaitForInput("spin",QStringList() << "-i" << path));
+    log->append(process.runGetOutputWaitForInput("spin",QStringList() << "-i" << path));
 }
 
-void MainWindow::runSubmitIteracticeSimulation() {
+void MainWindow::runGuidedSimulation(){
+    process.terminate();
+    log->clear();
+    QString trailPath = path + ".trail";
+    process.runAndWait("cp" , QStringList() << filename+".trail" << trailPath);
+    log->append(process.runGetOutput("spin",QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "-u250" << path));
+    process.runAndWait("rm",QStringList() << trailPath);
+}
+
+void MainWindow::runSubmitInteractiveSimulation() {
     if (!process.finished()) {
-        log->setText(process.runInputGetOutput(comboChoice->currentText()));
+        log->append(process.runInputGetOutput(comboChoice->currentText()));
     } else { process.terminate(); }
 }
 
@@ -138,7 +158,7 @@ void MainWindow::runVerify(){
     process.runAndWait("spin",QStringList()<<"-a" << path);
     process.runAndWait("cc",getCompileOptions() << "pan.c");
     QString out = process.runGetOutput("./pan",getRunOptions());
-    log->setText(out);
+    log->append(out);
     status->showMessage("Validation: finished");
 }
 
@@ -147,7 +167,7 @@ QStringList MainWindow::getRunOptions() {
 
     if (checkFair->isChecked()) {
         if (radioSafety->isChecked()) {
-            status->showMessage("WARNING: Fairness only applicable for acceptance and liveness properties");
+            log->append("WARNING: Fairness only applicable for acceptance and liveness properties (ignored)");
         }
         else                             out << "-f ";
     }
@@ -165,8 +185,8 @@ QStringList MainWindow::getRunOptions() {
 QStringList MainWindow::getCompileOptions() {
     QStringList out;
     if (radioColapse->isChecked())           out << "-DCOLLAPSE ";
-    else if (radioDH4->isChecked())      out << "-DH4 ";
+    else if (radioDH4->isChecked())          out << "-DH4 ";
     if (radioSafety->isChecked())            out <<"-DSAFTY ";
-    else if (radioLiveness->isChecked()) out <<"-DNP ";
+    else if (radioLiveness->isChecked())     out <<"-DNP ";
     return out << "-o" << "pan";
 }

@@ -21,16 +21,17 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    QStringList getRunOptions();
+    QStringList getCompileOptions();
 
 private slots:
     void loadFile();
     void runRandomSimulation();
     void runInteractiveSimulation();
-    void runSubmitIteracticeSimulation();
+    void runSubmitInteractiveSimulation();
+    void runGuidedSimulation();
     void runVerify();
     void saveFile();
-    QStringList getRunOptions();
-    QStringList getCompileOptions();
 };
 
 #endif // MAINWINDOW_H
