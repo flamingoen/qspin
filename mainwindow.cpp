@@ -23,8 +23,6 @@ QComboBox *comboChoice;
 
 QProcess *process;
 
-QFutureWatcher<QString> processWatcher;
-
 QFile file;
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainWindow) {
@@ -119,50 +117,42 @@ void MainWindow::saveFile() {
 }
 
 void MainWindow::runRandomSimulation() {
-    resetProcess();
-    outputLog->clear();
-    saveFile();
+    prepareRun();
     process->start("spin",QStringList() << "-u200" << "-p" << "-g" << "-l" << path);
 }
 
 void MainWindow::runInteractiveSimulation() {
-    resetProcess();
-    outputLog->clear();
-    saveFile();
+    prepareRun();
     process->start("spin",QStringList() << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "-i"  << path);
 }
 
 void MainWindow::runSubmitInteractiveSimulation() {
     if (!process->state() == 0) {
-//        connect(process, SIGNAL(readyReadStandardOutput()), this, SLOT(runProcessFinished()));
         QString cmd = comboChoice->currentText() + "\n";
         process->write(cmd.toLatin1().data());
     } else { process->terminate(); }
 }
 
+// TODO: Burde vare delt op i signaler
 void MainWindow::runGuidedSimulation(){
-    resetProcess();
-    outputLog->clear();
-    saveFile();
+    prepareRun();
     QString trailPath = path + ".trail";
     process->start("cp" , QStringList() << filename+".trail" << trailPath);
     process->waitForFinished();
     process->start("spin",QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "-u250" << path);
-    process->waitForFinished(); // TODO: Udskift med signal
+    process->waitForFinished();
     process->start("rm",QStringList() << trailPath);
 }
 
 void MainWindow::runVerify(){
-    resetProcess();
-    outputLog->clear();
-    saveFile();
+    prepareRun(false);
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runCompile()));
     status->showMessage("verification: Making model");
     process->start("spin",QStringList()<<"-a" << path);
 }
 
 void MainWindow::runCompile(){
-    process = new QProcess();
+    prepareRun(false);
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runPan()));
     if (process->state()==QProcess::NotRunning)
         status->showMessage("verification: Compiling pan.c");
@@ -170,8 +160,7 @@ void MainWindow::runCompile(){
 }
 
 void MainWindow::runPan(){
-    process = new QProcess();
-    connect(process, SIGNAL(readyReadStandardOutput()), this, SLOT(runProcessFinished()));
+    prepareRun();
     if (process->state()==QProcess::NotRunning)
         status->showMessage("verification: Running verification");
         process->start("./pan",getRunOptions());
@@ -214,4 +203,11 @@ void MainWindow::runProcessFinished() {
 void MainWindow::resetProcess() {
     process = new QProcess();
     connect(process, SIGNAL(readyReadStandardOutput()), this, SLOT(runProcessFinished()));
+}
+
+void MainWindow::prepareRun(bool clearLog){
+    resetProcess();
+    if (path==NULL) loadFile();
+    saveFile();
+    if (clearLog) outputLog->clear();
 }

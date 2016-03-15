@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QFutureWatcher>
 #include <QtConcurrent/QtConcurrent>
 #include <QFileDialog>
 #include <stdlib.h>
@@ -25,6 +24,7 @@ private:
     QStringList getRunOptions();
     QStringList getCompileOptions();
     void resetProcess();
+    void prepareRun(bool clearLog=true);
 
 private slots:
     void loadFile();
