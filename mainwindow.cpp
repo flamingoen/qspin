@@ -69,8 +69,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     outputLog = this->findChild<QTextEdit *>("log");
     editor = this->findChild<QTextEdit *>("editor");
 
-    process = new QProcess();
-    connect(process, SIGNAL(readyReadStandardOutput()), this, SLOT(runProcessFinished()));
+    resetProcess();
 }
 
 MainWindow::~MainWindow() {
@@ -120,12 +119,14 @@ void MainWindow::saveFile() {
 }
 
 void MainWindow::runRandomSimulation() {
+    resetProcess();
     outputLog->clear();
     saveFile();
     process->start("spin",QStringList() << "-u200" << "-p" << "-g" << "-l" << path);
 }
 
 void MainWindow::runInteractiveSimulation() {
+    resetProcess();
     outputLog->clear();
     saveFile();
     process->start("spin",QStringList() << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "-i"  << path);
@@ -140,6 +141,7 @@ void MainWindow::runSubmitInteractiveSimulation() {
 }
 
 void MainWindow::runGuidedSimulation(){
+    resetProcess();
     outputLog->clear();
     saveFile();
     QString trailPath = path + ".trail";
@@ -151,6 +153,7 @@ void MainWindow::runGuidedSimulation(){
 }
 
 void MainWindow::runVerify(){
+    resetProcess();
     outputLog->clear();
     saveFile();
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runCompile()));
@@ -206,4 +209,9 @@ QStringList MainWindow::getCompileOptions() {
 void MainWindow::runProcessFinished() {
     outputLog->append(process->readAllStandardOutput());
     status->showMessage("Finished");
+}
+
+void MainWindow::resetProcess() {
+    process = new QProcess();
+    connect(process, SIGNAL(readyReadStandardOutput()), this, SLOT(runProcessFinished()));
 }

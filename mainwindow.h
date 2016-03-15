@@ -24,6 +24,7 @@ private:
     Ui::MainWindow *ui;
     QStringList getRunOptions();
     QStringList getCompileOptions();
+    void resetProcess();
 
 private slots:
     void loadFile();
