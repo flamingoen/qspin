@@ -5,20 +5,17 @@
 #-------------------------------------------------
 
 QT       += core gui
-QT       += widgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT+= concurrent
 
 TARGET = qspin
 TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
-    runspin.cpp \
-    runprocess.cpp
+        mainwindow.cpp
 
-HEADERS  += mainwindow.h \
-    runprocess.h
+HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui

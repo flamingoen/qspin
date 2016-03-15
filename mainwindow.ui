@@ -23,9 +23,12 @@
      </widget>
     </item>
     <item>
-     <widget class="QTextBrowser" name="log">
+     <widget class="QTextEdit" name="log">
       <property name="lineWrapMode">
        <enum>QTextEdit::NoWrap</enum>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
@@ -107,7 +110,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="verifyContent">
         <attribute name="title">

@@ -2,10 +2,11 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QFutureWatcher>
+#include <QtConcurrent/QtConcurrent>
 #include <QFileDialog>
 #include <stdlib.h>
 #include <sstream>
-#include <runprocess.h>
 
 namespace Ui {
 class MainWindow;
@@ -32,6 +33,9 @@ private slots:
     void runGuidedSimulation();
     void runVerify();
     void saveFile();
+    void runProcessFinished();
+    void runCompile();
+    void runPan();
 };
 
 #endif // MAINWINDOW_H

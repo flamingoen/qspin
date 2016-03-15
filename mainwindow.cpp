@@ -1,13 +1,12 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "runspin.cpp"
 using namespace std;
 
 QString path;
 QString filename;
 QStatusBar *status;
-QTextBrowser *log;
 QTextEdit *editor;
+QTextEdit *outputLog;
 
 QRadioButton *radioSafety;
 QRadioButton *radioAcceptance;
@@ -22,14 +21,14 @@ QSpinBox *spinBoxHSize;
 QSpinBox *spinBoxSteps;
 QComboBox *comboChoice;
 
-runProcess process;
+QProcess *process;
+
+QFutureWatcher<QString> processWatcher;
 
 QFile file;
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
-{
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainWindow) {
+
     ui->setupUi(this);
 
     // ## Toolbar ##
@@ -67,20 +66,20 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // ## other ##
     status = this->findChild<QStatusBar *>("statusbar");
-    log = this->findChild<QTextBrowser *>("log");
+    outputLog = this->findChild<QTextEdit *>("log");
     editor = this->findChild<QTextEdit *>("editor");
+
+    process = new QProcess();
+    connect(process, SIGNAL(readyReadStandardOutput()), this, SLOT(runProcessFinished()));
 }
 
 MainWindow::~MainWindow() {
-    process.terminate();
-    process.runAndWait("rm",QStringList()<<filename+".trail");
+    process->start("rm",QStringList()<<filename+".trail");
     delete ui;
 }
 
 void MainWindow::loadFile() {
-    process.terminate();
-    if (filename!=NULL) process.runAndWait("rm",QStringList()<<filename+".trail");
-
+    if (filename!=NULL) process->start("rm",QStringList()<<filename+".trail");
     path = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Promela Files (*.pml)"));
     if (path!=NULL) {
         editor->clear();
@@ -121,44 +120,58 @@ void MainWindow::saveFile() {
 }
 
 void MainWindow::runRandomSimulation() {
-    process.terminate();
-    log->clear();
+    outputLog->clear();
     saveFile();
-    QString out = process.runGetOutput("spin",QStringList() << "-u200" << "-p" << "-g" << "-l" << path);
-    log->append(out);
+    process->start("spin",QStringList() << "-u200" << "-p" << "-g" << "-l" << path);
 }
 
-void MainWindow::runInteractiveSimulation(){
-    process.terminate();
-    log->clear();
+void MainWindow::runInteractiveSimulation() {
+    outputLog->clear();
     saveFile();
-    log->append(process.runGetOutputWaitForInput("spin",QStringList() << "-i" << path));
-}
-
-void MainWindow::runGuidedSimulation(){
-    process.terminate();
-    log->clear();
-    QString trailPath = path + ".trail";
-    process.runAndWait("cp" , QStringList() << filename+".trail" << trailPath);
-    log->append(process.runGetOutput("spin",QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "-u250" << path));
-    process.runAndWait("rm",QStringList() << trailPath);
+    process->start("spin",QStringList() << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "-i"  << path);
 }
 
 void MainWindow::runSubmitInteractiveSimulation() {
-    if (!process.finished()) {
-        log->append(process.runInputGetOutput(comboChoice->currentText()));
-    } else { process.terminate(); }
+    if (!process->state() == 0) {
+//        connect(process, SIGNAL(readyReadStandardOutput()), this, SLOT(runProcessFinished()));
+        QString cmd = comboChoice->currentText() + "\n";
+        process->write(cmd.toLatin1().data());
+    } else { process->terminate(); }
+}
+
+void MainWindow::runGuidedSimulation(){
+    outputLog->clear();
+    saveFile();
+    QString trailPath = path + ".trail";
+    process->start("cp" , QStringList() << filename+".trail" << trailPath);
+    process->waitForFinished();
+    process->start("spin",QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "-u250" << path);
+    process->waitForFinished(); // TODO: Udskift med signal
+    process->start("rm",QStringList() << trailPath);
 }
 
 void MainWindow::runVerify(){
-    process.terminate();
-    log->clear();
+    outputLog->clear();
     saveFile();
-    process.runAndWait("spin",QStringList()<<"-a" << path);
-    process.runAndWait("cc",getCompileOptions() << "pan.c");
-    QString out = process.runGetOutput("./pan",getRunOptions());
-    log->append(out);
-    status->showMessage("Validation: finished");
+    connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runCompile()));
+    status->showMessage("verification: Making model");
+    process->start("spin",QStringList()<<"-a" << path);
+}
+
+void MainWindow::runCompile(){
+    process = new QProcess();
+    connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runPan()));
+    if (process->state()==QProcess::NotRunning)
+        status->showMessage("verification: Compiling pan.c");
+        process->start("cc",getCompileOptions() << "pan.c");
+}
+
+void MainWindow::runPan(){
+    process = new QProcess();
+    connect(process, SIGNAL(readyReadStandardOutput()), this, SLOT(runProcessFinished()));
+    if (process->state()==QProcess::NotRunning)
+        status->showMessage("verification: Running verification");
+        process->start("./pan",getRunOptions());
 }
 
 QStringList MainWindow::getRunOptions() {
@@ -166,12 +179,12 @@ QStringList MainWindow::getRunOptions() {
 
     if (checkFair->isChecked()) {
         if (radioSafety->isChecked()) {
-            log->append("WARNING: Fairness only applicable for acceptance and liveness properties (ignored)");
+            outputLog->append("WARNING: Fairness only applicable for acceptance and liveness properties (ignored)");
         }
-        else                             out << "-f ";
+        else                                out << "-f ";
     }
-    if (radioAcceptance->isChecked())    out << "-a ";
-    else if (radioLiveness->isChecked()) out << "-l ";
+    if (radioAcceptance->isChecked())       out << "-a ";
+    else if (radioLiveness->isChecked())    out << "-l ";
 
     if (checkHSize->isChecked()) {
         stringstream ss;
@@ -188,4 +201,9 @@ QStringList MainWindow::getCompileOptions() {
     if (radioSafety->isChecked())            out <<"-DSAFTY ";
     else if (radioLiveness->isChecked())     out <<"-DNP ";
     return out << "-o" << "pan";
+}
+
+void MainWindow::runProcessFinished() {
+    outputLog->append(process->readAllStandardOutput());
+    status->showMessage("Finished");
 }
