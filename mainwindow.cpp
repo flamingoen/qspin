@@ -2,6 +2,20 @@
 #include "ui_mainwindow.h"
 using namespace std;
 
+
+#ifdef _WIN32
+    #define DELETE  "del"
+    #define SPIN  "spin\\spin.exe"
+    #define CCOMPILER "gcc"
+    #define COPY "COPY"
+#else
+    #define DELETE "rm"
+    #define SPIN "spin"
+    #define CCOMPILER "cc"
+    #define COPY "CP"
+#endif
+
+
 QString path;
 QString filename;
 QStatusBar *status;
@@ -32,8 +46,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     // ## Toolbar ##
     QAction *actionLoad = this->findChild<QAction *>("actionLoad");
     QAction *actionSave = this->findChild<QAction *>("actionSave");
+    QAction *actionAbort = this->findChild<QAction *>("actionAbort");
     connect(actionLoad, SIGNAL(triggered()) , this,SLOT(loadFile()));
     connect(actionSave, SIGNAL(triggered()) , this,SLOT(saveFile()));
+    connect(actionAbort, SIGNAL(triggered()),this,SLOT(terminateProcess()));
 
     // ## Verify tab ##
     QPushButton *verifyButton = this->findChild<QPushButton *>("buttonVerify");
@@ -66,17 +82,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     status = this->findChild<QStatusBar *>("statusbar");
     outputLog = this->findChild<QTextEdit *>("log");
     editor = this->findChild<QTextEdit *>("editor");
+
     Highlighter *promelaHighlighter = new Highlighter(editor->document());
-    resetProcess();
 }
 
 MainWindow::~MainWindow() {
-    process->start("rm",QStringList()<<filename+".trail");
+    process->start(DELETE,QStringList()<<filename+".trail");
     delete ui;
 }
 
 void MainWindow::loadFile() {
-    if (filename!=NULL) process->start("rm",QStringList()<<filename+".trail");
+    // TODO: Indsæt temporær filepath, når man åbner dialogen overskrives filepath til "" hvis ikke man vælger en ny fil.
+    if (filename!=NULL) process->start(DELETE,QStringList()<<filename+".trail");
     path = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Promela Files (*.pml)"));
     if (path!=NULL) {
         editor->clear();
@@ -118,12 +135,12 @@ void MainWindow::saveFile() {
 
 void MainWindow::runRandomSimulation() {
     prepareRun();
-    process->start("spin",QStringList() << "-u200" << "-p" << "-g" << "-l" << path);
+    process->start(SPIN,QStringList() << "-u200" << "-p" << "-g" << "-l" << path);
 }
 
 void MainWindow::runInteractiveSimulation() {
     prepareRun();
-    process->start("spin",QStringList() << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "-i"  << path);
+    process->start(SPIN,QStringList() << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "-i"  << path);
 }
 
 void MainWindow::runSubmitInteractiveSimulation() {
@@ -132,31 +149,33 @@ void MainWindow::runSubmitInteractiveSimulation() {
         process->write(cmd.toLatin1().data());
     } else { process->terminate(); }
 }
-
-// TODO: Burde vare delt op i signaler
+//TODO: Burde være delt op i signaler
 void MainWindow::runGuidedSimulation(){
-    prepareRun();
-    QString trailPath = path + ".trail";
-    process->start("cp" , QStringList() << filename+".trail" << trailPath);
+    prepareRun(); // TODO: Will try to save file if a file is not loaded and this button is pushed
+    QString trailPath = QDir::toNativeSeparators(path) + ".trail";
+    process->start(COPY , QStringList() << filename+".trail" << trailPath); //TODO: WINDOWS FUCKS UP WHEN LOOKING FOR TRAIL FILE
+    outputLog->setText(COPY+ filename+".trail" + trailPath);
     process->waitForFinished();
-    process->start("spin",QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "-u250" << path);
-    process->waitForFinished();
-    process->start("rm",QStringList() << trailPath);
+    process->start(SPIN,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "-u250" << path);
+    process->waitForFinished(); // TODO: Udskift med signal
+    process->start(DELETE,QStringList() << trailPath);
 }
 
 void MainWindow::runVerify(){
-    prepareRun(false);
+    prepareRun();
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runCompile()));
     status->showMessage("verification: Making model");
-    process->start("spin",QStringList()<<"-a" << path);
+    outputLog->setText(SPIN);
+    process->start(SPIN,QStringList()<<"-a" << path);
 }
 
 void MainWindow::runCompile(){
+    // BUG: If you change properties after clicking run verify it fucks up.
     prepareRun(false);
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runPan()));
     if (process->state()==QProcess::NotRunning)
         status->showMessage("verification: Compiling pan.c");
-        process->start("cc",getCompileOptions() << "pan.c");
+        process->start(CCOMPILER,getCompileOptions() << "pan.c");
 }
 
 void MainWindow::runPan(){
@@ -200,14 +219,27 @@ void MainWindow::runProcessFinished() {
     status->showMessage("Finished");
 }
 
+
+
 void MainWindow::resetProcess() {
     process = new QProcess();
     connect(process, SIGNAL(readyReadStandardOutput()), this, SLOT(runProcessFinished()));
 }
+
 
 void MainWindow::prepareRun(bool clearLog){
     resetProcess();
     if (path==NULL) loadFile();
     saveFile();
     if (clearLog) outputLog->clear();
+}
+
+void MainWindow::terminateProcess(){
+    if(process != NULL){
+        process->disconnect();
+        outputLog->clear();
+        status->showMessage("Process killed.");
+        process->kill();
+    }
+
 }
