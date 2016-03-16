@@ -40,7 +40,7 @@
      <x>0</x>
      <y>0</y>
      <width>1047</width>
-     <height>27</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -443,6 +443,7 @@
    </attribute>
    <addaction name="actionLoad"/>
    <addaction name="actionSave"/>
+   <addaction name="actionAbort"/>
   </widget>
   <action name="actionLoad">
    <property name="icon">
@@ -472,6 +473,15 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionAbort">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../../../../../Program Files/Qt/Examples/Qt-5.4/widgets/tools/undo/icons/exit.png</normaloff>../../../../../../Program Files/Qt/Examples/Qt-5.4/widgets/tools/undo/icons/exit.png</iconset>
+   </property>
+   <property name="text">
+    <string>Abort</string>
    </property>
   </action>
  </widget>
