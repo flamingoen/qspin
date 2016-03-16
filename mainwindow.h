@@ -6,6 +6,8 @@
 #include <QFileDialog>
 #include <stdlib.h>
 #include <sstream>
+#include <QSyntaxHighlighter>
+#include "highlighter.h"
 
 namespace Ui {
 class MainWindow;

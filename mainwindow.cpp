@@ -66,7 +66,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     status = this->findChild<QStatusBar *>("statusbar");
     outputLog = this->findChild<QTextEdit *>("log");
     editor = this->findChild<QTextEdit *>("editor");
-
+    Highlighter *promelaHighlighter = new Highlighter(editor->document());
     resetProcess();
 }
 
