@@ -15,7 +15,7 @@ using namespace std;
 QString path;
 QString filename;
 QStatusBar *status;
-QTextEdit *editor;
+CodeEditor *editor;
 QTextEdit *outputLog;
 
 QRadioButton *radioSafety;
@@ -38,6 +38,7 @@ QFile file;
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainWindow) {
 
     ui->setupUi(this);
+    this->setWindowTitle("QSpin");
 
     // ## Toolbar ##
     QAction *actionLoad = this->findChild<QAction *>("actionLoad");
@@ -77,9 +78,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     // ## other ##
     status = this->findChild<QStatusBar *>("statusbar");
     outputLog = this->findChild<QTextEdit *>("log");
-    editor = this->findChild<QTextEdit *>("editor");
+    editor = (CodeEditor*) this->findChild<QPlainTextEdit *>("editor");
 
-    Highlighter *promelaHighlighter = new Highlighter(editor->document());
+    new Highlighter(editor->document());
 }
 
 MainWindow::~MainWindow() {
@@ -104,7 +105,7 @@ void MainWindow::loadFile() {
         } else {
             QTextStream in(&file);
             while(!in.atEnd()) {
-                editor->append(in.readLine());
+                editor->appendPlainText(in.readLine());
             }
             file.close();
             status->showMessage("File loaded: "+path);

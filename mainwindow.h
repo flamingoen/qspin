@@ -8,6 +8,7 @@
 #include <sstream>
 #include <QSyntaxHighlighter>
 #include "highlighter.h"
+#include "codeeditor.h"
 
 namespace Ui {
 class MainWindow;
