@@ -4,15 +4,11 @@ using namespace std;
 
 
 #ifdef _WIN32
-    #define DELETE  "del"
     #define SPIN  "spin\\spin.exe"
     #define CCOMPILER "gcc"
-    #define COPY "COPY"
 #else
-    #define DELETE "rm"
     #define SPIN "spin"
     #define CCOMPILER "cc"
-    #define COPY "CP"
 #endif
 
 
@@ -87,13 +83,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
 }
 
 MainWindow::~MainWindow() {
-    process->start(DELETE,QStringList()<<filename+".trail");
+    fileCleanup();
     delete ui;
 }
 
 void MainWindow::loadFile() {
     // TODO: Indsæt temporær filepath, når man åbner dialogen overskrives filepath til "" hvis ikke man vælger en ny fil.
-    if (filename!=NULL) process->start(DELETE,QStringList()<<filename+".trail");
+    if (filename!=NULL) fileCleanup();
     path = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Promela Files (*.pml)"));
     if (path!=NULL) {
         editor->clear();
@@ -153,25 +149,22 @@ void MainWindow::runSubmitInteractiveSimulation() {
 void MainWindow::runGuidedSimulation(){
     prepareRun(); // TODO: Will try to save file if a file is not loaded and this button is pushed
     QString trailPath = QDir::toNativeSeparators(path) + ".trail";
-    process->start(COPY , QStringList() << filename+".trail" << trailPath); //TODO: WINDOWS FUCKS UP WHEN LOOKING FOR TRAIL FILE
-    outputLog->setText(COPY+ filename+".trail" + trailPath);
-    process->waitForFinished();
+    QFile::copy(filename+".trail", trailPath);
+    connect(process,SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(fileCleanup()));
     process->start(SPIN,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "-u250" << path);
-    process->waitForFinished(); // TODO: Udskift med signal
-    process->start(DELETE,QStringList() << trailPath);
 }
 
 void MainWindow::runVerify(){
     prepareRun();
+    fileCleanup();
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runCompile()));
     status->showMessage("verification: Making model");
-    outputLog->setText(SPIN);
     process->start(SPIN,QStringList()<<"-a" << path);
 }
 
 void MainWindow::runCompile(){
     // BUG: If you change properties after clicking run verify it fucks up.
-    prepareRun(false);
+    prepareRun();
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runPan()));
     if (process->state()==QProcess::NotRunning)
         status->showMessage("verification: Compiling pan.c");
@@ -242,4 +235,15 @@ void MainWindow::terminateProcess(){
         process->kill();
     }
 
+}
+
+void MainWindow::fileCleanup(){
+    QDir dir(QDir::currentPath());
+    dir.setNameFilters(QStringList() << "pan*" << "*.trail");
+    dir.setFilter(QDir::Files);
+    dir.remove(path+".trail");
+    foreach(QString dirFile, dir.entryList())
+    {
+        dir.remove(dirFile);
+    }
 }

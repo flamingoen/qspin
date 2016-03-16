@@ -40,6 +40,7 @@ private slots:
     void runCompile();
     void runPan();
     void terminateProcess();
+    void fileCleanup();
 };
 
 #endif // MAINWINDOW_H
