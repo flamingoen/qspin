@@ -47,13 +47,26 @@ void VerificationRun::runPan(){
 }
 
 void VerificationRun::finishedVerification() {
-    currentOutput.append(process->readAllStandardOutput());
+    setOutput();
     emit finished();
 }
 
 void VerificationRun::readReadyVerification() {
-    currentOutput.append(process->readAllStandardOutput());
+    setOutput();
     emit readReady();
+}
+
+void VerificationRun::setOutput() {
+    QRegExp rx("error: max search depth too small");
+    QString newOutput = process->readAllStandardOutput();
+    if (newOutput.contains(rx)) {
+        if (searchDepth != -1) searchDepth += (searchDepth/2);
+        else searchDepth = 15000;
+        currentOutput.append("max search depth too small: restarting with new depth = "+QString::number(searchDepth));
+        runPan();
+    } else {
+        currentOutput.append(newOutput);
+    }
 }
 
 void VerificationRun::setStatus(QString status) {

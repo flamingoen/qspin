@@ -37,6 +37,7 @@ private:
     int hashSize;
 
     void setStatus(QString status);
+    void setOutput();
 
 signals:
     void readReady();
