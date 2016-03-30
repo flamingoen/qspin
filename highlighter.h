@@ -28,6 +28,7 @@ private:
     QTextCharFormat typeFormat;
     QTextCharFormat symbolFormat;
     QTextCharFormat numberFormat;
+    QTextCharFormat stringFormat;
 
     QRegExp commentStartExpression;
     QRegExp commentEndExpression;
@@ -38,6 +39,7 @@ private:
     void typeRules();
     void symbolRules();
     void numberRules();
+    void stringRules();
 };
 
 #endif // HIGHLIGHTER_H

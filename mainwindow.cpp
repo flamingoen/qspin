@@ -29,6 +29,7 @@ QCheckBox *checkHSize;
 
 QSpinBox *spinBoxHSize;
 QSpinBox *spinBoxSteps;
+QSpinBox *spinBoxSDepth;
 QComboBox *comboChoice;
 
 QProcess *process;
@@ -44,9 +45,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     QAction *actionLoad = this->findChild<QAction *>("actionLoad");
     QAction *actionSave = this->findChild<QAction *>("actionSave");
     QAction *actionAbort = this->findChild<QAction *>("actionAbort");
+    QAction *actionCheckSyntax = this->findChild<QAction *>("actionCheck_syntax");
     connect(actionLoad, SIGNAL(triggered()) , this,SLOT(loadFile()));
     connect(actionSave, SIGNAL(triggered()) , this,SLOT(saveFile()));
     connect(actionAbort, SIGNAL(triggered()),this,SLOT(terminateProcess()));
+    connect(actionCheckSyntax, SIGNAL(triggered()), this , SLOT(checkSyntax()));
 
     // ## Verify tab ##
     QPushButton *verifyButton = this->findChild<QPushButton *>("buttonVerify");
@@ -74,6 +77,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     radioDH4 = this->findChild<QRadioButton *>("radioDH4");
     checkHSize = this->findChild<QCheckBox *>("checkHashSize");
     spinBoxHSize = this->findChild<QSpinBox *>("spinBoxHashSize");
+    spinBoxSDepth = this->findChild<QSpinBox *>("spinBoxSearchDepth");
 
     // ## other ##
     status = this->findChild<QStatusBar *>("statusbar");
@@ -130,6 +134,31 @@ void MainWindow::saveFile() {
     }
 }
 
+void MainWindow::checkSyntax() {
+    prepareRun();
+    process->disconnect();
+    connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(checkSyntaxErrorHighlight()));
+    process->start(SPIN,QStringList() << "-a" << path.replace(" ","\\ "));
+}
+
+void MainWindow::checkSyntaxErrorHighlight() {
+    QString str = process->readAllStandardOutput();
+    QRegExp rxLine("spin: "+path+":(\\d+)");
+    QRegExp rxError("spin: "+path+":\\d+, Error:(\\D*)");
+    QStringList lineNoList;
+    QStringList errorList;
+    int pos = 0;
+    while ((pos = rxError.indexIn(str , (rxLine.indexIn(str, pos)) )) != -1) {
+        QString lineNo = rxLine.cap(1);
+        QString error = rxError.cap(1);
+        lineNoList << lineNo;
+        errorList << error;
+        outputLog->append("Error at line "+lineNo+": "+error);
+        pos += rxLine.matchedLength()+rxError.matchedLength();
+    }
+    editor->HighlightErrorLines(lineNoList);
+}
+
 void MainWindow::runRandomSimulation() {
     prepareRun();
     process->start(SPIN,QStringList() << "-u200" << "-p" << "-g" << "-l" << path);
@@ -146,13 +175,14 @@ void MainWindow::runSubmitInteractiveSimulation() {
         process->write(cmd.toLatin1().data());
     } else { process->terminate(); }
 }
+
 //TODO: Burde være delt op i signaler
 void MainWindow::runGuidedSimulation(){
     prepareRun(); // TODO: Will try to save file if a file is not loaded and this button is pushed
     QString trailPath = QDir::toNativeSeparators(path) + ".trail";
     QFile::copy(filename+".trail", trailPath);
     connect(process,SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(fileCleanup()));
-    process->start(SPIN,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "-u250" << path);
+    process->start(SPIN,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "-u250" << path.replace(" ","\\ "));
 }
 
 void MainWindow::runVerify(){
@@ -160,7 +190,7 @@ void MainWindow::runVerify(){
     fileCleanup();
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runCompile()));
     status->showMessage("verification: Making model");
-    process->start(SPIN,QStringList()<<"-a" << path);
+    process->start(SPIN,QStringList()<<"-a" << path.replace(" ","\\ "));
 }
 
 void MainWindow::runCompile(){
@@ -191,9 +221,15 @@ QStringList MainWindow::getRunOptions() {
     if (radioAcceptance->isChecked())       out << "-a ";
     else if (radioLiveness->isChecked())    out << "-l ";
 
+    if (spinBoxSDepth->value()!=10000) {
+        stringstream ss;
+        ss << "-m" << spinBoxSDepth->value();
+        out << QString::fromStdString(ss.str());
+    }
+
     if (checkHSize->isChecked()) {
         stringstream ss;
-        ss << "-w" << spinBoxHSize->value() << " ";
+        ss << "-w" << spinBoxHSize->value();
         out << QString::fromStdString(ss.str());
     }
     return out;
@@ -213,11 +249,14 @@ void MainWindow::runProcessFinished() {
     status->showMessage("Finished");
 }
 
-
+void MainWindow::runProcessReadReady() {
+    outputLog->append(process->readAllStandardOutput());
+}
 
 void MainWindow::resetProcess() {
     process = new QProcess();
-    connect(process, SIGNAL(readyReadStandardOutput()), this, SLOT(runProcessFinished()));
+    connect(process, SIGNAL(readyReadStandardOutput()), this, SLOT(runProcessReadReady()));
+    connect(process, SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(runProcessFinished()));
 }
 
 
@@ -235,7 +274,6 @@ void MainWindow::terminateProcess(){
         status->showMessage("Process killed.");
         process->kill();
     }
-
 }
 
 void MainWindow::fileCleanup(){

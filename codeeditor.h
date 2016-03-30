@@ -58,6 +58,7 @@ public:
     CodeEditor(QWidget *parent = 0);
 
     void lineNumberAreaPaintEvent(QPaintEvent *event);
+    void HighlightErrorLines(QStringList lineNos);
     int lineNumberAreaWidth();
 
 protected:

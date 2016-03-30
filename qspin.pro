@@ -16,10 +16,12 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     highlighter.cpp \
-    codeeditor.cpp
+    codeeditor.cpp \
+    verificationrun.cpp
 
 HEADERS  += mainwindow.h \
     highlighter.h \
-    codeeditor.h
+    codeeditor.h \
+    verificationrun.h
 
 FORMS    += mainwindow.ui

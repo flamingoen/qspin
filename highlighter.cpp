@@ -6,6 +6,7 @@ Highlighter::Highlighter(QTextDocument *parent) : QSyntaxHighlighter(parent) {
     typeRules();
     symbolRules();
     numberRules();
+    stringRules();
     commentRules();
 }
 
@@ -156,7 +157,15 @@ void Highlighter::symbolRules() {
 void Highlighter::numberRules() {
     HighlightingRule rule;
     numberFormat.setForeground(Qt::darkRed);
-    rule.pattern = QRegExp("[0-9]+");
+    rule.pattern = QRegExp("\\b[0-9]+\\b");
     rule.format = numberFormat;
+    highlightingRules.append(rule);
+}
+
+void Highlighter::stringRules() {
+    HighlightingRule rule;
+    stringFormat.setForeground(Qt::darkYellow);
+    rule.pattern = QRegExp("([\"][^\n]*[\"])");
+    rule.format = stringFormat;
     highlightingRules.append(rule);
 }

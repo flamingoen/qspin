@@ -60,6 +60,18 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
+   <property name="minimumSize">
+    <size>
+     <width>272</width>
+     <height>238</height>
+    </size>
+   </property>
+   <property name="baseSize">
+    <size>
+     <width>600</width>
+     <height>0</height>
+    </size>
+   </property>
    <property name="features">
     <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
    </property>
@@ -70,9 +82,45 @@
     <number>1</number>
    </attribute>
    <widget class="QWidget" name="editorContent">
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="baseSize">
+     <size>
+      <width>0</width>
+      <height>0</height>
+     </size>
+    </property>
     <layout class="QGridLayout" name="gridLayout">
      <item row="0" column="1">
-      <widget class="codeeditor" name="editor">
+      <widget class="CodeEditor" name="editor">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="sizeIncrement">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="baseSize">
+        <size>
+         <width>600</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="font">
         <font>
          <family>Source Code Pro</family>
@@ -80,6 +128,9 @@
        </property>
        <property name="lineWrapMode">
         <enum>QPlainTextEdit::NoWrap</enum>
+       </property>
+       <property name="tabStopWidth">
+        <number>8</number>
        </property>
       </widget>
      </item>
@@ -202,6 +253,16 @@
               </property>
              </widget>
             </item>
+            <item row="4" column="0">
+             <widget class="QRadioButton" name="radioNoMem">
+              <property name="text">
+               <string>&amp;No Memory Compression</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
             <item row="5" column="0">
              <widget class="QRadioButton" name="radioDCOLLAPSE">
               <property name="text">
@@ -225,15 +286,38 @@
               </property>
              </widget>
             </item>
-            <item row="4" column="0">
-             <widget class="QRadioButton" name="radioNoMem">
-              <property name="text">
-               <string>&amp;No Memory Compression</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
+            <item row="8" column="0">
+             <layout class="QHBoxLayout" name="horizontalLayout_5">
+              <item>
+               <widget class="QLabel" name="SearchDepth">
+                <property name="text">
+                 <string>Search Depth</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="spinBoxSearchDepth">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimum">
+                 <number>0</number>
+                </property>
+                <property name="maximum">
+                 <number>100000000</number>
+                </property>
+                <property name="singleStep">
+                 <number>100</number>
+                </property>
+                <property name="value">
+                 <number>10000</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </widget>
@@ -441,6 +525,7 @@
    <addaction name="actionLoad"/>
    <addaction name="actionSave"/>
    <addaction name="actionAbort"/>
+   <addaction name="actionCheck_syntax"/>
   </widget>
   <action name="actionLoad">
    <property name="icon">
@@ -481,10 +566,18 @@
     <string>Abort</string>
    </property>
   </action>
+  <action name="actionCheck_syntax">
+   <property name="text">
+    <string>Check syntax</string>
+   </property>
+   <property name="toolTip">
+    <string>Check syntax of the promela code</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>codeeditor</class>
+   <class>CodeEditor</class>
    <extends>QPlainTextEdit</extends>
    <header>codeeditor.h</header>
   </customwidget>

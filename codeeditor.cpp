@@ -107,6 +107,29 @@ void CodeEditor::highlightCurrentLine() {
     setExtraSelections(extraSelections);
 }
 
+void CodeEditor::HighlightErrorLines(QStringList lineNos) {
+    QList<QTextEdit::ExtraSelection> extraSelections;
+
+    foreach(QString lineNo, lineNos) {
+        QTextEdit::ExtraSelection selection;
+
+        QColor lineColor = QColor(Qt::red);
+        QTextCursor cursor(this->document());
+
+        selection.format.setBackground(lineColor);
+        selection.format.setProperty(QTextFormat::FullWidthSelection,true);
+
+        for (int i=1 ; i<lineNo.toInt() ; i++) {
+            cursor.movePosition(QTextCursor::Down);
+        }
+
+        selection.cursor = cursor;
+        extraSelections.append(selection);
+    }
+
+    setExtraSelections(extraSelections);
+}
+
 void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event) {
     QPainter painter(lineNumberArea);
     QColor rectColor = QColor(Qt::gray).lighter(140);

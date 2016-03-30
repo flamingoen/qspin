@@ -14,8 +14,7 @@ namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
@@ -38,10 +37,13 @@ private slots:
     void runVerify();
     void saveFile();
     void runProcessFinished();
+    void runProcessReadReady();
     void runCompile();
     void runPan();
     void terminateProcess();
     void fileCleanup();
+    void checkSyntax();
+    void checkSyntaxErrorHighlight();
 };
 
 #endif // MAINWINDOW_H
