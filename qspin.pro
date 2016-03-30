@@ -17,11 +17,13 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     highlighter.cpp \
     codeeditor.cpp \
-    verificationrun.cpp
+    verificationrun.cpp \
+	verificationoutput.cpp
 
 HEADERS  += mainwindow.h \
     highlighter.h \
     codeeditor.h \
-    verificationrun.h
+    verificationrun.h \
+	verificationoutput.h
 
 FORMS    += mainwindow.ui
