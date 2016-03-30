@@ -5,6 +5,7 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QFileDialog>
 #include <stdlib.h>
+#include <iostream>
 #include <sstream>
 #include <QSyntaxHighlighter>
 #include "highlighter.h"
@@ -27,7 +28,7 @@ private:
     QStringList getRunOptions();
     QStringList getCompileOptions();
     void resetProcess();
-    void prepareRun(bool clearLog=true);
+    bool prepareRun(bool clearLog=true);
     VerificationRun::VerificationType verificationType();
     int searchDepth();
     int hashSize();
@@ -49,6 +50,8 @@ private slots:
     void verificationFinished();
     void verificationReadReady();
     void verificationStatusChange();
+	void processVerificationOutput(QString output);
+    void updateVerificationTab();
 };
 
 #endif // MAINWINDOW_H

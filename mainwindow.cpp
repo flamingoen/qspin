@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "verificationoutput.h"
 using namespace std;
 
 
@@ -37,10 +38,69 @@ VerificationRun* verification;
 
 QFile file;
 
+
+// Verification tab
+QLabel *spinVerLabel;
+QLabel *evalLabel;
+QLabel *partialLabel;
+QLabel *neverLabel;
+QLabel *assertionLabel;
+QLabel *acceptanceLabel;
+QLabel *invalidLabel;
+
+QLabel * errorLabel;
+QLabel * depthLabel;
+QLabel * storedstatesLabel;
+QLabel * matchedstatesLabel;
+QLabel * transitionLabel;
+QLabel * atomicLabel;
+QLabel * statesizeLabel;
+QLabel * hashconflictsLabel;
+QLabel * hashsizeLabel;
+
+VerificationOutput *verificationOutput;
+
+
+bool newVerification = false;
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainWindow) {
 
     ui->setupUi(this);
     this->setWindowTitle("QSpin");
+
+    // ## Verification Tab ##
+    verificationOutput = new VerificationOutput();
+
+    //Setting font of groupbox titles
+    QGroupBox *statespaceprop = this->findChild<QGroupBox *>("groupBox_4");
+    statespaceprop->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox, thereby the labels won't suffer the effect of the change in the parents stylesheet.
+    QGroupBox *statespacespecs = this->findChild<QGroupBox *>("groupBox_5");
+    statespacespecs->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox, thereby the labels won't suffer the effect of the change in the parents stylesheet.
+
+
+    // Connecting to objects
+
+    //Statespaceprop groupbox
+    spinVerLabel = this->findChild<QLabel *>("spinVerLabel");
+    evalLabel = this->findChild<QLabel *>("evalLabel");
+    partialLabel = this->findChild<QLabel *>("partialLabel");
+    neverLabel = this->findChild<QLabel *>("neverLabel");
+    assertionLabel = this->findChild<QLabel *>("assertionLabel");
+    acceptanceLabel = this->findChild<QLabel *>("acceptanceLabel");
+    invalidLabel = this->findChild<QLabel *>("invalidLabel");
+
+    // Statespacespec groupbox
+    errorLabel = this->findChild<QLabel *>("errorLabel");
+    depthLabel = this->findChild<QLabel *>("depthLabel");
+    storedstatesLabel = this->findChild<QLabel *>("storedstatesLabel");
+    matchedstatesLabel = this->findChild<QLabel *>("matchedstatesLabel");
+    transitionLabel = this->findChild<QLabel *>("transitionLabel");
+    atomicLabel = this->findChild<QLabel *>("atomicLabel");
+    statesizeLabel = this->findChild<QLabel *>("statesizeLabel");
+    hashconflictsLabel = this->findChild<QLabel *>("hashconflictsLabel");
+    hashsizeLabel = this->findChild<QLabel *>("hashsizeLabel");
+
+
 
     // ## Toolbar ##
     QAction *actionLoad = this->findChild<QAction *>("actionLoad");
@@ -116,13 +176,13 @@ void MainWindow::loadFile() {
             status->showMessage("File loaded: "+path);
         }
     } else {
-        status->showMessage("No file choosen");
+        status->showMessage("No file chosen");
     }
 }
 
 void MainWindow::saveFile() {
     if (path==NULL) {
-        path = QFileDialog::getSaveFileName(this, tr("Open File"),"",tr("Promela Files (*.pml)"));
+        path = QFileDialog::getSaveFileName(this, tr("Save File"),"",tr("Promela Files (*.pml)"));
     }
     QFile file(path);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -231,12 +291,14 @@ QStringList MainWindow::getCompileOptions() {
 }
 
 void MainWindow::runProcessFinished() {
-    outputLog->append(process->readAllStandardOutput());
+    QString output = process->readAllStandardOutput();
+    outputLog->append(output);
     status->showMessage("Finished");
 }
 
 void MainWindow::verificationFinished() {
     outputLog->append(verification->readOutput());
+    processVerificationOutput(outputLog->toPlainText());
     status->showMessage("Finished");
 }
 
@@ -259,11 +321,18 @@ void MainWindow::resetProcess() {
 }
 
 
-void MainWindow::prepareRun(bool clearLog){
+bool MainWindow::prepareRun(bool clearLog){
     resetProcess();
     if (path==NULL) loadFile();
-    saveFile();
-    if (clearLog) outputLog->clear();
+    if (path!=NULL){
+        saveFile();
+        if (clearLog) outputLog->clear();
+        return true;
+    }else{
+        if (clearLog) outputLog->clear();
+        return false;
+    }
+
 }
 
 void MainWindow::terminateProcess(){
@@ -284,4 +353,43 @@ void MainWindow::fileCleanup(){
     {
         dir.remove(dirFile);
     }
+}
+
+void MainWindow::processVerificationOutput(QString output){
+
+    verificationOutput->processVerification(output);
+
+    updateVerificationTab();
+
+}
+
+void MainWindow::updateVerificationTab(){
+    // SPINVERSIONLABEL
+    spinVerLabel->setText(verificationOutput->spinVer);
+    // EVALUATIONLABEL
+    evalLabel->setStyleSheet("background-color: " + verificationOutput->eval+ ";");
+
+    // STATESPACE PROP
+    // PARTIAL ORDER REDUCTION LABEL
+    partialLabel->setText("Partial order reduction: " + verificationOutput->partial);
+    // NEVER CLAIM LABEL
+    neverLabel->setText("Never claim: "+ verificationOutput->never);
+    // ASSERTION LABEL
+    assertionLabel->setText("Assertion violations: "+ verificationOutput->assertion);
+    //ACCEPTANCE LABEL
+    acceptanceLabel->setText(verificationOutput->acceptanceType+" cycles: " + verificationOutput->acceptance);
+    //INVALID END STATES LABEL
+    invalidLabel->setText("Invalid end states: " + verificationOutput->invalid);
+
+    // STATESPACE SPECS
+    errorLabel->setText("Errors: " + verificationOutput->errors);
+    depthLabel->setText("Depth reached: " + verificationOutput->depth);
+    storedstatesLabel->setText("Stored states: " + verificationOutput->storedStates);
+    matchedstatesLabel->setText("Matched states: " + verificationOutput->matchedStates);
+    transitionLabel->setText("Transitions taken: " + verificationOutput->transitions);
+    atomicLabel->setText("Atomic steps: " + verificationOutput->atomic);
+    statesizeLabel->setText("State size (bytes): " + verificationOutput->statesize);
+    hashconflictsLabel->setText("Hash conflicts: " + verificationOutput->hashconflict);
+    hashsizeLabel->setText("Hash size: " + verificationOutput->hashsize);
+
 }
