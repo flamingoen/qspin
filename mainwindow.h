@@ -5,7 +5,9 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QFileDialog>
 #include <stdlib.h>
+#include <iostream>
 #include <sstream>
+#include <QStandardItemModel>
 
 namespace Ui {
 class MainWindow;
@@ -24,7 +26,8 @@ private:
     QStringList getRunOptions();
     QStringList getCompileOptions();
     void resetProcess();
-    void prepareRun(bool clearLog=true);
+    bool prepareRun(bool clearLog=true);
+
 
 private slots:
     void loadFile();
@@ -38,6 +41,9 @@ private slots:
     void runCompile();
     void runPan();
     void terminateProcess();
+    void processVerificationOutput(QString output);
+    void updateVerificationTab();
+
 };
 
 #endif // MAINWINDOW_H

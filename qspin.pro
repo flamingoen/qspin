@@ -14,8 +14,10 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    verificationoutput.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    verificationoutput.h
 
 FORMS    += mainwindow.ui
