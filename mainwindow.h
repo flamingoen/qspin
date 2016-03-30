@@ -9,6 +9,7 @@
 #include <QSyntaxHighlighter>
 #include "highlighter.h"
 #include "codeeditor.h"
+#include "verificationrun.h"
 
 namespace Ui {
 class MainWindow;
@@ -27,6 +28,9 @@ private:
     QStringList getCompileOptions();
     void resetProcess();
     void prepareRun(bool clearLog=true);
+    VerificationRun::VerificationType verificationType();
+    int searchDepth();
+    int hashSize();
 
 private slots:
     void loadFile();
@@ -38,12 +42,13 @@ private slots:
     void saveFile();
     void runProcessFinished();
     void runProcessReadReady();
-    void runCompile();
-    void runPan();
     void terminateProcess();
     void fileCleanup();
     void checkSyntax();
     void checkSyntaxErrorHighlight();
+    void verificationFinished();
+    void verificationReadReady();
+    void verificationStatusChange();
 };
 
 #endif // MAINWINDOW_H

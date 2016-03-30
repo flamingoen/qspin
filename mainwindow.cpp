@@ -33,6 +33,7 @@ QSpinBox *spinBoxSDepth;
 QComboBox *comboChoice;
 
 QProcess *process;
+VerificationRun* verification;
 
 QFile file;
 
@@ -186,53 +187,38 @@ void MainWindow::runGuidedSimulation(){
 }
 
 void MainWindow::runVerify(){
-    prepareRun();
     fileCleanup();
-    connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runCompile()));
-    status->showMessage("verification: Making model");
-    process->start(SPIN,QStringList()<<"-a" << path.replace(" ","\\ "));
+    outputLog->clear();
+    verification = new VerificationRun(path, verificationType(),checkFair->isChecked(),getCompileOptions(),searchDepth(),hashSize());
+    QThread* thread = new QThread();
+    verification->moveToThread(thread);
+    connect(thread,SIGNAL(started()),verification,SLOT(start()));
+    connect(verification, SIGNAL(readReady()),this,SLOT(verificationReadReady()));
+    connect(verification, SIGNAL(finished()),this,SLOT(verificationFinished()));
+    connect(verification, SIGNAL(statusChanged()),this,SLOT(verificationStatusChange()));
+    //connect(verification, SIGNAL(finished()),this,SLOT(deleteLater()));
+    //connect(thread, SIGNAL(finished()),this,SLOT(deleteLater()));
+    thread->start();
 }
 
-void MainWindow::runCompile(){
-    // BUG: If you change properties after clicking run verify it fucks up.
-    prepareRun();
-    connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runPan()));
-    if (process->state()==QProcess::NotRunning)
-        status->showMessage("verification: Compiling pan.c");
-        process->start(CCOMPILER,getCompileOptions() << "pan.c");
+VerificationRun::VerificationType MainWindow::verificationType() {
+    if (radioAcceptance->isChecked())
+        return VerificationRun::Acceptance;
+    if (radioLiveness->isChecked())
+        return VerificationRun::Liveness;
+    else return VerificationRun::Safety;
 }
 
-void MainWindow::runPan(){
-    prepareRun();
-    if (process->state()==QProcess::NotRunning)
-        status->showMessage("verification: Running verification");
-        process->start("./pan",getRunOptions());
+int MainWindow::searchDepth() {
+    if (spinBoxSDepth->value()!=10000)
+        return spinBoxSDepth->value();
+    else return -1;
 }
 
-QStringList MainWindow::getRunOptions() {
-    QStringList out;
-
-    if (checkFair->isChecked()) {
-        if (radioSafety->isChecked()) {
-            outputLog->append("WARNING: Fairness only applicable for acceptance and liveness properties (ignored)");
-        }
-        else                                out << "-f ";
-    }
-    if (radioAcceptance->isChecked())       out << "-a ";
-    else if (radioLiveness->isChecked())    out << "-l ";
-
-    if (spinBoxSDepth->value()!=10000) {
-        stringstream ss;
-        ss << "-m" << spinBoxSDepth->value();
-        out << QString::fromStdString(ss.str());
-    }
-
-    if (checkHSize->isChecked()) {
-        stringstream ss;
-        ss << "-w" << spinBoxHSize->value();
-        out << QString::fromStdString(ss.str());
-    }
-    return out;
+int MainWindow::hashSize() {
+    if (checkHSize->isChecked())
+        return spinBoxHSize->value();
+    else return -1;
 }
 
 QStringList MainWindow::getCompileOptions() {
@@ -249,8 +235,21 @@ void MainWindow::runProcessFinished() {
     status->showMessage("Finished");
 }
 
+void MainWindow::verificationFinished() {
+    outputLog->append(verification->readOutput());
+    status->showMessage("Finished");
+}
+
 void MainWindow::runProcessReadReady() {
     outputLog->append(process->readAllStandardOutput());
+}
+
+void MainWindow::verificationReadReady() {
+    outputLog->append(verification->readOutput());
+}
+
+void MainWindow::verificationStatusChange() {
+    status->showMessage(verification->readStatus());
 }
 
 void MainWindow::resetProcess() {
