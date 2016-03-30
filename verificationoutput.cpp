@@ -15,6 +15,9 @@ VerificationOutput::VerificationOutput()
 }
 
 void VerificationOutput::processVerification(QString output){
+
+    std::cout<<output.toStdString() + " stds"  << std::endl;
+
     //TODO: Husk exception handling til at (især vores regex)
     //TODO: Laves der verificationOutput klasse, så husk at give timestamp så man kan se hvornår den sidste er kørt.
 
@@ -69,7 +72,6 @@ void VerificationOutput::processVerification(QString output){
     re.setPattern("(\\d*) states, stored");
     QRegularExpressionMatch storedStatesM = re.match(output);
     storedStates = storedStatesM.captured(1);
-    std::cout<<storedStates.toStdString() + " stds"  << std::endl;
 
     // MATCHED STATES
     re.setPattern("(\\d*) states, matched");

@@ -28,7 +28,7 @@ private:
     QStringList getRunOptions();
     QStringList getCompileOptions();
     void resetProcess();
-    void prepareRun(bool clearLog=true);
+    bool prepareRun(bool clearLog=true);
     VerificationRun::VerificationType verificationType();
     int searchDepth();
     int hashSize();

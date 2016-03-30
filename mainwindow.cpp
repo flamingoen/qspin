@@ -292,16 +292,13 @@ QStringList MainWindow::getCompileOptions() {
 
 void MainWindow::runProcessFinished() {
     QString output = process->readAllStandardOutput();
-    //if(newVerification){
-      //  newVerification = false;
-        processVerificationOutput(output);
-    //}
     outputLog->append(output);
     status->showMessage("Finished");
 }
 
 void MainWindow::verificationFinished() {
     outputLog->append(verification->readOutput());
+    processVerificationOutput(outputLog->toPlainText());
     status->showMessage("Finished");
 }
 
