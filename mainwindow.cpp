@@ -27,6 +27,7 @@ QRadioButton *radioDH4;
 
 QCheckBox *checkFair;
 QCheckBox *checkHSize;
+QCheckBox *checkOptDepth;
 
 QSpinBox *spinBoxHSize;
 QSpinBox *spinBoxSteps;
@@ -73,9 +74,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
 
     //Setting font of groupbox titles
     QGroupBox *statespaceprop = this->findChild<QGroupBox *>("groupBox_4");
-    statespaceprop->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox, thereby the labels won't suffer the effect of the change in the parents stylesheet.
+    statespaceprop->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox,
+                                                                                                    // thereby the labels won't suffer the effect of the change in the parents stylesheet.
     QGroupBox *statespacespecs = this->findChild<QGroupBox *>("groupBox_5");
-    statespacespecs->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox, thereby the labels won't suffer the effect of the change in the parents stylesheet.
+    statespacespecs->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox,
+                                                                                                     // thereby the labels won't suffer the effect of the change in the parents stylesheet.
 
 
     // Connecting to objects
@@ -139,6 +142,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     checkHSize = this->findChild<QCheckBox *>("checkHashSize");
     spinBoxHSize = this->findChild<QSpinBox *>("spinBoxHashSize");
     spinBoxSDepth = this->findChild<QSpinBox *>("spinBoxSearchDepth");
+    checkOptDepth = this->findChild<QCheckBox *>("checkOptimizeDepth");
 
     // ## other ##
     status = this->findChild<QStatusBar *>("statusbar");
@@ -248,17 +252,20 @@ void MainWindow::runGuidedSimulation(){
 
 void MainWindow::runVerify(){
     fileCleanup();
-    outputLog->clear();
-    verification = new VerificationRun(path, verificationType(),checkFair->isChecked(),getCompileOptions(),searchDepth(),hashSize());
-    QThread* thread = new QThread();
-    verification->moveToThread(thread);
-    connect(thread,SIGNAL(started()),verification,SLOT(start()));
-    connect(verification, SIGNAL(readReady()),this,SLOT(verificationReadReady()));
-    connect(verification, SIGNAL(finished()),this,SLOT(verificationFinished()));
-    connect(verification, SIGNAL(statusChanged()),this,SLOT(verificationStatusChange()));
-    //connect(verification, SIGNAL(finished()),this,SLOT(deleteLater()));
-    //connect(thread, SIGNAL(finished()),this,SLOT(deleteLater()));
-    thread->start();
+    if (prepareRun()) {
+        outputLog->clear();
+        verification = new VerificationRun(path, verificationType(),checkFair->isChecked(),getCompileOptions(),searchDepth(),hashSize());
+        QThread* thread = new QThread();
+        verification->moveToThread(thread);
+        connect(thread,SIGNAL(started()),verification,SLOT(start()));
+        connect(verification, SIGNAL(readReady()),this,SLOT(verificationReadReady()));
+        connect(verification, SIGNAL(finished()),this,SLOT(verificationFinished()));
+        //connect(verification, SIGNAL(finished()), thread, SLOT(quit()));
+        connect(verification, SIGNAL(statusChanged()),this,SLOT(verificationStatusChange()));
+        //connect(thread, SIGNAL(finished()),this,SLOT(deleteLater()));
+        // TODO garbage collection on verification
+        thread->start();
+    }
 }
 
 VerificationRun::VerificationType MainWindow::verificationType() {
@@ -299,6 +306,9 @@ void MainWindow::runProcessFinished() {
 void MainWindow::verificationFinished() {
     outputLog->append(verification->readOutput());
     processVerificationOutput(outputLog->toPlainText());
+    if (checkOptDepth->isChecked()) {
+        spinBoxSDepth->setValue((verificationOutput->depth).toInt()+10);
+    }
     status->showMessage("Finished");
 }
 
@@ -320,19 +330,13 @@ void MainWindow::resetProcess() {
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(runProcessFinished()));
 }
 
-
+// returns if there is a file to run or not
 bool MainWindow::prepareRun(bool clearLog){
     resetProcess();
-    if (path==NULL) loadFile();
-    if (path!=NULL){
-        saveFile();
-        if (clearLog) outputLog->clear();
-        return true;
-    }else{
-        if (clearLog) outputLog->clear();
-        return false;
-    }
-
+    if (path!=NULL) saveFile();
+    else loadFile();
+    if (clearLog) outputLog->clear();
+    return path!=NULL;
 }
 
 void MainWindow::terminateProcess(){

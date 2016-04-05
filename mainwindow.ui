@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="rawLog">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -550,6 +550,16 @@
                </widget>
               </item>
              </layout>
+            </item>
+            <item row="7" column="0">
+             <widget class="QCheckBox" name="checkOptimizeDepth">
+              <property name="text">
+               <string>Optimize depth</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>

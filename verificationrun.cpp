@@ -48,6 +48,7 @@ void VerificationRun::runPan(){
 
 void VerificationRun::finishedVerification() {
     setOutput();
+    //process->deleteLater();
     emit finished();
 }
 
