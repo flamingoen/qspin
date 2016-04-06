@@ -9,6 +9,10 @@ VerificationRun::VerificationRun(QString _path, VerificationType _type, bool _fa
     hashSize = _hashSize;
 }
 
+VerificationRun::~VerificationRun() {
+    process->deleteLater();
+}
+
 void VerificationRun::start(){
     process = new QProcess();
     currentOutput="";
@@ -26,8 +30,9 @@ void VerificationRun::runCompile(){
 
 void VerificationRun::runPan(){
     process = new QProcess();
-    connect(process,SIGNAL(readyReadStandardOutput()),this,SLOT(readReadyVerification()));
+    connect(process, SIGNAL(readyReadStandardOutput()),this,SLOT(readReadyVerification()));
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(finishedVerification()));
+    connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), process, SLOT(deleteLater()));
 
     QStringList runOptions;
     switch (type) {
@@ -47,13 +52,22 @@ void VerificationRun::runPan(){
 }
 
 void VerificationRun::finishedVerification() {
-    setOutput();
-    //process->deleteLater();
+    currentOutput.append(process->readAllStandardOutput());
     emit finished();
 }
 
 void VerificationRun::readReadyVerification() {
-    setOutput();
+    QRegExp rx("error: max search depth too small");
+    QString newOutput = process->readAllStandardOutput();
+    if (newOutput.contains(rx)) {
+        if (searchDepth != -1) searchDepth += (searchDepth/2);
+        else searchDepth = 15000;
+        currentOutput.append("max search depth too small: restarting with new depth = "+QString::number(searchDepth));
+        process->disconnect();
+        runPan();
+    } else {
+        currentOutput.append(newOutput);
+    }
     emit readReady();
 }
 

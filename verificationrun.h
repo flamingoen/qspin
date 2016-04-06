@@ -20,6 +20,7 @@ public:
 
     enum VerificationType {Safety, Acceptance, Liveness};
     VerificationRun(QString _path, VerificationType _type, bool _fairness, QStringList _runOptions, int _searchDepth = -1, int _hashSize = -1);
+    ~VerificationRun();
     QString readOutput();
     QString readStatus();
 

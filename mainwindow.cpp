@@ -78,10 +78,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
                                                                                                     // thereby the labels won't suffer the effect of the change in the parents stylesheet.
     QGroupBox *statespacespecs = this->findChild<QGroupBox *>("groupBox_5");
     statespacespecs->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox,
-                                                                                                     // thereby the labels won't suffer the effect of the change in the parents stylesheet.
-
-
-    // Connecting to objects
+                                                                                                     // thereby the labels won't suffer the effect of the change in the parents stylesheet
+                                                                                                     // Connecting to objects
 
     //Statespaceprop groupbox
     spinVerLabel = this->findChild<QLabel *>("spinVerLabel");
@@ -102,8 +100,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     statesizeLabel = this->findChild<QLabel *>("statesizeLabel");
     hashconflictsLabel = this->findChild<QLabel *>("hashconflictsLabel");
     hashsizeLabel = this->findChild<QLabel *>("hashsizeLabel");
-
-
 
     // ## Toolbar ##
     QAction *actionLoad = this->findChild<QAction *>("actionLoad");
@@ -250,6 +246,7 @@ void MainWindow::runGuidedSimulation(){
     process->start(SPIN,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "-u250" << path.replace(" ","\\ "));
 }
 
+// BUG: Hvis man spammer verify knappen bliver gamle threads ikke lukker (memory leak)
 void MainWindow::runVerify(){
     fileCleanup();
     if (prepareRun()) {
@@ -260,10 +257,9 @@ void MainWindow::runVerify(){
         connect(thread,SIGNAL(started()),verification,SLOT(start()));
         connect(verification, SIGNAL(readReady()),this,SLOT(verificationReadReady()));
         connect(verification, SIGNAL(finished()),this,SLOT(verificationFinished()));
-        //connect(verification, SIGNAL(finished()), thread, SLOT(quit()));
+        connect(verification, SIGNAL(finished()), thread, SLOT(quit()));
         connect(verification, SIGNAL(statusChanged()),this,SLOT(verificationStatusChange()));
-        //connect(thread, SIGNAL(finished()),this,SLOT(deleteLater()));
-        // TODO garbage collection on verification
+        connect(thread, SIGNAL(finished()),thread,SLOT(deleteLater()));
         thread->start();
     }
 }
