@@ -3,10 +3,14 @@
 
 #include <QRegularExpression>
 #include <iostream>
+#include <QDateTime>
+
 class VerificationOutput
 {
 public:
     VerificationOutput();
+
+    QString timestamp;
 
     //STATESPACE SPECS
     QString spinVer ;
@@ -28,6 +32,12 @@ public:
     QString statesize;
     QString hashconflict;
     QString hashsize;
+
+    // MEMORY USAGE
+    QString statememory;
+    QString hashmemory;
+    QString DFSmemory;
+    QString totalmemory;
 
 
     void processVerification(QString output);

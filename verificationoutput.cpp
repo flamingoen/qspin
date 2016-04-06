@@ -5,21 +5,41 @@ VerificationOutput::VerificationOutput()
 {
     spinVer = "";
     eval = "RED";
-    never = "-";
-    acceptance = "-";
-    assertion = "-";
-    invalid = "-";
-    partial = "-";
+    never = "";
+    acceptance = "";
+    assertion = "";
+    invalid = "";
+    partial = "";
+
+    errors = "";
+    depth = "";
+    storedStates = "";
+    matchedStates = "";
+    transitions = "";
+    atomic = "";
+    statesize = "";
+    hashconflict = "";
+    hashsize = "";
+
+    // MEMORY USAGE
+    statememory = "";
+    hashmemory = "";
+    DFSmemory = "";
+    totalmemory = "";
 
 
 }
 
 void VerificationOutput::processVerification(QString output){
-
-    std::cout<<output.toStdString() + " stds"  << std::endl;
+    std::cout << "ADSJAIDF" << std::endl;
+    // TIMESTAMP
+    QDateTime * time = new QDateTime();
+    timestamp = (time->currentDateTimeUtc().toLocalTime()).toString();
 
     //TODO: Husk exception handling til at (især vores regex)
     //TODO: Laves der verificationOutput klasse, så husk at give timestamp så man kan se hvornår den sidste er kørt.
+    //TODO: SMID I TRY CATCH - hvis der sker en fejl, indsæt fejl i SPINVER label hvor der står at man bliver nødt til at bruge rawlog
+    //TODO: LAV LTL LISTE som man kan trykke på efter at man har kørt verify det starter ny kørsel med den trykkede LTL
 
     // SPIN VERSION
     QRegularExpression re("(Spin Version .+)\\)");
@@ -27,21 +47,26 @@ void VerificationOutput::processVerification(QString output){
     spinVer = spinVerM.captured(1);
 
     // EVALUATION
+    re.setPattern("Warning");
+    QRegularExpressionMatch warningM = re.match(output);
+
     re.setPattern("errors: (\\d)");
     QRegularExpressionMatch evalM = re.match(output);
-    if(evalM.captured(1) == "0"){
+    if(evalM.captured(1) == "0" && !warningM.hasMatch()){
         eval = "GREEN";
+    }else if (evalM.captured(1) == "0" && warningM.hasMatch()){
+        eval = "YELLOW";
     }else{
-        eval = "RED";
+        eval ="RED";
     }
 
-    // STATESPACEPROP
+    // STATESPACEPROP *******************************************************************************************************'
     re.setPattern("([-+])\\s*Partial Order Reduction");
     QRegularExpressionMatch partialM = re.match(output);
     partial = partialM.captured(1);
 
 
-    re.setPattern("never\\s*claim\\s* (.+)");
+    re.setPattern("never\\s*claim\\s*(.+)");
     QRegularExpressionMatch neverM = re.match(output);
     never = neverM.captured(1);
 
@@ -58,7 +83,7 @@ void VerificationOutput::processVerification(QString output){
     QRegularExpressionMatch invalidM = re.match(output);
     invalid = invalidM.captured(1);
 
-    // STATESPACESPECS
+    // STATESPACESPECS ***************************************************************************************************
     // ERRORS - already used in the evaluation above.
     errors = evalM.captured(1);
 
@@ -99,13 +124,30 @@ void VerificationOutput::processVerification(QString output){
     hashconflict = hashconflictM.captured(1);
 
     // HASH SIZE
-    re.setPattern("max size (2\\^\\d*) states");
+    re.setPattern("memory used for hash table \\(-w(\\d+)\\)");
     QRegularExpressionMatch hashsizeM = re.match(output);
     hashsize = hashsizeM.captured(1);
 
+    // Memory usage **********************************************************************************
 
+    //STATE MEMORY
+    re.setPattern("(\\d+\\.\\d+)\\s+actual\\s+memory\\s+usage\\s+for\\s+states");
+    QRegularExpressionMatch statememoryM = re.match(output);
+    statememory = statememoryM.captured(1);
 
+    //HASH MEMORY
+    re.setPattern("(\\d+\\.\\d+)\\s+memory\\s+used\\s+for\\s+hash\\s+table");
+    QRegularExpressionMatch hashmemoryM = re.match(output);
+    hashmemory = hashmemoryM.captured(1);
 
+    //DFS MEMORY
+    re.setPattern("(\\d+\\.\\d+)\\s+memory\\s+used\\s+for\\s+DFS\\s+stack");
+    QRegularExpressionMatch DFSmemoryM = re.match(output);
+    DFSmemory = DFSmemoryM.captured(1);
 
+    //TOTAL MEMORY
+    re.setPattern("(\\d+\\.\\d+)\\s+total\\s+actual\\s+memory\\s+usage");
+    QRegularExpressionMatch totalmemoryM = re.match(output);
+    totalmemory = totalmemoryM.captured(1);
 
 }

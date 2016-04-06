@@ -85,12 +85,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
                                                                                                     // thereby the labels won't suffer the effect of the change in the parents stylesheet.
     QGroupBox *statespacespecs = this->findChild<QGroupBox *>("groupBox_5");
     statespacespecs->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox,
+<<<<<<< HEAD
+                                                                                                     // thereby the labels won't suffer the effect of the change in the parents stylesheet
+                                                                                                     // Connecting to objects
+=======
                                                                                                      // thereby the labels won't suffer the effect of the change in the parents stylesheet.
     QGroupBox *memoryusage = this->findChild<QGroupBox *>("groupBox_6");
     memoryusage->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } ");    // The stylesheet is not inherited to children of the QGroupBox,
                                                                                                      // thereby the labels won't suffer the effect of the change in the parents stylesheet.
 
     // Connecting to objects
+>>>>>>> verificationOutput2
 
     //Statespaceprop groupbox
     spinVerLabel = this->findChild<QLabel *>("spinVerLabel");
@@ -112,6 +117,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     hashconflictsLabel = this->findChild<QLabel *>("hashconflictsLabel");
     hashsizeLabel = this->findChild<QLabel *>("hashsizeLabel");
 
+<<<<<<< HEAD
+=======
     // Memory usage groupbox
     statememoryLabel = this->findChild<QLabel *>("statememoryLabel");
     hashmemoryLabel = this->findChild<QLabel *>("hashmemoryLabel");
@@ -120,6 +127,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
 
     timestampLabel = this->findChild<QLabel *>("timestampLabel");
 
+>>>>>>> verificationOutput2
     // ## Toolbar ##
     QAction *actionLoad = this->findChild<QAction *>("actionLoad");
     QAction *actionSave = this->findChild<QAction *>("actionSave");
