@@ -59,6 +59,13 @@ QLabel * statesizeLabel;
 QLabel * hashconflictsLabel;
 QLabel * hashsizeLabel;
 
+QLabel * statememoryLabel;
+QLabel * hashmemoryLabel;
+QLabel * DFSmemoryLabel;
+QLabel * totalmemoryLabel;
+
+QLabel * timestampLabel;
+
 VerificationOutput *verificationOutput;
 
 
@@ -79,7 +86,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     QGroupBox *statespacespecs = this->findChild<QGroupBox *>("groupBox_5");
     statespacespecs->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox,
                                                                                                      // thereby the labels won't suffer the effect of the change in the parents stylesheet.
-
+    QGroupBox *memoryusage = this->findChild<QGroupBox *>("groupBox_6");
+    memoryusage->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } ");    // The stylesheet is not inherited to children of the QGroupBox,
+                                                                                                     // thereby the labels won't suffer the effect of the change in the parents stylesheet.
 
     // Connecting to objects
 
@@ -103,7 +112,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     hashconflictsLabel = this->findChild<QLabel *>("hashconflictsLabel");
     hashsizeLabel = this->findChild<QLabel *>("hashsizeLabel");
 
+    // Memory usage groupbox
+    statememoryLabel = this->findChild<QLabel *>("statememoryLabel");
+    hashmemoryLabel = this->findChild<QLabel *>("hashmemoryLabel");
+    DFSmemoryLabel = this->findChild<QLabel *>("DFSmemoryLabel");
+    totalmemoryLabel = this->findChild<QLabel *>("totalmemoryLabel");
 
+    timestampLabel = this->findChild<QLabel *>("timestampLabel");
 
     // ## Toolbar ##
     QAction *actionLoad = this->findChild<QAction *>("actionLoad");
@@ -394,6 +409,15 @@ void MainWindow::updateVerificationTab(){
     atomicLabel->setText("Atomic steps: " + verificationOutput->atomic);
     statesizeLabel->setText("State size (bytes): " + verificationOutput->statesize);
     hashconflictsLabel->setText("Hash conflicts: " + verificationOutput->hashconflict);
-    hashsizeLabel->setText("Hash size: " + verificationOutput->hashsize);
+    hashsizeLabel->setText("Hash size: 2^" + verificationOutput->hashsize);
+
+    // MEMORY USAGE
+    statememoryLabel->setText("Memory usage for states: " + verificationOutput->statememory);
+    hashmemoryLabel->setText("Memory usage for hash table: " + verificationOutput->hashmemory);
+    DFSmemoryLabel->setText("Memory usage for DFS stack: " + verificationOutput->DFSmemory);
+    totalmemoryLabel->setText("Total memory usage: " + verificationOutput->totalmemory);
+
+    timestampLabel->setText(verificationOutput->timestamp);
+    //TODO: INDSÆT LABEL MED NAVN PÅ FIL
 
 }
