@@ -45,16 +45,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     totalmemoryLabel = this->findChild<QLabel *>("totalmemoryLabel");
 
     timestampLabel = this->findChild<QLabel *>("timestampLabel");
+    ltlList = this->findChild<QListWidget *>("ltlList");
 
     // ## Toolbar ##
     QAction *actionLoad = this->findChild<QAction *>("actionLoad");
     QAction *actionSave = this->findChild<QAction *>("actionSave");
     QAction *actionAbort = this->findChild<QAction *>("actionAbort");
     QAction *actionCheckSyntax = this->findChild<QAction *>("actionCheck_syntax");
+    QAction *actionLoad_Ltl = this->findChild<QAction *>("actionLoad_Ltl");
+
     connect(actionLoad, SIGNAL(triggered()) , this,SLOT(loadFile()));
     connect(actionSave, SIGNAL(triggered()) , this,SLOT(saveFile()));
     connect(actionAbort, SIGNAL(triggered()),this,SLOT(terminateProcess()));
     connect(actionCheckSyntax, SIGNAL(triggered()), this , SLOT(checkSyntax()));
+    connect(actionLoad_Ltl, SIGNAL(triggered()), this, SLOT(loadLTLfile()));
 
     // ## Verify tab ##
     QPushButton *verifyButton = this->findChild<QPushButton *>("buttonVerify");
@@ -64,6 +68,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     radioLiveness = this->findChild<QRadioButton *>("radioLiveness");
     checkFair = this->findChild<QCheckBox *>("checkFairness");
     connect(verifyButton, SIGNAL(clicked()) , this, SLOT(runVerify()));
+    newltlButton = this->findChild<QPushButton *>("newltlButton");
+
+    connect(newltlButton,SIGNAL(clicked()),this,SLOT(newLtl()));
+   // connect(ltlList,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(runVerify())); TODO:Bør vi verificere på dobbeltklik?
 
     // ## Simulation tab
     QPushButton *buttonRandomSim = this->findChild<QPushButton *>("buttonRandomSim");
@@ -127,7 +135,47 @@ void MainWindow::loadFile() {
     }
 }
 
+void MainWindow::loadLTLfile(){
+    // TODO: Indsæt temporær filepath, når man åbner dialogen overskrives filepath til "" hvis ikke man vælger en ny fil.
+    LTLpath = QFileDialog::getOpenFileName(this, tr("Open LTL File"),"",tr("LTL Files (*.ltl)"));
+    if (LTLpath!=NULL) {
+        QFile LTLfile(LTLpath);
+
+        QRegExp rx("/((([a-z]|[A-Z]|\\d)+).ltl)");
+        rx.indexIn(LTLpath);
+        filename = rx.cap(1);
+
+        if (!LTLfile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        status->showMessage("Failed to open "+LTLpath);
+        } else {
+            QTextStream in(&LTLfile);
+            while(!in.atEnd()) {
+                //std::cout << in.readLine().toStdString() << std::endl;
+                //ltlList->addItem(in.readLine());
+                QString currentLine = in.readLine();
+                bool breakout = false;
+                for (int i = 0; i < ltlList->count(); i++){
+                    if(ltlList->item(i)->text() == currentLine )
+                         breakout = true;
+                }
+
+                //item->setFlags(item->flags() | Qt::ItemIsUserCheckable); // set checkable flag
+                //item->setCheckState(Qt::Unchecked); // AND initialize check state
+                if(!breakout){
+                    QListWidgetItem* item = new QListWidgetItem(currentLine, ltlList);
+                    item->setFlags(item->flags() | Qt::ItemIsEditable);
+                }
+            }
+            LTLfile.close();
+            status->showMessage("LTL file loaded: "+LTLpath);
+        }
+    } else {
+        status->showMessage("No file chosen");
+    }
+}
+
 void MainWindow::saveFile() {
+    //TODO: Implement functionality to save all LTL's in ltl file
     if (path==NULL) {
         path = QFileDialog::getSaveFileName(this, tr("Save File"),"",tr("Promela Files (*.pml)"));
     }
@@ -221,13 +269,38 @@ void MainWindow::runProcess(SpinRun* run){
     thread->start();
 }
 
+
+//QStringList MainWindow::getLtlOptions(){
+//    QStringList out;
+//    if (verificationType() == VerificationRun::Acceptance && ltlList->count()!=0){
+//        out << "-f ";
+//        for (int i = 0; i < ltlList->count(); i++){
+//            //if(ltlList->item(i)->checkState() == Qt::Checked){
+//              if(ltlList->item(i)->isSelected()){
+//                selectedLtl = i;
+//                QRegularExpression re1("(ltl\\s*.*{)");
+//                QRegularExpression re2("}");
+//                qDebug() << ltlList->item(i)->text();
+//                qDebug() << ltlList->item(i)->text().replace(re1,"(").replace(re2,")");
+//                out << ltlList->item(i)->text().replace(re1,"!(").replace(re2,")");
+//                // JEG STRIPPER NAVNGIVNINGEN, DET ER LIDT ÆRGERLIGT... MON MAN KAN TAGE DEN MED... OM IKKE ANDET, SÅ BARE CONCATENATE MED OUTPUT FOR NEVER CLAIM?
+//            }
+//        }
+//    }
+
+//    return out;
+
+//}
+
 void MainWindow::simulationStepForward() {
+
     if (spinRun->type==SpinRun::Simulation) {
 
     }
 }
 
 void MainWindow::simulationStepBackwards() {
+
     if (spinRun->type==SpinRun::Simulation) {
 
     }
@@ -277,6 +350,11 @@ void MainWindow::fileCleanup(){
     {
         dir.remove(dirFile);
     }
+}//TODO: DEN FATTER IKKE EN SKID HVIS MAN FORSØGER AT VERIFICERER TING DER IKKE GIVER MENING...
+
+void MainWindow::newLtl(){
+    QListWidgetItem *item = new QListWidgetItem("Insert new LTL formula here",ltlList);
+    item->setFlags(item->flags() | Qt::ItemIsEditable);
 }
 
 void MainWindow::processVerificationOutput(QString output){
@@ -320,6 +398,19 @@ void MainWindow::updateVerificationTab(){
     totalmemoryLabel->setText("Total memory usage: " + verificationOutput->totalmemory);
 
     timestampLabel->setText(verificationOutput->timestamp);
-    //TODO: INDSÆT LABEL MED NAVN PÅ FIL
 
+    //TODO: INDSÆT LABEL MED NAVN PÅ FIL
+    //IF LTL RUN, update ltl evaluation:
+    if(spinRun->type==SpinRun::Verification && ltlList->count() != 0){
+
+        if(verificationOutput->errors == "0"){
+           ltlList->item(selectedLtl)->setBackgroundColor(Qt::green);
+        }
+        else{
+            ltlList->item(selectedLtl)->setBackgroundColor(Qt::red);
+
+
+    }
+    }
 }
+//TODO: EN MÅDE AT IDENTIFICERE HVILKEN TYPE RUN VI LAVER, ER DET ACCEPTANCE ELLER HVAD ER DET, SKAL VI AUTOMATISK KØRE ACCEPTANCE  HVIS MAN DOBBELTKLIKKER EN LTL?

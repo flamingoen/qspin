@@ -1,10 +1,17 @@
 #include "verificationrun.h"
+<<<<<<< HEAD
 
 VerificationRun::VerificationRun(QString _path, VerificationType _type, bool _fairness, QStringList _compileOptions, int _searchDepth, int _hashSize) : SpinRun(_path , Verification){
     verificationType = _type;
+=======
+//FIXME: CANNOT TERMINATE PROCESS WHEN IT IS OPTIMIZING DEPTH
+VerificationRun::VerificationRun(QString _path, VerificationType _type, bool _fairness, QStringList _ltlOptions, QStringList _compileOptions, int _searchDepth, int _hashSize) {
+    path = _path;
+    type = _type;
+>>>>>>> Ltlfeature
     fairness = _fairness;
     compileOptions = _compileOptions;
-    //ltlOptions = _ltlOptions;
+    ltlOptions = _ltlOptions;
     searchDepth = _searchDepth;
     hashSize = _hashSize;
 }
@@ -34,7 +41,7 @@ void VerificationRun::runPan(){
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), process, SLOT(deleteLater()));
 
     QStringList runOptions;
-    switch (verificationType) {
+    switch (type) {
     case Safety:
         break;
     case Acceptance:    runOptions << "-a";

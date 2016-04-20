@@ -31,7 +31,6 @@ public:
 
 private:
 QString path;
-QString LTLpath;
 QString filename;
 QStatusBar *status;
 CodeEditor *editor;
@@ -58,8 +57,6 @@ QProcess *process;
 SpinRun *spinRun;
 
 QFile file;
-QFile LTLfile;
-int selectedLtl;
 
 // Verification tab
 QLabel *spinVerLabel;
@@ -88,8 +85,6 @@ QLabel * DFSmemoryLabel;
 QLabel * totalmemoryLabel;
 
 QLabel * timestampLabel;
-QListWidget *ltlList;
-QPushButton *newltlButton;
 
 VerificationOutput *verificationOutput;
 
@@ -99,13 +94,25 @@ bool newVerification = false;
     Ui::MainWindow *ui;
     QStringList getRunOptions();
     QStringList getCompileOptions();
+<<<<<<< HEAD
+=======
     QStringList getLtlOptions();
+    void resetProcess();
+>>>>>>> Ltlfeature
     bool prepareRun(bool clearLog=true);
     void runProcess(SpinRun* run);
 
 private slots:
     void loadFile();
-	void loadLTLfile();
+<<<<<<< HEAD
+=======
+    void loadLTLfile();
+    void runRandomSimulation();
+    void runInteractiveSimulation();
+    void runSubmitInteractiveSimulation();
+    void runGuidedSimulation();
+    void runVerify();
+>>>>>>> Ltlfeature
     void saveFile();
     void runVerify();
     void runSimulation();
@@ -118,9 +125,12 @@ private slots:
     void processStatusChange();
     void processVerificationOutput(QString output);
     void updateVerificationTab();
+<<<<<<< HEAD
     void simulationStepForward();
     void simulationStepBackwards();
-	void newLtl();
+=======
+    void newLtl();
+>>>>>>> Ltlfeature
 };
 
 #endif // MAINWINDOW_H

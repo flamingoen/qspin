@@ -11,11 +11,11 @@ class SimulationRun : public SpinRun {
     Q_ENUMS(SimulationType)
 
 public:
-    SimulationRun(QString _path, int _type, int _depth);
     enum SimulationType {Random, Interactive, Guided};
+    SimulationRun(QString _path, SimulationType _type, int _depth);
     void goForward(int steps=1 );
     void goBackwards(int steps=1);
-    int simulationType;
+    SimulationType simulationType;
 
 private:
     int depth;

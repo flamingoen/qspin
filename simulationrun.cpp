@@ -1,6 +1,6 @@
 #include "simulationrun.h"
 
-SimulationRun::SimulationRun(QString _path, int _type, int _depth) : SpinRun(_path , Simulation){
+SimulationRun::SimulationRun(QString _path, SimulationType _type, int _depth) : SpinRun(_path , Simulation){
     simulationType = _type;
     depth = _depth;
     QRegExp rx("/((([a-z]|[A-Z]|\\d)+).pml)");

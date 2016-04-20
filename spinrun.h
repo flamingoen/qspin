@@ -18,11 +18,11 @@ class SpinRun : public QObject{
 
 public:
     enum Type {Simulation,Verification};
-    SpinRun(QString _path, int _type);
+    SpinRun(QString _path, Type _type);
     QString readOutput();
     QString readStatus();
     void setStatus(QString status);
-    int type;
+    Type type;
 
 protected:
     QProcess* process;

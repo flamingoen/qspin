@@ -1,7 +1,7 @@
 #include "spinrun.h"
 #include "QObject"
 
-SpinRun::SpinRun(QString _path, int _type) {
+SpinRun::SpinRun(QString _path, Type _type) {
     path = _path;
     type = _type;
 }
