@@ -18,12 +18,16 @@ SOURCES += main.cpp\
     highlighter.cpp \
     codeeditor.cpp \
     verificationrun.cpp \
-	verificationoutput.cpp
+	verificationoutput.cpp \
+    simulationrun.cpp \
+    spinrun.cpp
 
 HEADERS  += mainwindow.h \
     highlighter.h \
     codeeditor.h \
     verificationrun.h \
-	verificationoutput.h
+	verificationoutput.h \
+    simulationrun.h \
+    spinrun.h
 
 FORMS    += mainwindow.ui
