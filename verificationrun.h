@@ -19,7 +19,7 @@ class VerificationRun : public QObject{
 public:
 
     enum VerificationType {Safety, Acceptance, Liveness};
-    VerificationRun(QString _path, VerificationType _type, bool _fairness, QStringList _runOptions, int _searchDepth = -1, int _hashSize = -1);
+    VerificationRun(QString _path, VerificationType _type, bool _fairness,QStringList _ltlOptions ,QStringList _runOptions, int _searchDepth = -1, int _hashSize = -1);
     ~VerificationRun();
     QString readOutput();
     QString readStatus();
@@ -34,6 +34,7 @@ private:
     int type;
     bool fairness;
     QStringList compileOptions;
+    QStringList ltlOptions;
     int searchDepth;
     int hashSize;
 

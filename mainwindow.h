@@ -27,6 +27,7 @@ private:
     Ui::MainWindow *ui;
     QStringList getRunOptions();
     QStringList getCompileOptions();
+    QStringList getLtlOptions();
     void resetProcess();
     bool prepareRun(bool clearLog=true);
     VerificationRun::VerificationType verificationType();
@@ -35,6 +36,7 @@ private:
 
 private slots:
     void loadFile();
+    void loadLTLfile();
     void runRandomSimulation();
     void runInteractiveSimulation();
     void runSubmitInteractiveSimulation();
@@ -52,6 +54,7 @@ private slots:
     void verificationStatusChange();
     void processVerificationOutput(QString output);
     void updateVerificationTab();
+    void newLtl();
 };
 
 #endif // MAINWINDOW_H

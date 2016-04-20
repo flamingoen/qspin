@@ -92,7 +92,8 @@ void VerificationOutput::processVerification(QString output){
     QRegularExpressionMatch depthM = re.match(output);
     depth = depthM.captured(1);
 
-
+    //FIXME: States can be written in scientific numbering 10
+    // Depth=     896 States= 3.7e+007 Transitions= 1.54e+008 Memory=  1433.379	t=      173 R=  2e+005
     // STORED STATES
     re.setPattern("(\\d*) states, stored");
     QRegularExpressionMatch storedStatesM = re.match(output);

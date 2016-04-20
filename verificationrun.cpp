@@ -1,10 +1,11 @@
 #include "verificationrun.h"
-
-VerificationRun::VerificationRun(QString _path, VerificationType _type, bool _fairness, QStringList _compileOptions, int _searchDepth, int _hashSize) {
+//FIXME: CANNOT TERMINATE PROCESS WHEN IT IS OPTIMIZING DEPTH
+VerificationRun::VerificationRun(QString _path, VerificationType _type, bool _fairness, QStringList _ltlOptions, QStringList _compileOptions, int _searchDepth, int _hashSize) {
     path = _path;
     type = _type;
     fairness = _fairness;
     compileOptions = _compileOptions;
+    ltlOptions = _ltlOptions;
     searchDepth = _searchDepth;
     hashSize = _hashSize;
 }
@@ -18,7 +19,7 @@ void VerificationRun::start(){
     currentOutput="";
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runCompile()));
     setStatus("Verification: Creating model");
-    process->start(SPIN,QStringList()<<"-a" << path.replace(" ","\\ "));
+    process->start(SPIN,ltlOptions<<"-a" << path.replace(" ","\\ "));
 }
 
 void VerificationRun::runCompile(){
