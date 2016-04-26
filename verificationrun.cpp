@@ -33,7 +33,7 @@ void VerificationRun::runPan(){
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), process, SLOT(deleteLater()));
 
     QStringList runOptions;
-    switch (type) {
+    switch (verificationType) {
     case Safety:
         break;
     case Acceptance:    runOptions << "-a";

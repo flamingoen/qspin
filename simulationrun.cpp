@@ -1,6 +1,12 @@
 #include "simulationrun.h"
 
-SimulationRun::SimulationRun(QString _path, int _type, int _depth) : SpinRun(_path , Simulation){
+/* TODO LIST FOR SIMULATION
+ * - TODO: Implement seed
+ * - TODO: Remove created processes from variables and place in procs with correct name
+ *
+ * */
+
+SimulationRun::SimulationRun(QString _path, SimulationType _type, int _depth) : SpinRun(_path , Simulation){
     simulationType = _type;
     depth = _depth;
     QRegExp rx("/((([a-z]|[A-Z]|\\d)+).pml)");
@@ -100,6 +106,7 @@ bool SimulationRun::parseProc(QString _step) {
         proc newProc;
         newProc.name = match.captured(2);
         newProc.line = 0;
+        newProc.id = p_id; p_id++;
         mapProcess.insert(match.captured(1).toInt(),newProc);
     }
     return matched;
@@ -111,17 +118,19 @@ bool SimulationRun::parseVar(QString _step) {
     bool matched = match.hasMatch();
     if (match.hasMatch()) {
         variable newVar;
-        QString varName = match.captured(1);
+        newVar.name = match.captured(1);
         newVar.value = match.captured(2).toInt();
         step _step = statesBack.pop();
-        if (mapVariable.contains(varName)) {
-            variable oldVar = mapVariable[varName];
+        if (mapVariable.contains(newVar.name)) {
+            variable oldVar = mapVariable[newVar.name];
             _step.change = oldVar.value-newVar.value;
+            newVar.id = oldVar.id;
         } else {
+            newVar.id = v_id; v_id++;
             _step.change = newVar.value;
         }
-        _step.var = varName;
-        mapVariable.insert(varName,newVar);
+        _step.var = newVar.name;
+        mapVariable.insert(newVar.name,newVar);
         statesBack.push(_step);
     }
     return matched;
@@ -129,16 +138,72 @@ bool SimulationRun::parseVar(QString _step) {
 
 void SimulationRun::goForward(int steps) {
     for (int i=0 ; i<steps ; i++) {
-        statesBack.push(currentStep);
-        currentStep = statesForward.pop();
+        if (!statesForward.isEmpty()) {
+            statesBack.push(currentStep);
+            currentStep = statesForward.pop();
+            if (currentStep.var!="") {
+                mapVariable[currentStep.var].value += currentStep.change;
+            }
+            mapProcess[currentStep.i_proc].line = currentStep.line;
+        }
     }
 }
 
 void SimulationRun::goBackwards(int steps) {
     for (int i=0 ; i<steps ; i++) {
-        statesForward.push(currentStep);
-        currentStep = statesBack.pop();
+        if (!statesBack.isEmpty()) {
+            statesForward.push(currentStep);
+            currentStep = statesBack.pop();
+            if (currentStep.var!="") {
+                mapVariable[currentStep.var].value -= currentStep.change;
+            }
+            mapProcess[currentStep.i_proc].line = currentStep.line;
+        }
     }
+}
+
+QList<SimulationRun::variable> SimulationRun::getVariables() {
+    QList<variable> list;
+    foreach(QString key , mapVariable.keys()) {
+        list << mapVariable[key];
+    }
+    return list;
+}
+
+QList<SimulationRun::proc> SimulationRun::getProcs() {
+    QList<proc> list;
+    foreach(int key , mapProcess.keys()) {
+        list << mapProcess[key];
+    }
+    return list;
+}
+
+SimulationRun::step SimulationRun::getCurrentStep() {
+    return currentStep;
+}
+
+bool SimulationRun::currentStepChangeVariable() {
+    return currentStep.var!="";
+}
+
+int SimulationRun::getCurrentVarId() {
+    return mapVariable[currentStep.var].id;
+}
+
+int SimulationRun::getCurrentVarValue() {
+    return mapVariable[currentStep.var].value;
+}
+
+QString SimulationRun::getCurrentVarName() {
+    return currentStep.var;
+}
+
+int SimulationRun::getCurrentProcId() {
+    return currentStep.i_proc;
+}
+
+int SimulationRun::getCurrentProcLine() {
+    return mapProcess[currentStep.i_proc].line;
 }
 
 //void MainWindow::runSubmitInteractiveSimulation() {

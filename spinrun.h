@@ -17,12 +17,12 @@ class SpinRun : public QObject{
     Q_ENUMS(Type)
 
 public:
-    enum Type {Simulation,Verification};
-    SpinRun(QString _path, int _type);
+    enum Type {Simulation,Verification,nonSpecified};
+    SpinRun(QString _path, Type _type);
     QString readOutput();
     QString readStatus();
     void setStatus(QString status);
-    int type;
+    Type type = nonSpecified;
 
 protected:
     QProcess* process;

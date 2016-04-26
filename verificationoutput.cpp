@@ -31,7 +31,6 @@ VerificationOutput::VerificationOutput()
 }
 
 void VerificationOutput::processVerification(QString output){
-    std::cout << "ADSJAIDF" << std::endl;
     // TIMESTAMP
     QDateTime * time = new QDateTime();
     timestamp = (time->currentDateTimeUtc().toLocalTime()).toString();

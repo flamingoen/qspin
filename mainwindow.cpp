@@ -67,17 +67,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
 
     // ## Simulation tab
     QPushButton *buttonRandomSim = this->findChild<QPushButton *>("buttonRandomSim");
-    QPushButton *buttonBackSim = this->findChild<QPushButton*>("buttonSimBackward");
-    QPushButton *buttonForwardSim = this->findChild<QPushButton*>("buttonSimForward");
+    buttonBackSim = this->findChild<QPushButton*>("buttonSimBackward");
+    buttonForwardSim = this->findChild<QPushButton*>("buttonSimForward");
     radioInteractive = this->findChild<QRadioButton*>("radioInteractiveSim");
     radioGuided = this->findChild<QRadioButton*>("radioGuidedSim");
     comboChoice = this->findChild<QComboBox *>("comboChoice");
     spinBoxSteps = this->findChild<QSpinBox *>("spinBoxSteps");
     simulationTypeLabel = this->findChild<QLabel*>("labelSimType");
     fileLabel = this->findChild<QLabel*>("labelSimFile");
+    processTable = this->findChild<QTableWidget*>("tableProceses");
+    variableTable = this->findChild<QTableWidget*>("tableVariabels");
     connect(buttonRandomSim, SIGNAL(clicked()), this, SLOT(runSimulation()));
-    connect(buttonForwardSim, SIGNAL(clicked()),this,SLOT(simulationStepForwards()));
+    connect(buttonForwardSim, SIGNAL(clicked()),this,SLOT(simulationStepForward()));
     connect(buttonBackSim,SIGNAL(clicked()),this,SLOT(simulationStepBackwards()));
+    //connect(variableTabel,SIGNAL(cellChanged(int,int),this,SLOT()));
 
     // options
     radioColapse = this->findChild<QRadioButton *>("radioDCOLLAPSE");
@@ -205,6 +208,10 @@ void MainWindow::runSimulation() {
         // START SIMULATION
         spinRun = new SimulationRun(path,type,spinBoxSteps->value());
         runProcess(spinRun);
+        connect(spinRun,SIGNAL(finished()),this,SLOT(createSimulationTab()));
+
+        buttonBackSim->setDisabled(false);
+        buttonForwardSim->setDisabled(false);
     }
 }
 
@@ -223,13 +230,15 @@ void MainWindow::runProcess(SpinRun* run){
 
 void MainWindow::simulationStepForward() {
     if (spinRun->type==SpinRun::Simulation) {
-
+        dynamic_cast<SimulationRun*>(spinRun)->goForward();
+        UpdateSimulationTab();
     }
 }
 
 void MainWindow::simulationStepBackwards() {
     if (spinRun->type==SpinRun::Simulation) {
-
+        dynamic_cast<SimulationRun*>(spinRun)->goBackwards();
+        UpdateSimulationTab();
     }
 }
 
@@ -282,6 +291,35 @@ void MainWindow::fileCleanup(){
 void MainWindow::processVerificationOutput(QString output){
     verificationOutput->processVerification(output);
     updateVerificationTab();
+}
+
+void MainWindow::UpdateSimulationTab() {
+    SimulationRun* simulation = dynamic_cast<SimulationRun*>(spinRun);
+    if (simulation->currentStepChangeVariable()) {
+        QTableWidgetItem *value = new QTableWidgetItem(QString::number(simulation->getCurrentVarValue()));
+        int v_row = simulation->getCurrentVarId();
+        variableTable->setItem(v_row,1,value);
+    }
+    int p_row = simulation->getCurrentProcId();
+    processTable->setItem(p_row,1,new QTableWidgetItem(QString::number(simulation->getCurrentProcLine())));
+}
+
+void MainWindow::createSimulationTab() {
+    SimulationRun* simulation = dynamic_cast<SimulationRun*>(spinRun);
+    QList<SimulationRun::variable> variables = simulation->getVariables();
+    QList<SimulationRun::proc> procs = simulation->getProcs();
+    variableTable->setRowCount(variables.length());
+    processTable->setRowCount(procs.length());
+    for (int i = 0 ; i < variables.length() ; i++) {
+        variableTable->setItem(variables[i].id,0,new QTableWidgetItem(variables[i].name));
+        variableTable->setItem(variables[i].id,1,new QTableWidgetItem("-"));
+    }
+    for (int i = 0 ; i < procs.length() ; i++) {
+        processTable->setItem(procs[i].id,0,new QTableWidgetItem(procs[i].name));
+        processTable->setItem(procs[i].id,1,new QTableWidgetItem("-"));
+    }
+    processTable->resizeColumnsToContents();
+    variableTable->resizeColumnsToContents();
 }
 
 void MainWindow::updateVerificationTab(){

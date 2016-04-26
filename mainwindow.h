@@ -30,65 +30,71 @@ public:
     ~MainWindow();
 
 private:
-QString path;
-QString filename;
-QStatusBar *status;
-CodeEditor *editor;
-QTextEdit *outputLog;
+    QString path;
+    QString filename;
+    QStatusBar *status;
+    CodeEditor *editor;
+    QTextEdit *outputLog;
 
-QRadioButton *radioSafety;
-QRadioButton *radioAcceptance;
-QRadioButton *radioLiveness;
-QRadioButton *radioColapse;
-QRadioButton *radioDH4;
-QRadioButton* radioInteractive;
-QRadioButton* radioGuided;
+    QRadioButton *radioSafety;
+    QRadioButton *radioAcceptance;
+    QRadioButton *radioLiveness;
+    QRadioButton *radioColapse;
+    QRadioButton *radioDH4;
+    QRadioButton* radioInteractive;
+    QRadioButton* radioGuided;
 
-QCheckBox *checkFair;
-QCheckBox *checkHSize;
-QCheckBox *checkOptDepth;
+    QTableWidget* variableTable;
+    QTableWidget* processTable;
 
-QSpinBox *spinBoxHSize;
-QSpinBox *spinBoxSteps;
-QSpinBox *spinBoxSDepth;
-QComboBox *comboChoice;
+    QPushButton *buttonBackSim;
+    QPushButton *buttonForwardSim;
 
-QProcess *process;
-SpinRun *spinRun;
+    QCheckBox *checkFair;
+    QCheckBox *checkHSize;
+    QCheckBox *checkOptDepth;
 
-QFile file;
+    QSpinBox *spinBoxHSize;
+    QSpinBox *spinBoxSteps;
+    QSpinBox *spinBoxSDepth;
+    QComboBox *comboChoice;
 
-// Verification tab
-QLabel *spinVerLabel;
-QLabel *evalLabel;
-QLabel *partialLabel;
-QLabel *neverLabel;
-QLabel *assertionLabel;
-QLabel *acceptanceLabel;
-QLabel *invalidLabel;
-QLabel *simulationTypeLabel;
-QLabel *fileLabel;
+    QProcess *process;
+    SpinRun *spinRun;
 
-QLabel * errorLabel;
-QLabel * depthLabel;
-QLabel * storedstatesLabel;
-QLabel * matchedstatesLabel;
-QLabel * transitionLabel;
-QLabel * atomicLabel;
-QLabel * statesizeLabel;
-QLabel * hashconflictsLabel;
-QLabel * hashsizeLabel;
+    QFile file;
 
-QLabel * statememoryLabel;
-QLabel * hashmemoryLabel;
-QLabel * DFSmemoryLabel;
-QLabel * totalmemoryLabel;
+    // Verification tab
+    QLabel *spinVerLabel;
+    QLabel *evalLabel;
+    QLabel *partialLabel;
+    QLabel *neverLabel;
+    QLabel *assertionLabel;
+    QLabel *acceptanceLabel;
+    QLabel *invalidLabel;
+    QLabel *simulationTypeLabel;
+    QLabel *fileLabel;
 
-QLabel * timestampLabel;
+    QLabel * errorLabel;
+    QLabel * depthLabel;
+    QLabel * storedstatesLabel;
+    QLabel * matchedstatesLabel;
+    QLabel * transitionLabel;
+    QLabel * atomicLabel;
+    QLabel * statesizeLabel;
+    QLabel * hashconflictsLabel;
+    QLabel * hashsizeLabel;
 
-VerificationOutput *verificationOutput;
+    QLabel * statememoryLabel;
+    QLabel * hashmemoryLabel;
+    QLabel * DFSmemoryLabel;
+    QLabel * totalmemoryLabel;
 
-bool newVerification = false;
+    QLabel * timestampLabel;
+
+    VerificationOutput *verificationOutput;
+
+    bool newVerification = false;
 
 
     Ui::MainWindow *ui;
@@ -96,6 +102,7 @@ bool newVerification = false;
     QStringList getCompileOptions();
     bool prepareRun(bool clearLog=true);
     void runProcess(SpinRun* run);
+    void UpdateSimulationTab();
 
 private slots:
     void loadFile();
@@ -111,6 +118,7 @@ private slots:
     void processStatusChange();
     void processVerificationOutput(QString output);
     void updateVerificationTab();
+    void createSimulationTab();
     void simulationStepForward();
     void simulationStepBackwards();
 };
