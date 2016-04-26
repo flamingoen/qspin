@@ -10,22 +10,22 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
 
     //Setting font of groupbox titles
     QGroupBox *statespaceprop = this->findChild<QGroupBox *>("groupBox_4");
-    //statespaceprop->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox, thereby the labels won't suffer the effect of the change in the parents stylesheet.
+    statespaceprop->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox, thereby the labels won't suffer the effect of the change in the parents stylesheet.
     QGroupBox *statespacespecs = this->findChild<QGroupBox *>("groupBox_5");
-    //statespacespecs->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox, thereby the labels won't suffer the effect of the change in the parents stylesheet.
+    statespacespecs->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox, thereby the labels won't suffer the effect of the change in the parents stylesheet.
     QGroupBox *memoryusage = this->findChild<QGroupBox *>("groupBox_6");
-    //memoryusage->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } ");    // The stylesheet is not inherited to children of the QGroupBox thereby the labels won't suffer the effect of the change in the parents stylesheet.
+    memoryusage->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } ");    // The stylesheet is not inherited to children of the QGroupBox thereby the labels won't suffer the effect of the change in the parents stylesheet.
 
     // Connecting to objects
 
     //Statespaceprop groupbox
     spinVerLabel = this->findChild<QLabel *>("spinVerLabel");
     evalLabel = this->findChild<QLabel *>("evalLabel");
-    partialLabel = this->findChild<QLabel *>("partialLabel");
-    neverLabel = this->findChild<QLabel *>("neverLabel");
-    assertionLabel = this->findChild<QLabel *>("assertionLabel");
-    acceptanceLabel = this->findChild<QLabel *>("acceptanceLabel");
-    invalidLabel = this->findChild<QLabel *>("invalidLabel");
+    partialLabel = this->findChild<QLabel *>("partialLabel_2");
+    neverLabel = this->findChild<QLabel *>("neverLabel_2");
+    assertionLabel = this->findChild<QLabel *>("assertionLabel_2");
+    acceptanceLabel = this->findChild<QLabel *>("acceptanceLabel_2");
+    invalidLabel = this->findChild<QLabel *>("invalidLabel_2");
 
     // Statespacespec groupbox
     errorLabel = this->findChild<QLabel *>("errorLabel");
@@ -112,25 +112,25 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::loadFile() {
-    // TODO: Indsæt temporær filepath, når man åbner dialogen overskrives filepath til "" hvis ikke man vælger en ny fil.
     if (filename!=NULL) fileCleanup();
-    path = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Promela Files (*.pml)"));
-    if (path!=NULL) {
+    QString tempPath = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Promela Files (*.pml)"));
+    if (tempPath!=NULL) {
         editor->clear();
-        QFile file(path);
+        QFile file(tempPath);
 
         QRegExp rx("/((([a-z]|[A-Z]|\\d)+).pml)");
         rx.indexIn(path);
         filename = rx.cap(1);
 
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        status->showMessage("Failed to open "+path);
+        status->showMessage("Failed to open "+tempPath);
         } else {
             QTextStream in(&file);
             while(!in.atEnd()) {
                 editor->appendPlainText(in.readLine());
             }
             file.close();
+            path = tempPath;
             status->showMessage("File loaded: "+path);
         }
     } else {
@@ -139,7 +139,6 @@ void MainWindow::loadFile() {
 }
 
 void MainWindow::loadLTLfile(){
-    // TODO: Indsæt temporær filepath, når man åbner dialogen overskrives filepath til "" hvis ikke man vælger en ny fil.
     LTLpath = QFileDialog::getOpenFileName(this, tr("Open LTL File"),"",tr("LTL Files (*.ltl)"));
     if (LTLpath!=NULL) {
         QFile LTLfile(LTLpath);
@@ -235,16 +234,41 @@ void MainWindow::runVerify(){
             type = VerificationRun::Acceptance;
         if (radioLiveness->isChecked())
             type = VerificationRun::Liveness;
+
+        // FETCH LTL
+        QString ltl = "";
+        if(type == VerificationRun::Acceptance && ltlList->count() > 0){
+           ltl = getLtl();
+        }
+
         // START VERIFICATION
-        spinRun = new VerificationRun(path, type,checkFair->isChecked(),compileOpts,spinBoxSDepth->value(),checkHSize->isChecked());
+        spinRun = new VerificationRun(path, type,checkFair->isChecked(),ltl, compileOpts,spinBoxSDepth->value(),hashSize());
         runProcess(spinRun);
     }
 }
 
+int MainWindow::hashSize() {
+    if (checkHSize->isChecked())
+        return spinBoxHSize->value();
+    else return -1;
+}
+
+QString MainWindow::getLtl(){
+    for (int i = 0; i < ltlList->count(); i++){
+        if(ltlList->item(i)->isSelected()){
+            selectedLtl = i;
+            return ltlList->item(i)->text();
+        }
+    }
+    return "";
+}
+
+
+
 void MainWindow::runSimulation() {
     if (prepareRun()) {
         // TYPE
-        SimulationRun::SimulationType       type = SimulationRun::Random;
+        SimulationRun::SimulationType type = SimulationRun::Random;
         if (radioInteractive->isChecked())  {
             type = SimulationRun::Interactive;
             simulationTypeLabel->setText("Interactive");
@@ -265,7 +289,7 @@ void MainWindow::runSimulation() {
 
 void MainWindow::runProcess(SpinRun* run){
     outputLog->clear();
-    QThread* thread = new QThread();
+    thread = new QThread();
     run->moveToThread(thread);
     connect(thread,SIGNAL(started()),run,SLOT(start()));
     connect(run, SIGNAL(readReady()),this,SLOT(processReadReady()));
@@ -277,27 +301,6 @@ void MainWindow::runProcess(SpinRun* run){
 }
 
 
-//QStringList MainWindow::getLtlOptions(){
-//    QStringList out;
-//    if (verificationType() == VerificationRun::Acceptance && ltlList->count()!=0){
-//        out << "-f ";
-//        for (int i = 0; i < ltlList->count(); i++){
-//            //if(ltlList->item(i)->checkState() == Qt::Checked){
-//              if(ltlList->item(i)->isSelected()){
-//                selectedLtl = i;
-//                QRegularExpression re1("(ltl\\s*.*{)");
-//                QRegularExpression re2("}");
-//                qDebug() << ltlList->item(i)->text();
-//                qDebug() << ltlList->item(i)->text().replace(re1,"(").replace(re2,")");
-//                out << ltlList->item(i)->text().replace(re1,"!(").replace(re2,")");
-//                // JEG STRIPPER NAVNGIVNINGEN, DET ER LIDT ÆRGERLIGT... MON MAN KAN TAGE DEN MED... OM IKKE ANDET, SÅ BARE CONCATENATE MED OUTPUT FOR NEVER CLAIM?
-//            }
-//        }
-//    }
-
-//    return out;
-
-//}
 
 void MainWindow::simulationStepForward() {
 
@@ -341,11 +344,11 @@ bool MainWindow::prepareRun(bool clearLog){
 }
 
 void MainWindow::terminateProcess(){
-    if(process != NULL){
-        process->disconnect();
+    if(thread!= NULL && thread->isRunning()){
+        thread->disconnect();
+        thread->terminate();
         outputLog->clear();
         status->showMessage("Process killed.");
-        process->kill();
     }
 }
 
@@ -359,16 +362,17 @@ void MainWindow::fileCleanup(){
     {
         dir.remove(dirFile);
     }
-}//TODO: DEN FATTER IKKE EN SKID HVIS MAN FORSØGER AT VERIFICERER TING DER IKKE GIVER MENING...
+}
+//TODO: DEN FATTER IKKE EN SKID HVIS MAN FORSØGER AT VERIFICERER TING DER IKKE GIVER MENING...
 
 void MainWindow::newLtl(){
-    QListWidgetItem *item = new QListWidgetItem("Insert new LTL formula here",ltlList);
+    QListWidgetItem *item = new QListWidgetItem("ltl newName {}" ,ltlList);
     item->setFlags(item->flags() | Qt::ItemIsEditable);
 }
 
 void MainWindow::processVerificationOutput(QString output){
     verificationOutput->processVerification(output);
-    //updateVerificationTab();
+    updateVerificationTab();
 }
 
 void MainWindow::UpdateSimulationTab() {
@@ -439,16 +443,15 @@ void MainWindow::updateVerificationTab(){
 
     //TODO: INDSÆT LABEL MED NAVN PÅ FIL
     //IF LTL RUN, update ltl evaluation:
-//    if(spinRun->type==SpinRun::Verification && ltlList->count() != 0){
 
-//        if(verificationOutput->errors == "0"){
-//          ltlList->item(selectedLtl)->setBackgroundColor(Qt::green);
-//        }
-//        else{
-//           ltlList->item(selectedLtl)->setBackgroundColor(Qt::red);
+    if(dynamic_cast<VerificationRun*>(spinRun)->verificationType==VerificationRun::Acceptance && ltlList->count() > 0){
 
-
-//    }
-//    }
+        if(verificationOutput->errors == "0"){
+           ltlList->item(selectedLtl)->setBackgroundColor(Qt::green);
+        }
+        else{
+            ltlList->item(selectedLtl)->setBackgroundColor(Qt::red);
+        }
+    }
 }
 //TODO: EN MÅDE AT IDENTIFICERE HVILKEN TYPE RUN VI LAVER, ER DET ACCEPTANCE ELLER HVAD ER DET, SKAL VI AUTOMATISK KØRE ACCEPTANCE  HVIS MAN DOBBELTKLIKKER EN LTL?

@@ -10,11 +10,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
 
     //Setting font of groupbox titles
     QGroupBox *statespaceprop = this->findChild<QGroupBox *>("groupBox_4");
-    statespaceprop->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox, thereby the labels won't suffer the effect of the change in the parents stylesheet.
+    //statespaceprop->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox, thereby the labels won't suffer the effect of the change in the parents stylesheet.
     QGroupBox *statespacespecs = this->findChild<QGroupBox *>("groupBox_5");
-    statespacespecs->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox, thereby the labels won't suffer the effect of the change in the parents stylesheet.
+    //statespacespecs->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox, thereby the labels won't suffer the effect of the change in the parents stylesheet.
     QGroupBox *memoryusage = this->findChild<QGroupBox *>("groupBox_6");
-    memoryusage->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } ");    // The stylesheet is not inherited to children of the QGroupBox thereby the labels won't suffer the effect of the change in the parents stylesheet.
+    //memoryusage->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } ");    // The stylesheet is not inherited to children of the QGroupBox thereby the labels won't suffer the effect of the change in the parents stylesheet.
 
     // Connecting to objects
 
@@ -75,17 +75,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
 
     // ## Simulation tab
     QPushButton *buttonRandomSim = this->findChild<QPushButton *>("buttonRandomSim");
-    QPushButton *buttonBackSim = this->findChild<QPushButton*>("buttonSimBackward");
-    QPushButton *buttonForwardSim = this->findChild<QPushButton*>("buttonSimForward");
+    buttonBackSim = this->findChild<QPushButton*>("buttonSimBackward");
+    buttonForwardSim = this->findChild<QPushButton*>("buttonSimForward");
     radioInteractive = this->findChild<QRadioButton*>("radioInteractiveSim");
     radioGuided = this->findChild<QRadioButton*>("radioGuidedSim");
     comboChoice = this->findChild<QComboBox *>("comboChoice");
     spinBoxSteps = this->findChild<QSpinBox *>("spinBoxSteps");
     simulationTypeLabel = this->findChild<QLabel*>("labelSimType");
     fileLabel = this->findChild<QLabel*>("labelSimFile");
+    processTable = this->findChild<QTableWidget*>("tableProceses");
+    variableTable = this->findChild<QTableWidget*>("tableVariabels");
     connect(buttonRandomSim, SIGNAL(clicked()), this, SLOT(runSimulation()));
-    connect(buttonForwardSim, SIGNAL(clicked()),this,SLOT(simulationStepForwards()));
+    connect(buttonForwardSim, SIGNAL(clicked()),this,SLOT(simulationStepForward()));
     connect(buttonBackSim,SIGNAL(clicked()),this,SLOT(simulationStepBackwards()));
+    //connect(variableTabel,SIGNAL(cellChanged(int,int),this,SLOT()));
 
     // options
     radioColapse = this->findChild<QRadioButton *>("radioDCOLLAPSE");
@@ -109,25 +112,25 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::loadFile() {
-    // TODO: Indsæt temporær filepath, når man åbner dialogen overskrives filepath til "" hvis ikke man vælger en ny fil.
     if (filename!=NULL) fileCleanup();
-    path = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Promela Files (*.pml)"));
-    if (path!=NULL) {
+    QString tempPath = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Promela Files (*.pml)"));
+    if (tempPath!=NULL) {
         editor->clear();
-        QFile file(path);
+        QFile file(tempPath);
 
         QRegExp rx("/((([a-z]|[A-Z]|\\d)+).pml)");
         rx.indexIn(path);
         filename = rx.cap(1);
 
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        status->showMessage("Failed to open "+path);
+        status->showMessage("Failed to open "+tempPath);
         } else {
             QTextStream in(&file);
             while(!in.atEnd()) {
                 editor->appendPlainText(in.readLine());
             }
             file.close();
+            path = tempPath;
             status->showMessage("File loaded: "+path);
         }
     } else {
@@ -136,7 +139,6 @@ void MainWindow::loadFile() {
 }
 
 void MainWindow::loadLTLfile(){
-    // TODO: Indsæt temporær filepath, når man åbner dialogen overskrives filepath til "" hvis ikke man vælger en ny fil.
     LTLpath = QFileDialog::getOpenFileName(this, tr("Open LTL File"),"",tr("LTL Files (*.ltl)"));
     if (LTLpath!=NULL) {
         QFile LTLfile(LTLpath);
@@ -232,16 +234,41 @@ void MainWindow::runVerify(){
             type = VerificationRun::Acceptance;
         if (radioLiveness->isChecked())
             type = VerificationRun::Liveness;
+
+        // FETCH LTL
+        QString ltl = "";
+        if(type == VerificationRun::Acceptance && ltlList->count() > 0){
+           ltl = getLtl();
+        }
+
         // START VERIFICATION
-        spinRun = new VerificationRun(path, type,checkFair->isChecked(),compileOpts,spinBoxSDepth->value(),checkHSize->isChecked());
+        spinRun = new VerificationRun(path, type,checkFair->isChecked(),ltl, compileOpts,spinBoxSDepth->value(),hashSize());
         runProcess(spinRun);
     }
 }
 
+int MainWindow::hashSize() {
+    if (checkHSize->isChecked())
+        return spinBoxHSize->value();
+    else return -1;
+}
+
+QString MainWindow::getLtl(){
+    for (int i = 0; i < ltlList->count(); i++){
+        if(ltlList->item(i)->isSelected()){
+            selectedLtl = i;
+            return ltlList->item(i)->text();
+        }
+    }
+    return "";
+}
+
+
+
 void MainWindow::runSimulation() {
     if (prepareRun()) {
         // TYPE
-        SimulationRun::SimulationType       type = SimulationRun::Random;
+        SimulationRun::SimulationType type = SimulationRun::Random;
         if (radioInteractive->isChecked())  {
             type = SimulationRun::Interactive;
             simulationTypeLabel->setText("Interactive");
@@ -253,12 +280,16 @@ void MainWindow::runSimulation() {
         // START SIMULATION
         spinRun = new SimulationRun(path,type,spinBoxSteps->value());
         runProcess(spinRun);
+        connect(spinRun,SIGNAL(finished()),this,SLOT(createSimulationTab()));
+
+        buttonBackSim->setDisabled(false);
+        buttonForwardSim->setDisabled(false);
     }
 }
 
 void MainWindow::runProcess(SpinRun* run){
     outputLog->clear();
-    QThread* thread = new QThread();
+    thread = new QThread();
     run->moveToThread(thread);
     connect(thread,SIGNAL(started()),run,SLOT(start()));
     connect(run, SIGNAL(readReady()),this,SLOT(processReadReady()));
@@ -269,36 +300,21 @@ void MainWindow::runProcess(SpinRun* run){
     thread->start();
 }
 
+
+
 void MainWindow::simulationStepForward() {
+
     if (spinRun->type==SpinRun::Simulation) {
-
+        dynamic_cast<SimulationRun*>(spinRun)->goForward();
+        UpdateSimulationTab();
     }
 }
 
-QStringList MainWindow::getLtlOptions(){
-    QStringList out;
-    if (verificationType() == VerificationRun::Acceptance && ltlList->count()!=0){
-        out << "-f ";
-        for (int i = 0; i < ltlList->count(); i++){
-            //if(ltlList->item(i)->checkState() == Qt::Checked){
-              if(ltlList->item(i)->isSelected()){
-                selectedLtl = i;
-                QRegularExpression re1("(ltl\\s*.*{)");
-                QRegularExpression re2("}");
-                qDebug() << ltlList->item(i)->text();
-                qDebug() << ltlList->item(i)->text().replace(re1,"(").replace(re2,")");
-                out << ltlList->item(i)->text().replace(re1,"!(").replace(re2,")");
-                // JEG STRIPPER NAVNGIVNINGEN, DET ER LIDT ÆRGERLIGT... MON MAN KAN TAGE DEN MED... OM IKKE ANDET, SÅ BARE CONCATENATE MED OUTPUT FOR NEVER CLAIM?
-            }
-        }
-    }
-
-    return out;
-
-}
 void MainWindow::simulationStepBackwards() {
-    if (spinRun->type==SpinRun::Simulation) {
 
+    if (spinRun->type==SpinRun::Simulation) {
+        dynamic_cast<SimulationRun*>(spinRun)->goBackwards();
+        UpdateSimulationTab();
     }
 }
 
@@ -328,11 +344,11 @@ bool MainWindow::prepareRun(bool clearLog){
 }
 
 void MainWindow::terminateProcess(){
-    if(process != NULL){
-        process->disconnect();
+    if(thread!= NULL && thread->isRunning()){
+        thread->disconnect();
+        thread->terminate();
         outputLog->clear();
         status->showMessage("Process killed.");
-        process->kill();
     }
 }
 
@@ -346,16 +362,46 @@ void MainWindow::fileCleanup(){
     {
         dir.remove(dirFile);
     }
-}//TODO: DEN FATTER IKKE EN SKID HVIS MAN FORSØGER AT VERIFICERER TING DER IKKE GIVER MENING...
+}
+//TODO: DEN FATTER IKKE EN SKID HVIS MAN FORSØGER AT VERIFICERER TING DER IKKE GIVER MENING...
 
 void MainWindow::newLtl(){
-    QListWidgetItem *item = new QListWidgetItem("Insert new LTL formula here",ltlList);
+    QListWidgetItem *item = new QListWidgetItem("ltl newName {}" ,ltlList);
     item->setFlags(item->flags() | Qt::ItemIsEditable);
 }
 
 void MainWindow::processVerificationOutput(QString output){
     verificationOutput->processVerification(output);
-    updateVerificationTab();
+    //updateVerificationTab();
+}
+
+void MainWindow::UpdateSimulationTab() {
+    SimulationRun* simulation = dynamic_cast<SimulationRun*>(spinRun);
+    if (simulation->currentStepChangeVariable()) {
+        QTableWidgetItem *value = new QTableWidgetItem(QString::number(simulation->getCurrentVarValue()));
+        int v_row = simulation->getCurrentVarId();
+        variableTable->setItem(v_row,1,value);
+    }
+    int p_row = simulation->getCurrentProcId();
+    processTable->setItem(p_row,1,new QTableWidgetItem(QString::number(simulation->getCurrentProcLine())));
+}
+
+void MainWindow::createSimulationTab() {
+    SimulationRun* simulation = dynamic_cast<SimulationRun*>(spinRun);
+    QList<SimulationRun::variable> variables = simulation->getVariables();
+    QList<SimulationRun::proc> procs = simulation->getProcs();
+    variableTable->setRowCount(variables.length());
+    processTable->setRowCount(procs.length());
+    for (int i = 0 ; i < variables.length() ; i++) {
+        variableTable->setItem(variables[i].id,0,new QTableWidgetItem(variables[i].name));
+        variableTable->setItem(variables[i].id,1,new QTableWidgetItem("-"));
+    }
+    for (int i = 0 ; i < procs.length() ; i++) {
+        processTable->setItem(procs[i].id,0,new QTableWidgetItem(procs[i].name));
+        processTable->setItem(procs[i].id,1,new QTableWidgetItem("-"));
+    }
+    processTable->resizeColumnsToContents();
+    variableTable->resizeColumnsToContents();
 }
 
 void MainWindow::updateVerificationTab(){
@@ -397,16 +443,29 @@ void MainWindow::updateVerificationTab(){
 
     //TODO: INDSÆT LABEL MED NAVN PÅ FIL
     //IF LTL RUN, update ltl evaluation:
-    if(currentverificationType == VerificationRun::Acceptance && ltlList->count() != 0){
+<<<<<<< HEAD
+//    if(spinRun->type==SpinRun::Verification && ltlList->count() != 0){
+
+//        if(verificationOutput->errors == "0"){
+//          ltlList->item(selectedLtl)->setBackgroundColor(Qt::green);
+//        }
+//        else{
+//           ltlList->item(selectedLtl)->setBackgroundColor(Qt::red);
+
+
+//    }
+//    }
+=======
+
+    if(dynamic_cast<VerificationRun*>(spinRun)->verificationType==VerificationRun::Acceptance && ltlList->count() > 0){
 
         if(verificationOutput->errors == "0"){
            ltlList->item(selectedLtl)->setBackgroundColor(Qt::green);
         }
         else{
             ltlList->item(selectedLtl)->setBackgroundColor(Qt::red);
-
-
+        }
     }
-    }
+>>>>>>> ltlinfile
 }
 //TODO: EN MÅDE AT IDENTIFICERE HVILKEN TYPE RUN VI LAVER, ER DET ACCEPTANCE ELLER HVAD ER DET, SKAL VI AUTOMATISK KØRE ACCEPTANCE  HVIS MAN DOBBELTKLIKKER EN LTL?
