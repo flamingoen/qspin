@@ -31,6 +31,7 @@ public:
 
 private:
     QString path;
+    QString LTLpath;
     QString filename;
     QStatusBar *status;
     CodeEditor *editor;
@@ -43,12 +44,6 @@ private:
     QRadioButton *radioDH4;
     QRadioButton* radioInteractive;
     QRadioButton* radioGuided;
-
-    QTableWidget* variableTable;
-    QTableWidget* processTable;
-
-    QPushButton *buttonBackSim;
-    QPushButton *buttonForwardSim;
 
     QCheckBox *checkFair;
     QCheckBox *checkHSize;
@@ -63,6 +58,16 @@ private:
     SpinRun *spinRun;
 
     QFile file;
+
+    QListWidget* ltlList;
+    QTableWidget* variableTable;
+    QTableWidget* processTable;
+
+    QPushButton* newltlButton;
+    QPushButton* buttonForwardSim;
+    QPushButton* buttonBackSim;
+
+
 
     // Verification tab
     QLabel *spinVerLabel;
@@ -100,12 +105,14 @@ private:
     Ui::MainWindow *ui;
     QStringList getRunOptions();
     QStringList getCompileOptions();
+    QStringList getLtlOptions();
     bool prepareRun(bool clearLog=true);
     void runProcess(SpinRun* run);
     void UpdateSimulationTab();
 
 private slots:
     void loadFile();
+    void loadLTLfile();
     void saveFile();
     void runVerify();
     void runSimulation();
@@ -121,6 +128,7 @@ private slots:
     void createSimulationTab();
     void simulationStepForward();
     void simulationStepBackwards();
+    void newLtl();
 };
 
 #endif // MAINWINDOW_H

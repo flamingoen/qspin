@@ -1,75 +1,4 @@
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
-#include "verificationoutput.h"
-using namespace std;
-
-
-#ifdef _WIN32
-    #define SPIN  "spin\\spin.exe"
-    #define CCOMPILER "gcc"
-#else
-    #define SPIN "spin"
-    #define CCOMPILER "cc"
-#endif
-
-
-QString path;
-QString filename;
-QStatusBar *status;
-CodeEditor *editor;
-QTextEdit *outputLog;
-
-QRadioButton *radioSafety;
-QRadioButton *radioAcceptance;
-QRadioButton *radioLiveness;
-QRadioButton *radioColapse;
-QRadioButton *radioDH4;
-
-QCheckBox *checkFair;
-QCheckBox *checkHSize;
-QCheckBox *checkOptDepth;
-
-QSpinBox *spinBoxHSize;
-QSpinBox *spinBoxSteps;
-QSpinBox *spinBoxSDepth;
-QComboBox *comboChoice;
-
-QProcess *process;
-VerificationRun* verification;
-
-QFile file;
-
-
-// Verification tab
-QLabel *spinVerLabel;
-QLabel *evalLabel;
-QLabel *partialLabel;
-QLabel *neverLabel;
-QLabel *assertionLabel;
-QLabel *acceptanceLabel;
-QLabel *invalidLabel;
-
-QLabel * errorLabel;
-QLabel * depthLabel;
-QLabel * storedstatesLabel;
-QLabel * matchedstatesLabel;
-QLabel * transitionLabel;
-QLabel * atomicLabel;
-QLabel * statesizeLabel;
-QLabel * hashconflictsLabel;
-QLabel * hashsizeLabel;
-
-QLabel * statememoryLabel;
-QLabel * hashmemoryLabel;
-QLabel * DFSmemoryLabel;
-QLabel * totalmemoryLabel;
-
-QLabel * timestampLabel;
-
-VerificationOutput *verificationOutput;
-
-
-bool newVerification = false;
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainWindow) {
 
@@ -81,21 +10,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
 
     //Setting font of groupbox titles
     QGroupBox *statespaceprop = this->findChild<QGroupBox *>("groupBox_4");
-    statespaceprop->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox,
-                                                                                                    // thereby the labels won't suffer the effect of the change in the parents stylesheet.
+    statespaceprop->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox, thereby the labels won't suffer the effect of the change in the parents stylesheet.
     QGroupBox *statespacespecs = this->findChild<QGroupBox *>("groupBox_5");
-    statespacespecs->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox,
-<<<<<<< HEAD
-                                                                                                     // thereby the labels won't suffer the effect of the change in the parents stylesheet
-                                                                                                     // Connecting to objects
-=======
-                                                                                                     // thereby the labels won't suffer the effect of the change in the parents stylesheet.
+    statespacespecs->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox, thereby the labels won't suffer the effect of the change in the parents stylesheet.
     QGroupBox *memoryusage = this->findChild<QGroupBox *>("groupBox_6");
-    memoryusage->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } ");    // The stylesheet is not inherited to children of the QGroupBox,
-                                                                                                     // thereby the labels won't suffer the effect of the change in the parents stylesheet.
+    memoryusage->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } ");    // The stylesheet is not inherited to children of the QGroupBox thereby the labels won't suffer the effect of the change in the parents stylesheet.
 
     // Connecting to objects
->>>>>>> verificationOutput2
 
     //Statespaceprop groupbox
     spinVerLabel = this->findChild<QLabel *>("spinVerLabel");
@@ -117,8 +38,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     hashconflictsLabel = this->findChild<QLabel *>("hashconflictsLabel");
     hashsizeLabel = this->findChild<QLabel *>("hashsizeLabel");
 
-<<<<<<< HEAD
-=======
     // Memory usage groupbox
     statememoryLabel = this->findChild<QLabel *>("statememoryLabel");
     hashmemoryLabel = this->findChild<QLabel *>("hashmemoryLabel");
@@ -126,17 +45,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     totalmemoryLabel = this->findChild<QLabel *>("totalmemoryLabel");
 
     timestampLabel = this->findChild<QLabel *>("timestampLabel");
+    ltlList = this->findChild<QListWidget *>("ltlList");
 
->>>>>>> verificationOutput2
     // ## Toolbar ##
     QAction *actionLoad = this->findChild<QAction *>("actionLoad");
     QAction *actionSave = this->findChild<QAction *>("actionSave");
     QAction *actionAbort = this->findChild<QAction *>("actionAbort");
     QAction *actionCheckSyntax = this->findChild<QAction *>("actionCheck_syntax");
+    QAction *actionLoad_Ltl = this->findChild<QAction *>("actionLoad_Ltl");
+
     connect(actionLoad, SIGNAL(triggered()) , this,SLOT(loadFile()));
     connect(actionSave, SIGNAL(triggered()) , this,SLOT(saveFile()));
     connect(actionAbort, SIGNAL(triggered()),this,SLOT(terminateProcess()));
     connect(actionCheckSyntax, SIGNAL(triggered()), this , SLOT(checkSyntax()));
+    connect(actionLoad_Ltl, SIGNAL(triggered()), this, SLOT(loadLTLfile()));
 
     // ## Verify tab ##
     QPushButton *verifyButton = this->findChild<QPushButton *>("buttonVerify");
@@ -146,18 +68,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     radioLiveness = this->findChild<QRadioButton *>("radioLiveness");
     checkFair = this->findChild<QCheckBox *>("checkFairness");
     connect(verifyButton, SIGNAL(clicked()) , this, SLOT(runVerify()));
+    newltlButton = this->findChild<QPushButton *>("newltlButton");
+
+    connect(newltlButton,SIGNAL(clicked()),this,SLOT(newLtl()));
+   // connect(ltlList,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(runVerify())); TODO:Bør vi verificere på dobbeltklik?
 
     // ## Simulation tab
     QPushButton *buttonRandomSim = this->findChild<QPushButton *>("buttonRandomSim");
-    QPushButton *buttonInteractiveSim = this->findChild<QPushButton *>("buttonInteractiveSim");
-    QPushButton *buttonSubmit = this->findChild<QPushButton *>("buttonSubmit");
-    QPushButton *buttonGuidedSim = this->findChild<QPushButton *>("buttonGuidedSim");
+    QPushButton *buttonBackSim = this->findChild<QPushButton*>("buttonSimBackward");
+    QPushButton *buttonForwardSim = this->findChild<QPushButton*>("buttonSimForward");
+    radioInteractive = this->findChild<QRadioButton*>("radioInteractiveSim");
+    radioGuided = this->findChild<QRadioButton*>("radioGuidedSim");
     comboChoice = this->findChild<QComboBox *>("comboChoice");
     spinBoxSteps = this->findChild<QSpinBox *>("spinBoxSteps");
-    connect(buttonRandomSim, SIGNAL(clicked()), this, SLOT(runRandomSimulation()));
-    connect(buttonInteractiveSim, SIGNAL(clicked()), this, SLOT(runInteractiveSimulation()));
-    connect(buttonSubmit, SIGNAL(clicked()),this,SLOT(runSubmitInteractiveSimulation()));
-    connect(buttonGuidedSim, SIGNAL(clicked()),this,SLOT(runGuidedSimulation()));
+    simulationTypeLabel = this->findChild<QLabel*>("labelSimType");
+    fileLabel = this->findChild<QLabel*>("labelSimFile");
+    connect(buttonRandomSim, SIGNAL(clicked()), this, SLOT(runSimulation()));
+    connect(buttonForwardSim, SIGNAL(clicked()),this,SLOT(simulationStepForwards()));
+    connect(buttonBackSim,SIGNAL(clicked()),this,SLOT(simulationStepBackwards()));
 
     // options
     radioColapse = this->findChild<QRadioButton *>("radioDCOLLAPSE");
@@ -207,7 +135,47 @@ void MainWindow::loadFile() {
     }
 }
 
+void MainWindow::loadLTLfile(){
+    // TODO: Indsæt temporær filepath, når man åbner dialogen overskrives filepath til "" hvis ikke man vælger en ny fil.
+    LTLpath = QFileDialog::getOpenFileName(this, tr("Open LTL File"),"",tr("LTL Files (*.ltl)"));
+    if (LTLpath!=NULL) {
+        QFile LTLfile(LTLpath);
+
+        QRegExp rx("/((([a-z]|[A-Z]|\\d)+).ltl)");
+        rx.indexIn(LTLpath);
+        filename = rx.cap(1);
+
+        if (!LTLfile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        status->showMessage("Failed to open "+LTLpath);
+        } else {
+            QTextStream in(&LTLfile);
+            while(!in.atEnd()) {
+                //std::cout << in.readLine().toStdString() << std::endl;
+                //ltlList->addItem(in.readLine());
+                QString currentLine = in.readLine();
+                bool breakout = false;
+                for (int i = 0; i < ltlList->count(); i++){
+                    if(ltlList->item(i)->text() == currentLine )
+                         breakout = true;
+                }
+
+                //item->setFlags(item->flags() | Qt::ItemIsUserCheckable); // set checkable flag
+                //item->setCheckState(Qt::Unchecked); // AND initialize check state
+                if(!breakout){
+                    QListWidgetItem* item = new QListWidgetItem(currentLine, ltlList);
+                    item->setFlags(item->flags() | Qt::ItemIsEditable);
+                }
+            }
+            LTLfile.close();
+            status->showMessage("LTL file loaded: "+LTLpath);
+        }
+    } else {
+        status->showMessage("No file chosen");
+    }
+}
+
 void MainWindow::saveFile() {
+    //TODO: Implement functionality to save all LTL's in ltl file
     if (path==NULL) {
         path = QFileDialog::getSaveFileName(this, tr("Save File"),"",tr("Promela Files (*.pml)"));
     }
@@ -224,7 +192,7 @@ void MainWindow::saveFile() {
 
 void MainWindow::checkSyntax() {
     prepareRun();
-    process->disconnect();
+    process = new QProcess();
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(checkSyntaxErrorHighlight()));
     process->start(SPIN,QStringList() << "-a" << path.replace(" ","\\ "));
 }
@@ -247,87 +215,95 @@ void MainWindow::checkSyntaxErrorHighlight() {
     editor->HighlightErrorLines(lineNoList);
 }
 
-void MainWindow::runRandomSimulation() {
-    prepareRun();
-    process->start(SPIN,QStringList() << "-u200" << "-p" << "-g" << "-l" << path);
-}
-
-void MainWindow::runInteractiveSimulation() {
-    prepareRun();
-    process->start(SPIN,QStringList() << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "-i"  << path);
-}
-
-void MainWindow::runSubmitInteractiveSimulation() {
-    if (!process->state() == 0) {
-        QString cmd = comboChoice->currentText() + "\n";
-        process->write(cmd.toLatin1().data());
-    } else { process->terminate(); }
-}
-
-//TODO: Burde være delt op i signaler
-void MainWindow::runGuidedSimulation(){
-    prepareRun(); // TODO: Will try to save file if a file is not loaded and this button is pushed
-    QString trailPath = QDir::toNativeSeparators(path) + ".trail";
-    QFile::copy(filename+".trail", trailPath);
-    connect(process,SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(fileCleanup()));
-    process->start(SPIN,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "-u250" << path.replace(" ","\\ "));
-}
-
 // BUG: Hvis man spammer verify knappen bliver gamle threads ikke lukker (memory leak)
 void MainWindow::runVerify(){
     fileCleanup();
     if (prepareRun()) {
-        outputLog->clear();
-        verification = new VerificationRun(path, verificationType(),checkFair->isChecked(),getCompileOptions(),searchDepth(),hashSize());
-        QThread* thread = new QThread();
-        verification->moveToThread(thread);
-        connect(thread,SIGNAL(started()),verification,SLOT(start()));
-        connect(verification, SIGNAL(readReady()),this,SLOT(verificationReadReady()));
-        connect(verification, SIGNAL(finished()),this,SLOT(verificationFinished()));
-        connect(verification, SIGNAL(finished()), thread, SLOT(quit()));
-        connect(verification, SIGNAL(statusChanged()),this,SLOT(verificationStatusChange()));
-        connect(thread, SIGNAL(finished()),thread,SLOT(deleteLater()));
-        thread->start();
+        // COMPILE OPTIONS
+        QStringList compileOpts;
+        if (radioColapse->isChecked())           compileOpts << "-DCOLLAPSE ";
+        else if (radioDH4->isChecked())          compileOpts << "-DH4 ";
+        if (radioSafety->isChecked())            compileOpts <<"-DSAFTY ";
+        else if (radioLiveness->isChecked())     compileOpts <<"-DNP ";
+        compileOpts << "-o" << "pan";
+        // TYPE
+        VerificationRun::VerificationType type = VerificationRun::Safety;
+        if (radioAcceptance->isChecked())
+            type = VerificationRun::Acceptance;
+        if (radioLiveness->isChecked())
+            type = VerificationRun::Liveness;
+        // START VERIFICATION
+        spinRun = new VerificationRun(path, type,checkFair->isChecked(),compileOpts,spinBoxSDepth->value(),checkHSize->isChecked());
+        runProcess(spinRun);
     }
 }
 
-VerificationRun::VerificationType MainWindow::verificationType() {
-    if (radioAcceptance->isChecked())
-        return VerificationRun::Acceptance;
-    if (radioLiveness->isChecked())
-        return VerificationRun::Liveness;
-    else return VerificationRun::Safety;
+void MainWindow::runSimulation() {
+    if (prepareRun()) {
+        // TYPE
+        SimulationRun::SimulationType       type = SimulationRun::Random;
+        if (radioInteractive->isChecked())  {
+            type = SimulationRun::Interactive;
+            simulationTypeLabel->setText("Interactive");
+        } else if (radioGuided->isChecked()) {
+            type = SimulationRun::Guided;
+            simulationTypeLabel->setText("Guided");
+        } else simulationTypeLabel->setText("Random");
+        fileLabel->setText(filename);
+        // START SIMULATION
+        spinRun = new SimulationRun(path,type,spinBoxSteps->value());
+        runProcess(spinRun);
+    }
 }
 
-int MainWindow::searchDepth() {
-    if (spinBoxSDepth->value()!=10000)
-        return spinBoxSDepth->value();
-    else return -1;
+void MainWindow::runProcess(SpinRun* run){
+    outputLog->clear();
+    QThread* thread = new QThread();
+    run->moveToThread(thread);
+    connect(thread,SIGNAL(started()),run,SLOT(start()));
+    connect(run, SIGNAL(readReady()),this,SLOT(processReadReady()));
+    connect(run, SIGNAL(finished()),this,SLOT(processFinished()));
+    connect(run, SIGNAL(finished()), thread, SLOT(quit()));
+    connect(run, SIGNAL(statusChanged()),this,SLOT(processStatusChange()));
+    connect(thread, SIGNAL(finished()),thread,SLOT(deleteLater()));
+    thread->start();
 }
 
-int MainWindow::hashSize() {
-    if (checkHSize->isChecked())
-        return spinBoxHSize->value();
-    else return -1;
+void MainWindow::simulationStepForward() {
+    if (spinRun->type==SpinRun::Simulation) {
+
+    }
 }
 
-QStringList MainWindow::getCompileOptions() {
+QStringList MainWindow::getLtlOptions(){
     QStringList out;
-    if (radioColapse->isChecked())           out << "-DCOLLAPSE ";
-    else if (radioDH4->isChecked())          out << "-DH4 ";
-    if (radioSafety->isChecked())            out <<"-DSAFTY ";
-    else if (radioLiveness->isChecked())     out <<"-DNP ";
-    return out << "-o" << "pan";
+    if (verificationType() == VerificationRun::Acceptance && ltlList->count()!=0){
+        out << "-f ";
+        for (int i = 0; i < ltlList->count(); i++){
+            //if(ltlList->item(i)->checkState() == Qt::Checked){
+              if(ltlList->item(i)->isSelected()){
+                selectedLtl = i;
+                QRegularExpression re1("(ltl\\s*.*{)");
+                QRegularExpression re2("}");
+                qDebug() << ltlList->item(i)->text();
+                qDebug() << ltlList->item(i)->text().replace(re1,"(").replace(re2,")");
+                out << ltlList->item(i)->text().replace(re1,"!(").replace(re2,")");
+                // JEG STRIPPER NAVNGIVNINGEN, DET ER LIDT ÆRGERLIGT... MON MAN KAN TAGE DEN MED... OM IKKE ANDET, SÅ BARE CONCATENATE MED OUTPUT FOR NEVER CLAIM?
+            }
+        }
+    }
+
+    return out;
+
+}
+void MainWindow::simulationStepBackwards() {
+    if (spinRun->type==SpinRun::Simulation) {
+
+    }
 }
 
-void MainWindow::runProcessFinished() {
-    QString output = process->readAllStandardOutput();
-    outputLog->append(output);
-    status->showMessage("Finished");
-}
-
-void MainWindow::verificationFinished() {
-    outputLog->append(verification->readOutput());
+void MainWindow::processFinished() {
+    outputLog->append(spinRun->readOutput());
     processVerificationOutput(outputLog->toPlainText());
     if (checkOptDepth->isChecked()) {
         spinBoxSDepth->setValue((verificationOutput->depth).toInt()+10);
@@ -335,27 +311,16 @@ void MainWindow::verificationFinished() {
     status->showMessage("Finished");
 }
 
-void MainWindow::runProcessReadReady() {
-    outputLog->append(process->readAllStandardOutput());
+void MainWindow::processReadReady() {
+    outputLog->append(spinRun->readOutput());
 }
 
-void MainWindow::verificationReadReady() {
-    outputLog->append(verification->readOutput());
+void MainWindow::processStatusChange() {
+    status->showMessage(spinRun->readStatus());
 }
 
-void MainWindow::verificationStatusChange() {
-    status->showMessage(verification->readStatus());
-}
-
-void MainWindow::resetProcess() {
-    process = new QProcess();
-    connect(process, SIGNAL(readyReadStandardOutput()), this, SLOT(runProcessReadReady()));
-    connect(process, SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(runProcessFinished()));
-}
-
-// returns if there is a file to run or not
+// returns true if there is a file to run
 bool MainWindow::prepareRun(bool clearLog){
-    resetProcess();
     if (path!=NULL) saveFile();
     else loadFile();
     if (clearLog) outputLog->clear();
@@ -371,6 +336,7 @@ void MainWindow::terminateProcess(){
     }
 }
 
+// TODO: Flytte den her så spinRun kan bruge den til at fjerne filer?
 void MainWindow::fileCleanup(){
     QDir dir(QDir::currentPath());
     dir.setNameFilters(QStringList() << "pan*" << "*.trail");
@@ -380,14 +346,16 @@ void MainWindow::fileCleanup(){
     {
         dir.remove(dirFile);
     }
+}//TODO: DEN FATTER IKKE EN SKID HVIS MAN FORSØGER AT VERIFICERER TING DER IKKE GIVER MENING...
+
+void MainWindow::newLtl(){
+    QListWidgetItem *item = new QListWidgetItem("Insert new LTL formula here",ltlList);
+    item->setFlags(item->flags() | Qt::ItemIsEditable);
 }
 
 void MainWindow::processVerificationOutput(QString output){
-
     verificationOutput->processVerification(output);
-
     updateVerificationTab();
-
 }
 
 void MainWindow::updateVerificationTab(){
@@ -426,6 +394,19 @@ void MainWindow::updateVerificationTab(){
     totalmemoryLabel->setText("Total memory usage: " + verificationOutput->totalmemory);
 
     timestampLabel->setText(verificationOutput->timestamp);
-    //TODO: INDSÆT LABEL MED NAVN PÅ FIL
 
+    //TODO: INDSÆT LABEL MED NAVN PÅ FIL
+    //IF LTL RUN, update ltl evaluation:
+    if(currentverificationType == VerificationRun::Acceptance && ltlList->count() != 0){
+
+        if(verificationOutput->errors == "0"){
+           ltlList->item(selectedLtl)->setBackgroundColor(Qt::green);
+        }
+        else{
+            ltlList->item(selectedLtl)->setBackgroundColor(Qt::red);
+
+
+    }
+    }
 }
+//TODO: EN MÅDE AT IDENTIFICERE HVILKEN TYPE RUN VI LAVER, ER DET ACCEPTANCE ELLER HVAD ER DET, SKAL VI AUTOMATISK KØRE ACCEPTANCE  HVIS MAN DOBBELTKLIKKER EN LTL?
