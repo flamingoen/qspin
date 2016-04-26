@@ -3,7 +3,7 @@
 /* TODO LIST FOR SIMULATION
  * - TODO: Implement seed
  * - TODO: Remove created processes from variables and place in procs with correct name
- *
+ * - TODO: Interactive simulation
  * */
 
 SimulationRun::SimulationRun(QString _path, SimulationType _type, int _depth) : SpinRun(_path , Simulation){
@@ -62,7 +62,11 @@ void SimulationRun::finishedProcess() {
     while (!statesBack.isEmpty()) {
         statesForward.push(statesBack.pop());
     }
-    if (!statesForward.isEmpty()) currentStep = statesForward.pop();
+    //if (!statesForward.isEmpty()) currentStep = statesForward.pop();
+    foreach (QString key , mapVariable.keys()) {
+        mapVariable[key].value = 0;
+    }
+
     emit finished();
 }
 
@@ -123,7 +127,7 @@ bool SimulationRun::parseVar(QString _step) {
         step _step = statesBack.pop();
         if (mapVariable.contains(newVar.name)) {
             variable oldVar = mapVariable[newVar.name];
-            _step.change = oldVar.value-newVar.value;
+            _step.change = newVar.value-oldVar.value;
             newVar.id = oldVar.id;
         } else {
             newVar.id = v_id; v_id++;
