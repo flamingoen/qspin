@@ -58,6 +58,8 @@ private:
     SpinRun *spinRun;
 
     QFile file;
+	QFile LTLfile; // Could be local
+	int selectedLtl;
 
     QListWidget* ltlList;
     QTableWidget* variableTable;
@@ -101,11 +103,12 @@ private:
 
     bool newVerification = false;
 
+    QThread *thread;
 
     Ui::MainWindow *ui;
     QStringList getRunOptions();
     QStringList getCompileOptions();
-    QStringList getLtlOptions();
+    QString getLtl();
     bool prepareRun(bool clearLog=true);
     void runProcess(SpinRun* run);
     void UpdateSimulationTab();
@@ -129,6 +132,7 @@ private slots:
     void simulationStepForward();
     void simulationStepBackwards();
     void newLtl();
+	int hashSize();
 };
 
 #endif // MAINWINDOW_H

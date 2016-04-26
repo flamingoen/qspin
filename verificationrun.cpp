@@ -1,10 +1,10 @@
 #include "verificationrun.h"
 
-VerificationRun::VerificationRun(QString _path, VerificationType _type, bool _fairness, QStringList _compileOptions, int _searchDepth, int _hashSize) : SpinRun(_path , Verification){
+VerificationRun::VerificationRun(QString _path, VerificationType _type, bool _fairness, QString _ltl, QStringList _compileOptions, int _searchDepth, int _hashSize) : SpinRun(_path , Verification){
     verificationType = _type;
     fairness = _fairness;
+    ltl = _ltl;
     compileOptions = _compileOptions;
-    //ltlOptions = _ltlOptions;
     searchDepth = _searchDepth;
     hashSize = _hashSize;
 }
@@ -17,10 +17,31 @@ void VerificationRun::start(){
     process = new QProcess();
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runCompile()));
     setStatus("Verification: Creating model");
-    process->start(SPIN,ltlOptions<<"-a" << path.replace(" ","\\ "));
+    // INSERT LTL IF ACCEPTANCE RUN
+
+    if(verificationType == Acceptance){
+     tempPath = createTempPml();
+     process->start(SPIN,QStringList() << "-a" << tempPath.replace(" ","\\ "));
+    }
+    else process->start(SPIN,QStringList() << "-a" << path.replace(" ","\\ "));
 }
 
+
+QString VerificationRun::createTempPml(){
+    QFile::copy(path,path+".qspin");
+    QFile tempFile(path+".qspin");
+
+    if ( tempFile.open(QIODevice::Append | QIODevice::ReadWrite) )
+    {
+        QTextStream stream( &tempFile );
+        stream << "\n " + ltl << endl;
+    }
+    return path+".qspin";
+}
+
+
 void VerificationRun::runCompile(){
+    QFile::remove(tempPath); // Removing the temporary file
     process = new QProcess();
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runPan()));
     setStatus("Varification: Compiling pan.c");

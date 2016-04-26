@@ -151,89 +151,36 @@
           <property name="title">
            <string>Statespace specifications:</string>
           </property>
-          <widget class="QLabel" name="statememoryLabel">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>20</y>
-             <width>305</width>
-             <height>13</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>Memory usage for states:</string>
-           </property>
-          </widget>
-          <widget class="QLabel" name="hashmemoryLabel">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>40</y>
-             <width>305</width>
-             <height>13</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>Memory usage for hash table:</string>
-           </property>
-          </widget>
-          <widget class="QLabel" name="DFSmemoryLabel">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>60</y>
-             <width>305</width>
-             <height>13</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>Memory usage for DFS stack:</string>
-           </property>
-          </widget>
-          <widget class="QLabel" name="totalmemoryLabel">
-           <property name="geometry">
-            <rect>
-             <x>10</x>
-             <y>80</y>
-             <width>305</width>
-             <height>13</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>Total memory usage:</string>
-           </property>
-          </widget>
-         </widget>
-        </item>
-        <item row="0" column="2">
-         <widget class="QLabel" name="evalLabel">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>25</horstretch>
-            <verstretch>25</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>25</width>
-            <height>25</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>25</width>
-            <height>25</height>
-           </size>
-          </property>
-          <property name="frameShape">
-           <enum>QFrame::Box</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_9">
+           <item>
+            <widget class="QLabel" name="statememoryLabel">
+             <property name="text">
+              <string>Memory usage for states:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="hashmemoryLabel">
+             <property name="text">
+              <string>Memory usage for hash table:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="DFSmemoryLabel">
+             <property name="text">
+              <string>Memory usage for DFS stack:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="totalmemoryLabel">
+             <property name="text">
+              <string>Total memory usage:</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
         <item row="1" column="2">
@@ -313,6 +260,50 @@
           <property name="text">
            <string>Add new ltl</string>
           </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QGroupBox" name="groupBox_4">
+          <property name="title">
+           <string>Full statespace search for:</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item>
+            <widget class="QLabel" name="partialLabel_2">
+             <property name="text">
+              <string>Partial order reduction: </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="neverLabel_2">
+             <property name="text">
+              <string>Never claim: </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="assertionLabel_2">
+             <property name="text">
+              <string>Assertion violations: </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="acceptanceLabel_2">
+             <property name="text">
+              <string>Acceptance cycles: </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="invalidLabel_2">
+             <property name="text">
+              <string>Invalid end states: </string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
        </layout>
@@ -691,7 +682,7 @@
      <x>0</x>
      <y>0</y>
      <width>1090</width>
-     <height>27</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
