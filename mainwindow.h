@@ -57,8 +57,8 @@ QComboBox *comboChoice;
 QProcess *process;
 SpinRun *spinRun;
 
-QFile file;
-QFile LTLfile;
+QFile file; // Could be local
+QFile LTLfile; // Could be local
 int selectedLtl;
 
 // Verification tab
@@ -92,6 +92,7 @@ QListWidget *ltlList;
 QPushButton *newltlButton;
 
 VerificationOutput *verificationOutput;
+QThread *thread;
 
 bool newVerification = false;
 
@@ -99,7 +100,7 @@ bool newVerification = false;
     Ui::MainWindow *ui;
     QStringList getRunOptions();
     QStringList getCompileOptions();
-    QStringList getLtlOptions();
+    QString getLtl();
     bool prepareRun(bool clearLog=true);
     void runProcess(SpinRun* run);
 
@@ -121,6 +122,7 @@ private slots:
     void simulationStepForward();
     void simulationStepBackwards();
 	void newLtl();
+    int hashSize();
 };
 
 #endif // MAINWINDOW_H
