@@ -118,10 +118,6 @@ void MainWindow::loadFile() {
         editor->clear();
         QFile file(tempPath);
 
-        QRegExp rx("/((([a-z]|[A-Z]|\\d)+).pml)");
-        rx.indexIn(path);
-        filename = rx.cap(1);
-
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         status->showMessage("Failed to open "+tempPath);
         } else {
@@ -131,6 +127,9 @@ void MainWindow::loadFile() {
             }
             file.close();
             path = tempPath;
+            QRegExp rx("/((([a-z]|[A-Z]|\\d)+).pml)");
+            rx.indexIn(path);
+            filename = rx.cap(1);
             status->showMessage("File loaded: "+path);
         }
     } else {
@@ -281,8 +280,6 @@ void MainWindow::runSimulation() {
         spinRun = new SimulationRun(path,type,spinBoxSteps->value());
         runProcess(spinRun);
         connect(spinRun,SIGNAL(finished()),this,SLOT(createSimulationTab()));
-
-        buttonBackSim->setDisabled(false);
         buttonForwardSim->setDisabled(false);
     }
 }
@@ -303,7 +300,6 @@ void MainWindow::runProcess(SpinRun* run){
 
 
 void MainWindow::simulationStepForward() {
-
     if (spinRun->type==SpinRun::Simulation) {
         dynamic_cast<SimulationRun*>(spinRun)->goForward();
         UpdateSimulationTab();
@@ -311,7 +307,6 @@ void MainWindow::simulationStepForward() {
 }
 
 void MainWindow::simulationStepBackwards() {
-
     if (spinRun->type==SpinRun::Simulation) {
         dynamic_cast<SimulationRun*>(spinRun)->goBackwards();
         UpdateSimulationTab();
@@ -380,12 +375,15 @@ void MainWindow::processVerificationOutput(QString output){
 void MainWindow::UpdateSimulationTab() {
     SimulationRun* simulation = dynamic_cast<SimulationRun*>(spinRun);
     if (simulation->currentStepChangeVariable()) {
-        QTableWidgetItem *value = new QTableWidgetItem(QString::number(simulation->getCurrentVarValue()));
+        QTableWidgetItem *value = new QTableWidgetItem(simulation->getCurrentVarValue());
         int v_row = simulation->getCurrentVarId();
         variableTable->setItem(v_row,1,value);
     }
     int p_row = simulation->getCurrentProcId();
     processTable->setItem(p_row,1,new QTableWidgetItem(QString::number(simulation->getCurrentProcLine())));
+    editor->HighlightProcesses(simulation->getProcs());
+    buttonForwardSim->setEnabled(simulation->canGoForward());
+    buttonBackSim->setEnabled(simulation->canGoBackwards());
 }
 
 void MainWindow::createSimulationTab() {
@@ -396,7 +394,7 @@ void MainWindow::createSimulationTab() {
     processTable->setRowCount(procs.length());
     for (int i = 0 ; i < variables.length() ; i++) {
         variableTable->setItem(variables[i].id,0,new QTableWidgetItem(variables[i].name));
-        variableTable->setItem(variables[i].id,1,new QTableWidgetItem("-"));
+        variableTable->setItem(variables[i].id,1,new QTableWidgetItem(variables[i].value));
     }
     for (int i = 0 ; i < procs.length() ; i++) {
         processTable->setItem(procs[i].id,0,new QTableWidgetItem(procs[i].name));

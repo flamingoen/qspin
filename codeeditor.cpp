@@ -39,12 +39,17 @@
 ****************************************************************************/
 
 #include <QtWidgets>
-
 #include "codeeditor.h"
 
 
 CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent) {
     lineNumberArea = new LineNumberArea(this);
+    colorList << QColor(0, 0, 255, 127)
+              << QColor(255, 0, 0, 127)
+              << QColor(0, 255, 0, 127)
+              << QColor(255,255,0,127)
+              << QColor(0,255,255,127)
+              << QColor(255,0,255,127);
 
     connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth(int)));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
@@ -126,7 +131,29 @@ void CodeEditor::HighlightErrorLines(QStringList lineNos) {
         selection.cursor = cursor;
         extraSelections.append(selection);
     }
+    setExtraSelections(extraSelections);
+}
 
+void CodeEditor::HighlightProcesses(QList<SimulationRun::proc> procs) {
+    QList<QTextEdit::ExtraSelection> extraSelections;
+
+    for (int i = 0 ; i<procs.length() ; i++) {
+        if (procs[i].line>0) {
+            QTextEdit::ExtraSelection selection;
+            QColor lineColor = colorList[procs[i].id%colorList.length()];
+            QTextCursor cursor(this->document());
+
+            selection.format.setBackground(lineColor);
+            selection.format.setProperty(QTextFormat::FullWidthSelection,true);
+
+            for (int j=1 ; j<procs[i].line ; j++) {
+                cursor.movePosition(QTextCursor::Down);
+            }
+
+            selection.cursor = cursor;
+            extraSelections.append(selection);
+        }
+    }
     setExtraSelections(extraSelections);
 }
 

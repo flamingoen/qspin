@@ -24,7 +24,8 @@ public:
     struct variable {
         int id;
         QString name;
-        int value;
+        QString type;
+        QString value;
         int process;
     };
     struct step {
@@ -32,11 +33,11 @@ public:
         int i_proc;
         int i_state;
         QString var = "";
-        int change;
+        QString value;
     };
     struct proc {
         int id;
-        int line;
+        int line = -1;
         QString name;
     };
 
@@ -45,9 +46,11 @@ public:
     step getCurrentStep();
     bool currentStepChangeVariable();
     int getCurrentVarId();
-    int getCurrentVarValue();
+    QString getCurrentVarValue();
     int getCurrentProcId();
     int getCurrentProcLine();
+    bool canGoForward();
+    bool canGoBackwards();
     QString getCurrentVarName();
 
 private:
@@ -67,6 +70,7 @@ private:
     bool parseStep(QString _step);
     bool parseProc(QString _step);
     bool parseVar(QString _step);
+    void parseCode();
     void setupProcess();
 
 private slots:

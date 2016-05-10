@@ -31,3 +31,5 @@ HEADERS  += mainwindow.h \
     spinrun.h
 
 FORMS    += mainwindow.ui
+
+RESOURCES +=

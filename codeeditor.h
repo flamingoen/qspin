@@ -43,6 +43,7 @@
 
 #include <QPlainTextEdit>
 #include <QObject>
+#include <simulationrun.h>
 
 class QPaintEvent;
 class QResizeEvent;
@@ -56,9 +57,11 @@ class CodeEditor : public QPlainTextEdit {
 
 public:
     CodeEditor(QWidget *parent = 0);
+    QList<QColor> colorList;
 
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     void HighlightErrorLines(QStringList lineNos);
+    void HighlightProcesses(QList<SimulationRun::proc>);
     int lineNumberAreaWidth();
 
 protected:
