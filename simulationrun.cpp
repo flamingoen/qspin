@@ -3,13 +3,13 @@
 
 /* TODOLIST FOR SIMULATION
  * TODO: Implement seed
- * TODO: Remove created processes from variables and place in procs with correct name
  * TODO: Interactive simulation
  * TODO: Implement missing types (Array, chan, utype)
  * TODO: Lock editor while simulation is being made
  * TODO: Show what happens in each step
  * TODO: Remove redundant steps
  * TODO: Parse print statements
+ * TODO: problems when going back. Does not set to old value
  * */
 
 SimulationRun::SimulationRun(QString _path, SimulationType _type, int _depth) : SpinRun(_path , Simulation){
