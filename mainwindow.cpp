@@ -51,13 +51,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     QAction *actionLoad = this->findChild<QAction *>("actionLoad");
     QAction *actionSave = this->findChild<QAction *>("actionSave");
     QAction *actionAbort = this->findChild<QAction *>("actionAbort");
-    QAction *actionCheckSyntax = this->findChild<QAction *>("actionCheck_syntax");
+//    QAction *actionCheckSyntax = this->findChild<QAction *>("actionCheck_syntax");
     QAction *actionLoad_Ltl = this->findChild<QAction *>("actionLoad_Ltl");
 
     connect(actionLoad, SIGNAL(triggered()) , this,SLOT(loadFile()));
     connect(actionSave, SIGNAL(triggered()) , this,SLOT(saveFile()));
     connect(actionAbort, SIGNAL(triggered()),this,SLOT(terminateProcess()));
-    connect(actionCheckSyntax, SIGNAL(triggered()), this , SLOT(checkSyntax()));
+ //   connect(actionCheckSyntax, SIGNAL(triggered()), this , SLOT(checkSyntax()));
     connect(actionLoad_Ltl, SIGNAL(triggered()), this, SLOT(loadLTLfile()));
 
     // ## Verify tab ##
@@ -71,7 +71,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     newltlButton = this->findChild<QPushButton *>("newltlButton");
 
     connect(newltlButton,SIGNAL(clicked()),this,SLOT(newLtl()));
-   // connect(ltlList,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(runVerify())); TODO:Bør vi verificere på dobbeltklik?
+   // connect(ltlList,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(runVerify()));
+
 
     // ## Simulation tab
     QPushButton *buttonRandomSim = this->findChild<QPushButton *>("buttonRandomSim");
@@ -191,60 +192,87 @@ void MainWindow::saveFile() {
     }
 }
 
-void MainWindow::checkSyntax() {
-    prepareRun();
-    process = new QProcess();
-    connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(checkSyntaxErrorHighlight()));
-    process->start(SPIN,QStringList() << "-a" << path.replace(" ","\\ "));
-}
+//void MainWindow::checkSyntax() {
+//    //TODO: Cleanup pan files
+//    prepareRun();
+//    process = new QProcess();
+//    connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(checkSyntaxErrorHighlight()));
+//    process->start(SPIN,QStringList() << "-a" << path.replace(" ","\\ "));
+//}
 
-void MainWindow::checkSyntaxErrorHighlight() {
-    QString str = process->readAllStandardOutput();
-    QRegExp rxLine("spin: "+path+":(\\d+)");
-    QRegExp rxError("spin: "+path+":\\d+, Error:(\\D*)");
-    QStringList lineNoList;
-    QStringList errorList;
-    int pos = 0;
-    while ((pos = rxError.indexIn(str , (rxLine.indexIn(str, pos)) )) != -1) {
-        QString lineNo = rxLine.cap(1);
-        QString error = rxError.cap(1);
-        lineNoList << lineNo;
-        errorList << error;
-        outputLog->append("Error at line "+lineNo+": "+error);
-        pos += rxLine.matchedLength()+rxError.matchedLength();
-    }
-    editor->HighlightErrorLines(lineNoList);
-}
+//void MainWindow::checkSyntaxErrorHighlight() {
+//    QString str = process->readAllStandardOutput();
+//    QRegExp rxLine("spin: "+path+":(\\d+)");
+//    QRegExp rxError("spin: "+path+":\\d+, Error:(\\D*)");
+//    QStringList lineNoList;
+//    QStringList errorList;
+//    int pos = 0;
+//    while ((pos = rxError.indexIn(str , (rxLine.indexIn(str, pos)) )) != -1) {
+//        QString lineNo = rxLine.cap(1);
+//        QString error = rxError.cap(1);
+//        lineNoList << lineNo;
+//        errorList << error;
+//        outputLog->append("Error at line "+lineNo+": "+error);
+//        pos += rxLine.matchedLength()+rxError.matchedLength();
+//    }
+//    editor->HighlightErrorLines(lineNoList);
+//}
 
-// BUG: Hvis man spammer verify knappen bliver gamle threads ikke lukker (memory leak)
+
 void MainWindow::runVerify(){
     fileCleanup();
     if (prepareRun()) {
         // COMPILE OPTIONS
-        QStringList compileOpts;
+
         if (radioColapse->isChecked())           compileOpts << "-DCOLLAPSE ";
         else if (radioDH4->isChecked())          compileOpts << "-DH4 ";
         if (radioSafety->isChecked())            compileOpts <<"-DSAFTY ";
         else if (radioLiveness->isChecked())     compileOpts <<"-DNP ";
         compileOpts << "-o" << "pan";
         // TYPE
-        VerificationRun::VerificationType type = VerificationRun::Safety;
+        verType = VerificationRun::Safety;
         if (radioAcceptance->isChecked())
-            type = VerificationRun::Acceptance;
+            verType = VerificationRun::Acceptance;
         if (radioLiveness->isChecked())
-            type = VerificationRun::Liveness;
+            verType = VerificationRun::Liveness;
 
         // FETCH LTL
-        QString ltl = "";
-        if(type == VerificationRun::Acceptance && ltlList->count() > 0){
+        ltl = "";
+        if(verType == VerificationRun::Acceptance && ltlList->count() > 0){
            ltl = getLtl();
         }
-
-        // START VERIFICATION
-        spinRun = new VerificationRun(path, type,checkFair->isChecked(),ltl, compileOpts,spinBoxSDepth->value(),hashSize());
+        spinRun = new syntaxRun(path,ltl,"Verification");
         runProcess(spinRun);
+
     }
 }
+
+void MainWindow::verify(){
+    //TODO: Clear verification tab
+    if (dynamic_cast<syntaxRun*>(spinRun)-> errors == 0){
+        // START VERIFICATION
+        spinRun = new VerificationRun(path, verType,checkFair->isChecked(),ltl, compileOpts,spinBoxSDepth->value(),hashSize());
+        runProcess(spinRun);
+    }else {
+        QStringList lineNoList = dynamic_cast<syntaxRun*>(spinRun)->lineNoList;
+        QStringList errorList = dynamic_cast<syntaxRun*>(spinRun)->errorList;
+
+        for(int i = 0 ; i < lineNoList.count();i++){
+            outputLog->append("Error at line "+lineNoList[i]+": "+errorList[i]);
+            if (lineNoList[i].toInt() > editor->blockCount()){
+                if (ltlList->item(selectedLtl)){
+                    ltlList->item(selectedLtl)->setBackgroundColor(Qt::red);
+                }
+                lineNoList.removeAt(i);
+            }
+        }
+        if (lineNoList.count() > 0){
+            editor->HighlightErrorLines(lineNoList);
+
+        }
+    }
+}
+
 
 int MainWindow::hashSize() {
     if (checkHSize->isChecked())
@@ -259,6 +287,7 @@ QString MainWindow::getLtl(){
             return ltlList->item(i)->text();
         }
     }
+    selectedLtl = -1;
     return "";
 }
 
@@ -267,32 +296,58 @@ QString MainWindow::getLtl(){
 void MainWindow::runSimulation() {
     if (prepareRun()) {
         // TYPE
-        SimulationRun::SimulationType type = SimulationRun::Random;
+        simType = SimulationRun::Random;
         if (radioInteractive->isChecked())  {
-            type = SimulationRun::Interactive;
+            simType = SimulationRun::Interactive;
             simulationTypeLabel->setText("Interactive");
         } else if (radioGuided->isChecked()) {
-            type = SimulationRun::Guided;
+            simType = SimulationRun::Guided;
             simulationTypeLabel->setText("Guided");
         } else simulationTypeLabel->setText("Random");
         fileLabel->setText(filename);
+        spinRun = new syntaxRun(path,"","Simulation");
+        runProcess(spinRun);
+    }
+}
+
+void MainWindow::simulation(){
+    if (dynamic_cast<syntaxRun*>(spinRun)-> errors == 0){
         // START SIMULATION
-        spinRun = new SimulationRun(path,type,spinBoxSteps->value());
+        spinRun = new SimulationRun(path,simType,spinBoxSteps->value());
         runProcess(spinRun);
         connect(spinRun,SIGNAL(finished()),this,SLOT(createSimulationTab()));
         buttonForwardSim->setDisabled(false);
+    }else {
+        QStringList lineNoList = dynamic_cast<syntaxRun*>(spinRun)->lineNoList;
+        QStringList errorList = dynamic_cast<syntaxRun*>(spinRun)->errorList;
+
+        for(int i = 0 ; i < lineNoList.count();i++){
+            outputLog->append("Error at line "+lineNoList[i]+": "+errorList[i]);
+            if (lineNoList[i].toInt() > editor->blockCount()){
+                if (ltlList->item(selectedLtl)){
+                    ltlList->item(selectedLtl)->setBackgroundColor(Qt::red);
+                }
+                lineNoList.removeAt(i);
+            }
+        }
+        if (lineNoList.count() > 0){
+            editor->HighlightErrorLines(lineNoList);
+
+        }
     }
 }
 
 void MainWindow::runProcess(SpinRun* run){
     outputLog->clear();
-    thread = new QThread();
+    thread = new QThread(this);
     run->moveToThread(thread);
     connect(thread,SIGNAL(started()),run,SLOT(start()));
     connect(run, SIGNAL(readReady()),this,SLOT(processReadReady()));
     connect(run, SIGNAL(finished()),this,SLOT(processFinished()));
     connect(run, SIGNAL(finished()), thread, SLOT(quit()));
     connect(run, SIGNAL(statusChanged()),this,SLOT(processStatusChange()));
+    connect(run,SIGNAL(syntaxFinishedVer()),this,SLOT(verify()));
+    connect(run,SIGNAL(syntaxFinishedSim()),this,SLOT(simulation()));
     connect(thread, SIGNAL(finished()),thread,SLOT(deleteLater()));
     thread->start();
 }
@@ -360,7 +415,7 @@ void MainWindow::fileCleanup(){
         dir.remove(dirFile);
     }
 }
-//TODO: DEN FATTER IKKE EN SKID HVIS MAN FORSØGER AT VERIFICERER TING DER IKKE GIVER MENING...
+
 
 void MainWindow::newLtl(){
     QListWidgetItem *item = new QListWidgetItem("ltl newName {}" ,ltlList);
@@ -441,10 +496,10 @@ void MainWindow::updateVerificationTab(){
 
     timestampLabel->setText(verificationOutput->timestamp);
 
-    //TODO: INDSÆT LABEL MED NAVN PÅ FIL
+
     //IF LTL RUN, update ltl evaluation:
 
-    if(dynamic_cast<VerificationRun*>(spinRun)->verificationType==VerificationRun::Acceptance && ltlList->count() > 0){
+    if(dynamic_cast<VerificationRun*>(spinRun)->verificationType==VerificationRun::Acceptance && ltlList->count() > 0 && selectedLtl != -1){
 
         if(verificationOutput->errors == "0"){
            ltlList->item(selectedLtl)->setBackgroundColor(Qt::green);
@@ -454,4 +509,4 @@ void MainWindow::updateVerificationTab(){
         }
     }
 }
-//TODO: EN MÅDE AT IDENTIFICERE HVILKEN TYPE RUN VI LAVER, ER DET ACCEPTANCE ELLER HVAD ER DET, SKAL VI AUTOMATISK KØRE ACCEPTANCE  HVIS MAN DOBBELTKLIKKER EN LTL?
+

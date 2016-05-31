@@ -13,6 +13,7 @@
 
 #include "verificationrun.h"
 #include "simulationrun.h"
+#include "syntaxRun.h"
 
 #include "ui_mainwindow.h"
 #include "verificationoutput.h"
@@ -29,7 +30,10 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+    void runSyntax(QString ltl);
+
 private:
+    QString ltl = "";
     QString path;
     QString LTLpath;
     QString filename;
@@ -61,7 +65,10 @@ private:
 	QFile LTLfile; // Could be local
 	int selectedLtl;
 
+    SimulationRun::SimulationType simType;
+    VerificationRun::VerificationType verType;
     QListWidget* ltlList;
+    QStringList compileOpts;
     QTableWidget* variableTable;
     QTableWidget* processTable;
 
@@ -121,8 +128,8 @@ private slots:
     void runSimulation();
     void terminateProcess();
     void fileCleanup();
-    void checkSyntax();
-    void checkSyntaxErrorHighlight();
+    //void checkSyntax();
+    //void checkSyntaxErrorHighlight();
     void processFinished();
     void processReadReady();
     void processStatusChange();
@@ -133,6 +140,8 @@ private slots:
     void simulationStepBackwards();
     void newLtl();
 	int hashSize();
+    void verify();
+    void simulation();
 };
 
 #endif // MAINWINDOW_H

@@ -17,8 +17,8 @@ void VerificationRun::start(){
     process = new QProcess();
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runCompile()));
     setStatus("Verification: Creating model");
-    // INSERT LTL IF ACCEPTANCE RUN
 
+    // INSERT LTL IF ACCEPTANCE RUN
     if(verificationType == Acceptance){
      tempPath = createTempPml();
      process->start(SPIN,QStringList() << "-a" << tempPath.replace(" ","\\ "));
