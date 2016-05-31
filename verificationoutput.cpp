@@ -36,9 +36,7 @@ void VerificationOutput::processVerification(QString output){
     timestamp = (time->currentDateTimeUtc().toLocalTime()).toString();
 
     //TODO: Husk exception handling til at (især vores regex)
-    //TODO: Laves der verificationOutput klasse, så husk at give timestamp så man kan se hvornår den sidste er kørt.
     //TODO: SMID I TRY CATCH - hvis der sker en fejl, indsæt fejl i SPINVER label hvor der står at man bliver nødt til at bruge rawlog
-    //TODO: LAV LTL LISTE som man kan trykke på efter at man har kørt verify det starter ny kørsel med den trykkede LTL
 
     // SPIN VERSION
     QRegularExpression re("(Spin Version .+)\\)");

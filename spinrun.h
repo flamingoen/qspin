@@ -17,7 +17,7 @@ class SpinRun : public QObject{
     Q_ENUMS(Type)
 
 public:
-    enum Type {Simulation,Verification,nonSpecified};
+    enum Type {Simulation,Verification,Syntax,nonSpecified};
     SpinRun(QString _path, Type _type);
     QString readOutput();
     QString readStatus();
@@ -35,6 +35,8 @@ signals:
     void readReady();
     void finished();
     void statusChanged();
+    void syntaxFinishedVer();
+    void syntaxFinishedSim();
 
 public slots:
     virtual void start() = 0;
