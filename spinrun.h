@@ -35,8 +35,6 @@ signals:
     void readReady();
     void finished();
     void statusChanged();
-    void syntaxFinishedVer();
-    void syntaxFinishedSim();
 
 public slots:
     virtual void start() = 0;

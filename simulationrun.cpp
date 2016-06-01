@@ -18,6 +18,8 @@ SimulationRun::SimulationRun(QString _path, SimulationType _type, int _depth) : 
     QRegExp rx("/((([a-z]|[A-Z]|\\d)+).pml)");
     rx.indexIn(path);
     filename = rx.cap(1);
+    statesBack.clear();
+    statesForward.clear();
 }
 
 void SimulationRun::start() {
@@ -37,13 +39,13 @@ void SimulationRun::start() {
 void SimulationRun::randomSimulation() {
     setStatus("Running random simulation");
     setupProcess();
-    process->start(SPIN,QStringList() << "-u200" << "-p" << "-g" << "-l" << path);
+    process->start(SPIN,QStringList() << "-u"+QString::number(depth) << "-p" << "-g" << "-l" << path);
 }
 
 void SimulationRun::interactiveSimulation() {
     setStatus("Running interactive simulation");
     setupProcess();
-    process->start(SPIN,QStringList() << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "-i"  << path);
+    process->start(SPIN,QStringList() << "-g" << "-l" << "-p" << "-i"  << path);
 }
 
 void SimulationRun::guidedSimulation() {
@@ -51,7 +53,7 @@ void SimulationRun::guidedSimulation() {
     QFile::copy(filename+".qspin.trail", trailPath);
     setStatus("Running guided simulation");
     setupProcess();
-    process->start(SPIN,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "-u250" << path.replace(" ","\\ "));
+    process->start(SPIN,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << path.replace(" ","\\ "));
 }
 
 void SimulationRun::setupProcess(){
@@ -66,13 +68,6 @@ void SimulationRun::finishedProcess() {
     QString input = process->readAllStandardOutput();
     parseSimulation(input);
     currentOutput.append(input);
-    while (!statesBack.isEmpty()) {
-        goBackwards();
-    }
-    foreach(int key, mapProcess.keys()) {
-        mapProcess[key].line = -1;
-    }
-
     emit finished();
 }
 
@@ -80,6 +75,16 @@ void SimulationRun::readReadyProcess() {
     QString input = process->readAllStandardOutput();
     parseSimulation(input);
     currentOutput.append(input);
+    while (!statesBack.isEmpty()) {
+        goBackwards();
+    }
+    foreach(int key, mapProcess.keys()) {
+        mapProcess[key].line = -1;
+    }
+    listChoises.clear();
+    foreach(QString line , input.split("\n")){
+        parseChoises(line);
+    }
     emit readReady();
 }
 
@@ -106,7 +111,6 @@ void SimulationRun::parseCode() {
         }
         file.close();
     }
-    qDebug() << codeText;
     codeText.remove(QRegularExpression("\\/\\*(?:.|\\n)*?\\*\\/|\\/\\/.*?\\\n")); //Removes all comments
     lines = codeText.split(QRegularExpression(";|\\n"),QString::SkipEmptyParts);
     QRegularExpression reVar("(byte|bool|int|pid|short|mtype)\\s+(.*?)\\s+=\\s+(.*)");
@@ -138,7 +142,7 @@ void SimulationRun::parseCode() {
 }
 
 bool SimulationRun::parseStep(QString _step) {
-    QRegularExpression reStep("proc\\s+(\\d+)\\s+\\((.*?):\\d+\\)\\s"+path+":(\\d+)\\s+\\(state\\s(\\d+)");
+    QRegularExpression reStep("proc\\s+(\\d+)\\s+\\((.*?):\\d+\\)\\s"+path+":(\\d+)\\s+\\(state\\s(\\d+)\\)\\s+\\[(.*?)\\]");
     QRegularExpressionMatch match = reStep.match(_step);
     bool matched = match.hasMatch();
     if (matched) {
@@ -152,6 +156,7 @@ bool SimulationRun::parseStep(QString _step) {
         }
         newStep.line = match.captured(3).toInt();
         newStep.i_state = match.captured(4).toInt();
+        newStep.operation = match.captured(5);
         statesBack.push(newStep);
     }
     return matched;
@@ -205,6 +210,18 @@ bool SimulationRun::parseVar(QString _step) {
         statesBack.push(_step);
     }
     return matched;
+}
+
+void SimulationRun::parseChoises(QString _step) {
+    QRegularExpression reChoise("choice\\s+(\\d+):\\s+proc\\s+(\\d+)\\s+\\(.*?\\)\\s+"+path+":\\d+\\s+\\(state\\s+\\d+\\)\\s\\[\\((.*?)\\)\\]");
+    QRegularExpressionMatch match = reChoise.match(_step);
+    if (match.hasMatch()) {
+        choise _choise;
+        _choise.number = match.captured(1);
+        _choise._proc = mapProcess[match.captured(2).toInt()];
+        _choise.operation = match.captured(3);
+        listChoises.append(_choise);
+    }
 }
 
 void SimulationRun::goForward(int steps) {
@@ -277,12 +294,55 @@ int SimulationRun::getCurrentProcLine() {
     return mapProcess[currentStep.i_proc].line;
 }
 
+int SimulationRun::getCurrentIndex() {
+    return statesBack.length();
+}
+
+QList<SimulationRun::choise> SimulationRun::getChoises() {
+    return listChoises;
+}
+
+QStringList SimulationRun::getOperations() {
+    QStringList operations;
+    QStack<step> tempStatesBack;
+    QStack<step> tempStatesForward;
+    step _step;
+    // Get operations from the stacks
+    while (!statesBack.isEmpty()) {
+        _step = statesBack.pop();
+        operations.append(_step.operation);
+        tempStatesBack.push(_step);
+    }
+    operations.append(currentStep.operation);
+    while (!statesForward.isEmpty()) {
+        _step = statesForward.pop();
+        operations.append(_step.operation);
+        tempStatesForward.push(_step);
+    }
+    // Re-create stacks
+    while (!tempStatesBack.isEmpty()) {
+        statesBack.push(tempStatesBack.pop());
+    }
+    while (!tempStatesForward.isEmpty()) {
+        statesForward.push(tempStatesForward.pop());
+    }
+    return operations;
+}
+
 bool SimulationRun::canGoForward() {
     return !statesForward.isEmpty();
 }
 
 bool SimulationRun::canGoBackwards() {
     return !statesBack.isEmpty();
+}
+
+void SimulationRun::commitChoise(choise _choise) {
+    if (simulationType==Interactive) {
+        QString cmd = _choise.number+"\n\r";
+        process->write(cmd.toLatin1().data());
+        process->closeWriteChannel();
+    }
 }
 
 //void MainWindow::runSubmitInteractiveSimulation() {

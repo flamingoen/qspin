@@ -1,7 +1,7 @@
 #ifndef SYNTAXRUN_H
 #define SYNTAXRUN_H
 
-#include <spinRun.h>
+#include <spinrun.h>
 
 class syntaxRun : public SpinRun{
     Q_OBJECT
@@ -20,6 +20,8 @@ private:
     QString tempPath;
     QString callType;
 
+signals:
+    void finishedNoErrors();
 
 private slots:
     void checkSyntax();

@@ -34,11 +34,18 @@ public:
         int i_state;
         QString var = "";
         QString value;
+        QString operation;
     };
     struct proc {
         int id;
         int line = -1;
         QString name;
+    };
+
+    struct choise {
+        QString number;
+        proc _proc;
+        QString operation;
     };
 
     QList<variable> getVariables();
@@ -49,9 +56,13 @@ public:
     QString getCurrentVarValue();
     int getCurrentProcId();
     int getCurrentProcLine();
+    QStringList getOperations();
+    int getCurrentIndex();
     bool canGoForward();
     bool canGoBackwards();
+    QList<choise> getChoises();
     QString getCurrentVarName();
+    void commitChoise(choise _choise);
 
 private:
     int depth;
@@ -60,6 +71,7 @@ private:
     QStack<step> statesForward;
     QMap<int,proc> mapProcess;
     QMap<QString,variable> mapVariable;
+    QList<choise> listChoises;
     QString filename;
 
 
@@ -72,6 +84,7 @@ private:
     bool parseVar(QString _step);
     void parseCode();
     void setupProcess();
+    void parseChoises(QString _step);
 
 private slots:
     void finishedProcess();

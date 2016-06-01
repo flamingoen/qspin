@@ -13,7 +13,7 @@
 
 #include "verificationrun.h"
 #include "simulationrun.h"
-#include "syntaxRun.h"
+#include "syntaxrun.h"
 
 #include "ui_mainwindow.h"
 #include "verificationoutput.h"
@@ -57,6 +57,9 @@ private:
     QSpinBox *spinBoxSteps;
     QSpinBox *spinBoxSDepth;
     QComboBox *comboChoice;
+
+    QListWidget *simulationSteps;
+    QListWidget *listChoises;
 
     QProcess *process;
     SpinRun *spinRun;
@@ -142,6 +145,9 @@ private slots:
 	int hashSize();
     void verify();
     void simulation();
+    void simulationStepClicked();
+    void interactiveSimulation();
+    void listChoiseActivated(QModelIndex index);
 };
 
 #endif // MAINWINDOW_H

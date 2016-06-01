@@ -47,11 +47,7 @@ void syntaxRun::checkSyntax(){
     }
     errors = errorList.count();
     QFile::remove(tempPath);
-    if (callType == "Verification"){
-        emit syntaxFinishedVer();
-    }else{
-        emit syntaxFinishedSim();
-    }
+    emit finished();
 
 }
 
