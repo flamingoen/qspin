@@ -13,6 +13,32 @@ public:
     ~VerificationRun();
     VerificationType verificationType;
 
+    QString timestamp;
+    //STATESPACE SPECS
+    QString spinVer ;
+    QString eval ;
+    QString partial;
+    QString never;
+    QString assertion;
+    QString acceptanceType;
+    QString acceptance;
+    QString invalid;
+    //STATESPACE PROP
+    QString errors;
+    QString depth;
+    QString storedStates;
+    QString matchedStates;
+    QString transitions;
+    QString atomic;
+    QString statesize;
+    QString hashconflict;
+    QString hashsize;
+    // MEMORY USAGE
+    QString statememory;
+    QString hashmemory;
+    QString DFSmemory;
+    QString totalmemory;
+
 private:
     QString finishedOutput;
     bool fairness;
@@ -21,6 +47,7 @@ private:
     int searchDepth;
     int hashSize;
     QString tempPath;
+    void processVerification(QString output);
 
 private slots:
     QString createTempPml();

@@ -1,8 +1,7 @@
 #include "syntaxrun.h"
 
-syntaxRun::syntaxRun(QString _path, QString _ltl,QString _callType): SpinRun(_path , Syntax)
+syntaxRun::syntaxRun(QString _path, QString _ltl): SpinRun(_path , Syntax)
 {
-    callType = _callType;
     path = _path;
     ltl = _ltl;
     errors = -1;
@@ -47,6 +46,8 @@ void syntaxRun::checkSyntax(){
     }
     errors = errorList.count();
     QFile::remove(tempPath);
+    if (errors>0) setStatus(QString::number(errors)+" errors found");
+    else setStatus("No errors found :)");
     emit finished();
 
 }

@@ -9,16 +9,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     ui->setupUi(this);
     this->setWindowTitle("QSpin");
 
-    // ## Verification Tab ##
-    verificationOutput = new VerificationOutput();
-
     //Setting font of groupbox titles
-    QGroupBox *statespaceprop = this->findChild<QGroupBox *>("groupBox_4");
-    statespaceprop->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox, thereby the labels won't suffer the effect of the change in the parents stylesheet.
-    QGroupBox *statespacespecs = this->findChild<QGroupBox *>("groupBox_5");
-    statespacespecs->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } "); // The stylesheet is not inherited to children of the QGroupBox, thereby the labels won't suffer the effect of the change in the parents stylesheet.
-    QGroupBox *memoryusage = this->findChild<QGroupBox *>("groupBox_6");
-    memoryusage->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } ");    // The stylesheet is not inherited to children of the QGroupBox thereby the labels won't suffer the effect of the change in the parents stylesheet.
+    // The stylesheet is not inherited to children of the QGroupBox, thereby the labels won't suffer the effect of the change in the parents stylesheet.
+    //QGroupBox *statespaceprop = this->findChild<QGroupBox *>("groupBox_4");
+    //statespaceprop->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } ");
+    //QGroupBox *statespacespecs = this->findChild<QGroupBox *>("groupBox_5");
+    //statespacespecs->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } ");
+    //QGroupBox *memoryusage = this->findChild<QGroupBox *>("groupBox_6");
+    //memoryusage->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } ");
 
     // Connecting to objects
 
@@ -29,6 +27,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     neverLabel = this->findChild<QLabel *>("neverLabel_2");
     assertionLabel = this->findChild<QLabel *>("assertionLabel_2");
     acceptanceLabel = this->findChild<QLabel *>("acceptanceLabel_2");
+    CycleTypeLabel = this->findChild<QLabel * >("LabelCycleType");
     invalidLabel = this->findChild<QLabel *>("invalidLabel_2");
 
     // Statespacespec groupbox
@@ -55,13 +54,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     QAction *actionLoad = this->findChild<QAction *>("actionLoad");
     QAction *actionSave = this->findChild<QAction *>("actionSave");
     QAction *actionAbort = this->findChild<QAction *>("actionAbort");
-//    QAction *actionCheckSyntax = this->findChild<QAction *>("actionCheck_syntax");
+    QAction *actionCheckSyntax = this->findChild<QAction *>("actionCheck_syntax");
     QAction *actionLoad_Ltl = this->findChild<QAction *>("actionLoad_Ltl");
 
     connect(actionLoad, SIGNAL(triggered()) , this,SLOT(loadFile()));
     connect(actionSave, SIGNAL(triggered()) , this,SLOT(saveFile()));
     connect(actionAbort, SIGNAL(triggered()),this,SLOT(terminateProcess()));
- //   connect(actionCheckSyntax, SIGNAL(triggered()), this , SLOT(checkSyntax()));
+    connect(actionCheckSyntax, SIGNAL(triggered()), this , SLOT(runCheckSyntax()));
     connect(actionLoad_Ltl, SIGNAL(triggered()), this, SLOT(loadLTLfile()));
 
     // ## Verify tab ##
@@ -221,11 +220,11 @@ void MainWindow::runVerify(){
         if(verType == VerificationRun::Acceptance && ltlList->count() > 0){
            ltl = getLtl();
         }
-        spinRun = new syntaxRun(path,ltl,"Verification");
+        spinRun = new syntaxRun(path,ltl);
         thread = new QThread(this);
         spinRun->moveToThread(thread);
         connect(thread,SIGNAL(started()),spinRun,SLOT(start()));
-        connect(spinRun, SIGNAL(finished()),this,SLOT(verification()));
+        connect(spinRun, SIGNAL(finished()),this,SLOT(verify()));
         connect(spinRun, SIGNAL(finished()), thread, SLOT(quit()));
         connect(spinRun, SIGNAL(statusChanged()),this,SLOT(processStatusChange()));
         connect(thread, SIGNAL(finished()),thread,SLOT(deleteLater()));
@@ -237,9 +236,19 @@ void MainWindow::runVerify(){
 void MainWindow::verify(){
     //TODO: Clear verification tab
     if (dynamic_cast<syntaxRun*>(spinRun)-> errors == 0){
+        clearVerificationTab();
         // START VERIFICATION
         spinRun = new VerificationRun(path, verType,checkFair->isChecked(),ltl, compileOpts,spinBoxSDepth->value(),hashSize());
-        runProcess(spinRun);
+        outputLog->clear();
+        thread = new QThread(this);
+        spinRun->moveToThread(thread);
+        connect(thread,SIGNAL(started()),spinRun,SLOT(start()));
+        connect(spinRun, SIGNAL(finished()),this,SLOT(processFinished()));
+        connect(spinRun,SIGNAL(finished()),this,SLOT(updateVerificationTab()));
+        connect(spinRun, SIGNAL(finished()), thread, SLOT(quit()));
+        connect(spinRun, SIGNAL(statusChanged()),this,SLOT(processStatusChange()));
+        connect(thread, SIGNAL(finished()),thread,SLOT(deleteLater()));
+        thread->start();
     }else {
         QStringList lineNoList = dynamic_cast<syntaxRun*>(spinRun)->lineNoList;
         QStringList errorList = dynamic_cast<syntaxRun*>(spinRun)->errorList;
@@ -290,7 +299,7 @@ void MainWindow::interactiveSimulation() {
         simType = SimulationRun::Interactive;
         fileLabel->setText(filename);
 
-        spinRun = new syntaxRun(path,"","Simulation");
+        spinRun = new syntaxRun(path,"");
         thread = new QThread(this);
         spinRun->moveToThread(thread);
         connect(thread,SIGNAL(started()),spinRun,SLOT(start()));
@@ -316,7 +325,7 @@ void MainWindow::runSimulation() {
             simulationTypeLabel->setText("Guided");
         } else simulationTypeLabel->setText("Random");
         fileLabel->setText(filename);
-        spinRun = new syntaxRun(path,"","Simulation");
+        spinRun = new syntaxRun(path,"");
         thread = new QThread(this);
         spinRun->moveToThread(thread);
         connect(thread,SIGNAL(started()),spinRun,SLOT(start()));
@@ -369,7 +378,19 @@ void MainWindow::runProcess(SpinRun* run){
     thread->start();
 }
 
-
+void MainWindow::runCheckSyntax() {
+    if(prepareRun()){
+        spinRun = new syntaxRun(path,"");
+        thread = new QThread(this);
+        spinRun->moveToThread(thread);
+        connect(thread,SIGNAL(started()),spinRun,SLOT(start()));
+        connect(spinRun, SIGNAL(finished()),this,SLOT(simulation()));
+        connect(spinRun, SIGNAL(finished()), thread, SLOT(quit()));
+        connect(spinRun, SIGNAL(statusChanged()),this,SLOT(processStatusChange()));
+        connect(thread, SIGNAL(finished()),thread,SLOT(deleteLater()));
+        thread->start();
+    }
+}
 
 void MainWindow::simulationStepForward() {
     if (spinRun->type==SpinRun::Simulation) {
@@ -387,12 +408,6 @@ void MainWindow::simulationStepBackwards() {
 
 void MainWindow::processFinished() {
     outputLog->append(spinRun->readOutput());
-    if (spinRun->type==SimulationRun::Verification) {
-        processVerificationOutput(outputLog->toPlainText());
-    }
-    if (checkOptDepth->isChecked()) {
-        spinBoxSDepth->setValue((verificationOutput->depth).toInt()+10);
-    }
     status->showMessage("Finished");
 }
 
@@ -437,11 +452,6 @@ void MainWindow::fileCleanup(){
 void MainWindow::newLtl(){
     QListWidgetItem *item = new QListWidgetItem("ltl newName {}" ,ltlList);
     item->setFlags(item->flags() | Qt::ItemIsEditable);
-}
-
-void MainWindow::processVerificationOutput(QString output){
-    verificationOutput->processVerification(output);
-    updateVerificationTab();
 }
 
 void MainWindow::UpdateSimulationTab() {
@@ -521,52 +531,80 @@ void MainWindow::listChoiseActivated(QModelIndex index) {
 }
 
 void MainWindow::updateVerificationTab(){
+    VerificationRun* verification = dynamic_cast<VerificationRun*>(spinRun);
     // SPINVERSIONLABEL
-    spinVerLabel->setText(verificationOutput->spinVer);
+    spinVerLabel->setText(verification->spinVer);
     // EVALUATIONLABEL
-    evalLabel->setStyleSheet("background-color: " + verificationOutput->eval+ ";");
-
+    evalLabel->setStyleSheet("background-color: " + verification->eval+ ";");
     // STATESPACE PROP
     // PARTIAL ORDER REDUCTION LABEL
-    partialLabel->setText("Partial order reduction: " + verificationOutput->partial);
+    partialLabel->setText(verification->partial);
     // NEVER CLAIM LABEL
-    neverLabel->setText("Never claim: "+ verificationOutput->never);
+    neverLabel->setText(verification->never);
     // ASSERTION LABEL
-    assertionLabel->setText("Assertion violations: "+ verificationOutput->assertion);
+    assertionLabel->setText(verification->assertion);
     //ACCEPTANCE LABEL
-    acceptanceLabel->setText(verificationOutput->acceptanceType+" cycles: " + verificationOutput->acceptance);
+    CycleTypeLabel->setText(verification->acceptanceType.append(" cyles:"));
+    acceptanceLabel->setText(verification->acceptance);
     //INVALID END STATES LABEL
-    invalidLabel->setText("Invalid end states: " + verificationOutput->invalid);
-
+    invalidLabel->setText(verification->invalid);
     // STATESPACE SPECS
-    errorLabel->setText("Errors: " + verificationOutput->errors);
-    depthLabel->setText("Depth reached: " + verificationOutput->depth);
-    storedstatesLabel->setText("Stored states: " + verificationOutput->storedStates);
-    matchedstatesLabel->setText("Matched states: " + verificationOutput->matchedStates);
-    transitionLabel->setText("Transitions taken: " + verificationOutput->transitions);
-    atomicLabel->setText("Atomic steps: " + verificationOutput->atomic);
-    statesizeLabel->setText("State size (bytes): " + verificationOutput->statesize);
-    hashconflictsLabel->setText("Hash conflicts: " + verificationOutput->hashconflict);
-    hashsizeLabel->setText("Hash size: 2^" + verificationOutput->hashsize);
-
+    errorLabel->setText(verification->errors);
+    depthLabel->setText(verification->depth);
+    storedstatesLabel->setText(verification->storedStates);
+    matchedstatesLabel->setText(verification->matchedStates);
+    transitionLabel->setText(verification->transitions);
+    atomicLabel->setText(verification->atomic);
+    statesizeLabel->setText(verification->statesize);
+    hashconflictsLabel->setText(verification->hashconflict);
+    hashsizeLabel->setText(verification->hashsize);
     // MEMORY USAGE
-    statememoryLabel->setText("Memory usage for states: " + verificationOutput->statememory);
-    hashmemoryLabel->setText("Memory usage for hash table: " + verificationOutput->hashmemory);
-    DFSmemoryLabel->setText("Memory usage for DFS stack: " + verificationOutput->DFSmemory);
-    totalmemoryLabel->setText("Total memory usage: " + verificationOutput->totalmemory);
+    statememoryLabel->setText(verification->statememory);
+    hashmemoryLabel->setText(verification->hashmemory);
+    DFSmemoryLabel->setText(verification->DFSmemory);
+    totalmemoryLabel->setText(verification->totalmemory);
 
-    timestampLabel->setText(verificationOutput->timestamp);
-
+    timestampLabel->setText(verification->timestamp);
 
     //IF LTL RUN, update ltl evaluation:
-
     if(dynamic_cast<VerificationRun*>(spinRun)->verificationType==VerificationRun::Acceptance && ltlList->count() > 0 && selectedLtl != -1){
-
-        if(verificationOutput->errors == "0"){
+        if(verification->errors == "0"){
            ltlList->item(selectedLtl)->setBackgroundColor(Qt::green);
         }
         else{
             ltlList->item(selectedLtl)->setBackgroundColor(Qt::red);
         }
     }
+
+    // Update search depth value
+    if (checkOptDepth->isChecked()) {
+        spinBoxSDepth->setValue((verification->depth).toInt()+10);
+    }
+}
+
+void MainWindow::clearVerificationTab() {
+    // Verification tab
+    spinVerLabel->clear();
+    evalLabel->clear();
+    partialLabel->clear();
+    neverLabel->clear();
+    assertionLabel->clear();
+    acceptanceLabel->clear();
+    invalidLabel->clear();
+    simulationTypeLabel->clear();
+    fileLabel->clear();
+    errorLabel->clear();
+    depthLabel->clear();
+    storedstatesLabel->clear();
+    matchedstatesLabel->clear();
+    transitionLabel->clear();
+    atomicLabel->clear();
+    statesizeLabel->clear();
+    hashconflictsLabel->clear();
+    hashsizeLabel->clear();
+    statememoryLabel->clear();
+    hashmemoryLabel->clear();
+    DFSmemoryLabel->clear();
+    totalmemoryLabel->clear();
+    timestampLabel->clear();
 }

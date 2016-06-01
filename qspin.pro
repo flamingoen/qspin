@@ -18,7 +18,6 @@ SOURCES += main.cpp\
     highlighter.cpp \
     codeeditor.cpp \
     verificationrun.cpp \
-	verificationoutput.cpp \
     simulationrun.cpp \
     spinrun.cpp \
     syntaxrun.cpp
@@ -27,7 +26,6 @@ HEADERS  += mainwindow.h \
     highlighter.h \
     codeeditor.h \
     verificationrun.h \
-	verificationoutput.h \
     simulationrun.h \
     spinrun.h \
     syntaxrun.h

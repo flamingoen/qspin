@@ -16,7 +16,6 @@
 #include "syntaxrun.h"
 
 #include "ui_mainwindow.h"
-#include "verificationoutput.h"
 using namespace std;
 
 namespace Ui {
@@ -91,6 +90,7 @@ private:
     QLabel *invalidLabel;
     QLabel *simulationTypeLabel;
     QLabel *fileLabel;
+    QLabel *CycleTypeLabel;
 
     QLabel * errorLabel;
     QLabel * depthLabel;
@@ -109,8 +109,6 @@ private:
 
     QLabel * timestampLabel;
 
-    VerificationOutput *verificationOutput;
-
     bool newVerification = false;
 
     QThread *thread;
@@ -122,6 +120,7 @@ private:
     bool prepareRun(bool clearLog=true);
     void runProcess(SpinRun* run);
     void UpdateSimulationTab();
+    void clearVerificationTab();
 
 private slots:
     void loadFile();
@@ -131,12 +130,10 @@ private slots:
     void runSimulation();
     void terminateProcess();
     void fileCleanup();
-    //void checkSyntax();
-    //void checkSyntaxErrorHighlight();
+    void runCheckSyntax();
     void processFinished();
     void processReadReady();
     void processStatusChange();
-    void processVerificationOutput(QString output);
     void updateVerificationTab();
     void createSimulationTab();
     void simulationStepForward();

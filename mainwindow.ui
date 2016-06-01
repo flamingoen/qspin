@@ -168,6 +168,13 @@
              </spacer>
             </item>
             <item>
+             <widget class="QLabel" name="label_20">
+              <property name="text">
+               <string>Errors: </string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QLabel" name="errorLabel">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -176,7 +183,7 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>Errors: </string>
+               <string/>
               </property>
              </widget>
             </item>
@@ -387,11 +394,17 @@
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
+                  <property name="font">
+                   <font>
+                    <weight>50</weight>
+                    <bold>false</bold>
+                   </font>
+                  </property>
                   <property name="autoFillBackground">
                    <bool>false</bool>
                   </property>
                   <property name="title">
-                   <string>Full statespace search for:</string>
+                   <string>Full statespace search for</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -399,51 +412,86 @@
                   <property name="flat">
                    <bool>false</bool>
                   </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_2">
-                   <item>
+                  <layout class="QGridLayout" name="gridLayout_11">
+                   <item row="4" column="1">
+                    <widget class="QLabel" name="invalidLabel_2">
+                     <property name="text">
+                      <string>-</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="1">
                     <widget class="QLabel" name="partialLabel_2">
                      <property name="text">
-                      <string>Partial order reduction: </string>
+                      <string>-</string>
                      </property>
                     </widget>
                    </item>
-                   <item>
+                   <item row="1" column="1">
                     <widget class="QLabel" name="neverLabel_2">
                      <property name="text">
-                      <string>Never claim: </string>
+                      <string>-</string>
                      </property>
                     </widget>
                    </item>
-                   <item>
+                   <item row="2" column="1">
                     <widget class="QLabel" name="assertionLabel_2">
+                     <property name="text">
+                      <string>-</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="1">
+                    <widget class="QLabel" name="acceptanceLabel_2">
+                     <property name="text">
+                      <string>-</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="0">
+                    <widget class="QLabel" name="label_5">
                      <property name="text">
                       <string>Assertion violations: </string>
                      </property>
                     </widget>
                    </item>
-                   <item>
-                    <widget class="QLabel" name="acceptanceLabel_2">
+                   <item row="1" column="0">
+                    <widget class="QLabel" name="label_4">
                      <property name="text">
-                      <string>Acceptance cycles: </string>
+                      <string>Never claim: </string>
                      </property>
                     </widget>
                    </item>
-                   <item>
-                    <widget class="QLabel" name="invalidLabel_2">
+                   <item row="4" column="0">
+                    <widget class="QLabel" name="label_7">
                      <property name="text">
                       <string>Invalid end states: </string>
                      </property>
                     </widget>
                    </item>
-                   <item>
+                   <item row="3" column="0">
+                    <widget class="QLabel" name="LabelCycleType">
+                     <property name="text">
+                      <string>Acceptance cycles: </string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="label_3">
+                     <property name="text">
+                      <string>Partial order reduction: </string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="5" column="0">
                     <spacer name="verticalSpacer">
                      <property name="orientation">
                       <enum>Qt::Vertical</enum>
                      </property>
                      <property name="sizeHint" stdset="0">
                       <size>
-                       <width>0</width>
-                       <height>0</height>
+                       <width>20</width>
+                       <height>40</height>
                       </size>
                      </property>
                     </spacer>
@@ -454,67 +502,126 @@
                 <item>
                  <widget class="QGroupBox" name="groupBox_5">
                   <property name="title">
-                   <string>Statespace specifications:</string>
+                   <string>Statespace specifications</string>
                   </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_7">
-                   <item>
-                    <widget class="QLabel" name="depthLabel">
-                     <property name="text">
-                      <string>Depth reached: </string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
+                  <property name="alignment">
+                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                  </property>
+                  <layout class="QGridLayout" name="gridLayout_12">
+                   <item row="1" column="1">
                     <widget class="QLabel" name="storedstatesLabel">
                      <property name="text">
-                      <string>Stored states: </string>
+                      <string>-</string>
                      </property>
                     </widget>
                    </item>
-                   <item>
-                    <widget class="QLabel" name="matchedstatesLabel">
-                     <property name="text">
-                      <string>Mathed states: </string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="transitionLabel">
-                     <property name="text">
-                      <string>Transitions taken: </string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="atomicLabel">
-                     <property name="text">
-                      <string>Atomic steps:</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="statesizeLabel">
-                     <property name="text">
-                      <string>State size (in bytes):  </string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="hashconflictsLabel">
+                   <item row="6" column="0">
+                    <widget class="QLabel" name="label_14">
                      <property name="text">
                       <string>Hash conflicts:</string>
                      </property>
                     </widget>
                    </item>
-                   <item>
+                   <item row="5" column="0">
+                    <widget class="QLabel" name="label_13">
+                     <property name="text">
+                      <string>State size (in bytes):  </string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="0">
+                    <widget class="QLabel" name="label_10">
+                     <property name="text">
+                      <string>Mathed states: </string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="0">
+                    <widget class="QLabel" name="label_9">
+                     <property name="text">
+                      <string>Stored states: </string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="label_8">
+                     <property name="text">
+                      <string>Depth reached: </string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="7" column="1">
                     <widget class="QLabel" name="hashsizeLabel">
+                     <property name="text">
+                      <string>-</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="1">
+                    <widget class="QLabel" name="depthLabel">
+                     <property name="text">
+                      <string>-</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="1">
+                    <widget class="QLabel" name="matchedstatesLabel">
+                     <property name="text">
+                      <string>-</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="5" column="1">
+                    <widget class="QLabel" name="statesizeLabel">
+                     <property name="text">
+                      <string>-</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="1">
+                    <widget class="QLabel" name="transitionLabel">
+                     <property name="text">
+                      <string>-</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="4" column="1">
+                    <widget class="QLabel" name="atomicLabel">
+                     <property name="text">
+                      <string>-</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="6" column="1">
+                    <widget class="QLabel" name="hashconflictsLabel">
+                     <property name="text">
+                      <string>-</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="0">
+                    <widget class="QLabel" name="label_11">
+                     <property name="text">
+                      <string>Transitions taken: </string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="4" column="0">
+                    <widget class="QLabel" name="label_12">
+                     <property name="text">
+                      <string>Atomic steps:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="7" column="0">
+                    <widget class="QLabel" name="label_15">
                      <property name="text">
                       <string>Hash size:</string>
                      </property>
                     </widget>
                    </item>
-                   <item>
-                    <spacer name="verticalSpacer_6">
+                   <item row="8" column="0">
+                    <spacer name="verticalSpacer_3">
                      <property name="orientation">
                       <enum>Qt::Vertical</enum>
                      </property>
@@ -534,37 +641,68 @@
                   <property name="title">
                    <string>Memory usage</string>
                   </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_9">
-                   <item>
+                  <property name="alignment">
+                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                  </property>
+                  <layout class="QGridLayout" name="gridLayout_13">
+                   <item row="3" column="1">
+                    <widget class="QLabel" name="totalmemoryLabel">
+                     <property name="text">
+                      <string>-</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="1">
                     <widget class="QLabel" name="statememoryLabel">
                      <property name="text">
-                      <string>For states:</string>
+                      <string>-</string>
                      </property>
                     </widget>
                    </item>
-                   <item>
+                   <item row="1" column="1">
                     <widget class="QLabel" name="hashmemoryLabel">
                      <property name="text">
-                      <string>For hash table:</string>
+                      <string>-</string>
                      </property>
                     </widget>
                    </item>
-                   <item>
+                   <item row="2" column="1">
                     <widget class="QLabel" name="DFSmemoryLabel">
+                     <property name="text">
+                      <string>-</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="0">
+                    <widget class="QLabel" name="label_18">
                      <property name="text">
                       <string>For DFS stack:</string>
                      </property>
                     </widget>
                    </item>
-                   <item>
-                    <widget class="QLabel" name="totalmemoryLabel">
+                   <item row="3" column="0">
+                    <widget class="QLabel" name="label_19">
                      <property name="text">
                       <string>In total:</string>
                      </property>
                     </widget>
                    </item>
-                   <item>
-                    <spacer name="verticalSpacer_5">
+                   <item row="1" column="0">
+                    <widget class="QLabel" name="label_17">
+                     <property name="text">
+                      <string>For hash table:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="label_16">
+                     <property name="text">
+                      <string>For states:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="4" column="0">
+                    <spacer name="verticalSpacer_4">
                      <property name="orientation">
                       <enum>Qt::Vertical</enum>
                      </property>
@@ -584,7 +722,7 @@
               <item>
                <widget class="QListWidget" name="ltlList">
                 <property name="frameShape">
-                 <enum>QFrame::NoFrame</enum>
+                 <enum>QFrame::Panel</enum>
                 </property>
                 <property name="frameShadow">
                  <enum>QFrame::Sunken</enum>

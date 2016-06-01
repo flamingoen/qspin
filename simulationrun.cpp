@@ -68,13 +68,6 @@ void SimulationRun::finishedProcess() {
     QString input = process->readAllStandardOutput();
     parseSimulation(input);
     currentOutput.append(input);
-    emit finished();
-}
-
-void SimulationRun::readReadyProcess() {
-    QString input = process->readAllStandardOutput();
-    parseSimulation(input);
-    currentOutput.append(input);
     while (!statesBack.isEmpty()) {
         goBackwards();
     }
@@ -85,6 +78,13 @@ void SimulationRun::readReadyProcess() {
     foreach(QString line , input.split("\n")){
         parseChoises(line);
     }
+    emit finished();
+}
+
+void SimulationRun::readReadyProcess() {
+    QString input = process->readAllStandardOutput();
+    parseSimulation(input);
+    currentOutput.append(input);
     emit readReady();
 }
 

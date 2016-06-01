@@ -7,7 +7,7 @@ class syntaxRun : public SpinRun{
     Q_OBJECT
 
 public:
-    syntaxRun(QString _path, QString _ltl, QString _callType);
+    syntaxRun(QString _path, QString _ltl);
     QStringList lineNoList;
     QStringList errorList;
     int errors;
