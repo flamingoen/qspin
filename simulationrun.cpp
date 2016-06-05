@@ -6,10 +6,8 @@
  * TODO: Interactive simulation
  * TODO: Implement missing types (Array, chan, utype)
  * TODO: Lock editor while simulation is being made
- * TODO: Show what happens in each step
- * TODO: Remove redundant steps
  * TODO: Parse print statements
- * TODO: problems when going back. Does not set to old value
+ * TODO: In interactive when it is infinite
  * */
 
 SimulationRun::SimulationRun(QString _path, SimulationType _type, int _depth) : SpinRun(_path , Simulation){
@@ -45,6 +43,10 @@ void SimulationRun::randomSimulation() {
 void SimulationRun::interactiveSimulation() {
     setStatus("Running interactive simulation");
     setupProcess();
+    connect(process, SIGNAL(readyReadStandardOutput()),this,SLOT(readReadyProcess()));
+    while(!statesForward.isEmpty()) {
+        goForward();
+    }
     process->start(SPIN,QStringList() << "-g" << "-l" << "-p" << "-i"  << path);
 }
 
@@ -57,8 +59,7 @@ void SimulationRun::guidedSimulation() {
 }
 
 void SimulationRun::setupProcess(){
-    process = new QProcess();
-    connect(process, SIGNAL(readyReadStandardOutput()),this,SLOT(readReadyProcess()));
+    process = new QProcess(this);
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(finishedProcess()));
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), process, SLOT(deleteLater()));
     parseCode();
@@ -74,10 +75,6 @@ void SimulationRun::finishedProcess() {
     foreach(int key, mapProcess.keys()) {
         mapProcess[key].line = -1;
     }
-    listChoises.clear();
-    foreach(QString line , input.split("\n")){
-        parseChoises(line);
-    }
     emit finished();
 }
 
@@ -85,6 +82,13 @@ void SimulationRun::readReadyProcess() {
     QString input = process->readAllStandardOutput();
     parseSimulation(input);
     currentOutput.append(input);
+    listChoises.clear();
+    foreach(QString line , input.split("\n")){
+        parseChoises(line);
+    }
+    while (!statesBack.isEmpty()) {
+        goBackwards();
+    }
     emit readReady();
 }
 
@@ -112,7 +116,7 @@ void SimulationRun::parseCode() {
         file.close();
     }
     codeText.remove(QRegularExpression("\\/\\*(?:.|\\n)*?\\*\\/|\\/\\/.*?\\\n")); //Removes all comments
-    lines = codeText.split(QRegularExpression(";|\\n"),QString::SkipEmptyParts);
+    lines = codeText.split(QRegularExpression(";|\\n"),QString::SkipEmptyParts); // Splits every command into lines
     QRegularExpression reVar("(byte|bool|int|pid|short|mtype)\\s+(.*?)\\s+=\\s+(.*)");
     QRegularExpressionMatch match;
     foreach(QString line, lines) {
@@ -134,15 +138,18 @@ void SimulationRun::parseCode() {
                 mapVariable.insert(var.name,var);
                 step _step;
                 _step.var = var.name;
-                _step.value = var.value;
-                statesBack.push(_step);
+                _step.newValue = var.value;
+                _step.oldValue = "-";
+                _step.operation = var.name.append(" = ").append(var.value);
+                statesBack.push(currentStep);
+                currentStep = _step;
             }
         }
     }
 }
 
 bool SimulationRun::parseStep(QString _step) {
-    QRegularExpression reStep("proc\\s+(\\d+)\\s+\\((.*?):\\d+\\)\\s"+path+":(\\d+)\\s+\\(state\\s(\\d+)\\)\\s+\\[(.*?)\\]");
+    QRegularExpression reStep("\\B\\s+\\d+:\\s+proc\\s+(\\d+)\\s+\\((.*?):\\d+\\)\\s"+path+":(\\d+)\\s+\\(state\\s(\\d+)\\)\\s+\\[(.*?)\\]");
     QRegularExpressionMatch match = reStep.match(_step);
     bool matched = match.hasMatch();
     if (matched) {
@@ -157,7 +164,8 @@ bool SimulationRun::parseStep(QString _step) {
         newStep.line = match.captured(3).toInt();
         newStep.i_state = match.captured(4).toInt();
         newStep.operation = match.captured(5);
-        statesBack.push(newStep);
+        statesBack.push(currentStep);
+        currentStep = newStep;
     }
     return matched;
 }
@@ -196,24 +204,24 @@ bool SimulationRun::parseVar(QString _step) {
 
     // Add change to the step and replace in the map
     if (matched) {
-        step _step = statesBack.pop();
         if (mapVariable.contains(newVar.name)) {
             variable oldVar = mapVariable[newVar.name];
-            _step.value = newVar.value;
+            currentStep.newValue = newVar.value;
+            currentStep.oldValue = oldVar.value;
             newVar.id = oldVar.id;
         } else {
             newVar.id = v_id; v_id++;
-            _step.value = newVar.value;
+            currentStep.oldValue = "-";
+            currentStep.newValue = newVar.value;
         }
-        _step.var = newVar.name;
+        currentStep.var = newVar.name;
         mapVariable.insert(newVar.name,newVar);
-        statesBack.push(_step);
     }
     return matched;
 }
 
 void SimulationRun::parseChoises(QString _step) {
-    QRegularExpression reChoise("choice\\s+(\\d+):\\s+proc\\s+(\\d+)\\s+\\(.*?\\)\\s+"+path+":\\d+\\s+\\(state\\s+\\d+\\)\\s\\[\\((.*?)\\)\\]");
+    QRegularExpression reChoise("choice\\s+(\\d+):\\s+proc\\s+(\\d+)\\s+\\(.*?\\)\\s+"+path+":\\d+\\s+\\(state\\s+\\d+\\)\\s\\[(.*?)\\]");
     QRegularExpressionMatch match = reChoise.match(_step);
     if (match.hasMatch()) {
         choise _choise;
@@ -229,8 +237,8 @@ void SimulationRun::goForward(int steps) {
         if (!statesForward.isEmpty()) {
             statesBack.push(currentStep);
             currentStep = statesForward.pop();
-            if (currentStep.var!="") {
-                mapVariable[currentStep.var].value = currentStep.value;
+            if (currentStep.var!="-") {
+                mapVariable[currentStep.var].value = currentStep.newValue;
             }
             mapProcess[currentStep.i_proc].line = currentStep.line;
         }
@@ -240,12 +248,12 @@ void SimulationRun::goForward(int steps) {
 void SimulationRun::goBackwards(int steps) {
     for (int i=0 ; i<steps ; i++) {
         if (!statesBack.isEmpty()) {
-            statesForward.push(currentStep);
-            currentStep = statesBack.pop();
-            if (currentStep.var!="") {
-                mapVariable[currentStep.var].value = currentStep.value;
+            if (currentStep.var!="-") {
+                mapVariable[currentStep.var].value = currentStep.oldValue;
             }
             mapProcess[currentStep.i_proc].line = currentStep.line;
+            statesForward.push(currentStep);
+            currentStep = statesBack.pop();
         }
     }
 }
@@ -271,7 +279,7 @@ SimulationRun::step SimulationRun::getCurrentStep() {
 }
 
 bool SimulationRun::currentStepChangeVariable() {
-    return currentStep.var!="";
+    return currentStep.var!="-";
 }
 
 int SimulationRun::getCurrentVarId() {
@@ -337,17 +345,7 @@ bool SimulationRun::canGoBackwards() {
     return !statesBack.isEmpty();
 }
 
-void SimulationRun::commitChoise(choise _choise) {
-    if (simulationType==Interactive) {
-        QString cmd = _choise.number+"\n\r";
-        process->write(cmd.toLatin1().data());
-        process->closeWriteChannel();
-    }
+void SimulationRun::commitChoise(QModelIndex index) {
+    QString cmd = listChoises[index.row()].number+"\n\r";
+    process->write(cmd.toLatin1().data());
 }
-
-//void MainWindow::runSubmitInteractiveSimulation() {
-//    if (!process->state() == 0) {
-//        QString cmd = comboChoice->currentText() + "\n";
-//        process->write(cmd.toLatin1().data());
-//    } else { process->terminate(); }
-//}

@@ -62,6 +62,7 @@ private:
 
     QProcess *process;
     SpinRun *spinRun;
+    SyntaxRun *syntaxRun;
 
     QFile file;
 	QFile LTLfile; // Could be local
@@ -118,9 +119,9 @@ private:
     QStringList getCompileOptions();
     QString getLtl();
     bool prepareRun(bool clearLog=true);
-    void runProcess(SpinRun* run);
-    void UpdateSimulationTab();
+    QThread* connectProcess(SpinRun* run);
     void clearVerificationTab();
+    int hashSize();
 
 private slots:
     void loadFile();
@@ -133,18 +134,19 @@ private slots:
     void runCheckSyntax();
     void processFinished();
     void processReadReady();
-    void processStatusChange();
+    void processStatusChange(SpinRun* run);
+    void displayErrors();
     void updateVerificationTab();
     void createSimulationTab();
     void simulationStepForward();
     void simulationStepBackwards();
-    void newLtl();
-	int hashSize();
     void verify();
     void simulation();
     void simulationStepClicked();
     void interactiveSimulation();
     void listChoiseActivated(QModelIndex index);
+    void newLtl();
+    void UpdateSimulationTab();
 };
 
 #endif // MAINWINDOW_H

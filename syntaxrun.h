@@ -3,11 +3,11 @@
 
 #include <spinrun.h>
 
-class syntaxRun : public SpinRun{
+class SyntaxRun : public SpinRun{
     Q_OBJECT
 
 public:
-    syntaxRun(QString _path, QString _ltl);
+    SyntaxRun(QString _path, QString _ltl);
     QStringList lineNoList;
     QStringList errorList;
     int errors;
@@ -21,7 +21,8 @@ private:
     QString callType;
 
 signals:
-    void finishedNoErrors();
+    void noErrors();
+    void hasErrors();
 
 private slots:
     void checkSyntax();

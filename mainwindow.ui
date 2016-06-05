@@ -81,7 +81,7 @@
          <enum>Qt::LeftToRight</enum>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="validationTab">
          <attribute name="title">
@@ -969,13 +969,6 @@
                   <widget class="QRadioButton" name="radioGuidedSim">
                    <property name="text">
                     <string>&amp;Guided</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="radioInteractiveSim">
-                   <property name="text">
-                    <string>I&amp;nteractive</string>
                    </property>
                   </widget>
                  </item>

@@ -34,7 +34,7 @@ protected:
 signals:
     void readReady();
     void finished();
-    void statusChanged();
+    void statusChanged(SpinRun* run);
 
 public slots:
     virtual void start() = 0;

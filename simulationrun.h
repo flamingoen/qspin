@@ -20,6 +20,7 @@ public:
     enum SimulationType simulationType;
     int v_id = 0;
     int p_id = 0;
+    bool firstRun = true;
 
     struct variable {
         int id;
@@ -32,8 +33,9 @@ public:
         int line;
         int i_proc;
         int i_state;
-        QString var = "";
-        QString value;
+        QString var = "-";
+        QString newValue;
+        QString oldValue;
         QString operation;
     };
     struct proc {
@@ -62,11 +64,11 @@ public:
     bool canGoBackwards();
     QList<choise> getChoises();
     QString getCurrentVarName();
-    void commitChoise(choise _choise);
+
 
 private:
     int depth;
-    step currentStep;
+    step currentStep = {-1,-1,-1,"","-","-","Initializing"};
     QStack<step> statesBack;
     QStack<step> statesForward;
     QMap<int,proc> mapProcess;
@@ -92,6 +94,7 @@ private slots:
 
 public slots:
     void start();
+    void commitChoise(QModelIndex index);
 };
 
 #endif // SIMULATIONRUN_H

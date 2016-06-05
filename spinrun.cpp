@@ -1,6 +1,8 @@
 #include "spinrun.h"
 #include "QObject"
 
+//TODO add destructor
+
 SpinRun::SpinRun(QString _path, Type _type) {
     path = _path;
     type = _type;
@@ -8,11 +10,11 @@ SpinRun::SpinRun(QString _path, Type _type) {
 
 void SpinRun::setStatus(QString status) {
     currentStatus = status;
-    emit statusChanged();
+    emit statusChanged(this);
 }
 
 QString SpinRun::readOutput(){
-    QString str = currentOutput;
+    QString str = currentOutput.append("\n");
     currentOutput="";
     return str;
 }

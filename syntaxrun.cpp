@@ -1,6 +1,6 @@
 #include "syntaxrun.h"
 
-syntaxRun::syntaxRun(QString _path, QString _ltl): SpinRun(_path , Syntax)
+SyntaxRun::SyntaxRun(QString _path, QString _ltl): SpinRun(_path , Syntax)
 {
     path = _path;
     ltl = _ltl;
@@ -9,7 +9,7 @@ syntaxRun::syntaxRun(QString _path, QString _ltl): SpinRun(_path , Syntax)
 }
 
 //TODO: Denne skal måske have en deletelater metode (destructor)
-void syntaxRun::start(){
+void SyntaxRun::start(){
     process = new QProcess();
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(checkSyntax()));
     setStatus("Checking syntax");
@@ -17,7 +17,7 @@ void syntaxRun::start(){
     process->start(SPIN,QStringList() << "-a" << tempPath.replace(" ","\\ "));
 }
 
-QString syntaxRun::createTempPml(){
+QString SyntaxRun::createTempPml(){
     QFile::copy(path,path+".qspin");
     QFile tempFile(path+".qspin");
 
@@ -30,7 +30,7 @@ QString syntaxRun::createTempPml(){
 }
 
 
-void syntaxRun::checkSyntax(){
+void SyntaxRun::checkSyntax(){
     QString str = process->readAllStandardOutput();
     QRegExp rxLine("spin: "+tempPath+":(\\d+),");
     QRegExp rxError("spin: "+tempPath+":\\d+, Error:(\\D*)");
@@ -46,10 +46,13 @@ void syntaxRun::checkSyntax(){
     }
     errors = errorList.count();
     QFile::remove(tempPath);
-    if (errors>0) setStatus(QString::number(errors)+" errors found");
-    else setStatus("No errors found :)");
+    if (errors>0) {
+        setStatus(QString::number(errors)+" errors found");
+        emit hasErrors();
+    } else {
+        setStatus("No errors found :)");
+        emit noErrors();
+    }
     emit finished();
 
 }
-
-
