@@ -80,6 +80,9 @@ void SimulationRun::finishedProcess() {
 
 void SimulationRun::readReadyProcess() {
     QString input = process->readAllStandardOutput();
+    while (!statesForward.isEmpty()) {
+        goForward();
+    }
     parseSimulation(input);
     currentOutput.append(input);
     listChoises.clear();
