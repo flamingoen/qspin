@@ -18,6 +18,7 @@ SimulationRun::SimulationRun(QString _path, SimulationType _type, int _depth) : 
     filename = rx.cap(1);
     statesBack.clear();
     statesForward.clear();
+    currentStep.operation = "Initializing";
 }
 
 void SimulationRun::start() {

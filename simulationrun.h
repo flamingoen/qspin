@@ -30,13 +30,13 @@ public:
         int process;
     };
     struct step {
-        int line;
-        int i_proc;
-        int i_state;
+        int line = -1;
+        int i_proc = -1;
+        int i_state = -1 ;
         QString var = "-";
-        QString newValue;
-        QString oldValue;
-        QString operation;
+        QString newValue = "-";
+        QString oldValue = "-";
+        QString operation = "-";
     };
     struct proc {
         int id;
@@ -68,7 +68,7 @@ public:
 
 private:
     int depth;
-    step currentStep = {-1,-1,-1,"","-","-","Initializing"};
+    step currentStep;// = {-1,-1,-1,"-","-","-","Initializing"};
     QStack<step> statesBack;
     QStack<step> statesForward;
     QMap<int,proc> mapProcess;
