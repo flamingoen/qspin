@@ -58,11 +58,14 @@ private:
     QComboBox *comboChoice;
 
     QListWidget *simulationSteps;
+    QListWidget *simulationSteps_I;
     QListWidget *listChoises;
 
     QProcess *process;
-    SpinRun *spinRun;
     SyntaxRun *syntaxRun;
+    VerificationRun *verificationRun;
+    SimulationRun *simulationRun;
+    SimulationRun *interactiveRun;
 
     QFile file;
 	QFile LTLfile; // Could be local
@@ -74,6 +77,8 @@ private:
     QStringList compileOpts;
     QTableWidget* variableTable;
     QTableWidget* processTable;
+    QTableWidget* variableTable_I;
+    QTableWidget* processTable_I;
 
     QPushButton* newltlButton;
     QPushButton* buttonForwardSim;
@@ -91,6 +96,7 @@ private:
     QLabel *invalidLabel;
     QLabel *simulationTypeLabel;
     QLabel *fileLabel;
+    QLabel *fileLabel_I;
     QLabel *CycleTypeLabel;
 
     QLabel * errorLabel;
@@ -121,6 +127,9 @@ private:
     bool prepareRun(bool clearLog=true);
     QThread* connectProcess(SpinRun* run);
     void clearVerificationTab();
+    void updateStepList(QListWidget *stepList ,SimulationRun *run);
+    void updateSimulationTab(SimulationRun *run, QTableWidget *variableTable, QTableWidget *processTable, QListWidget *stepList);
+    void populateSimulationLists(SimulationRun* run, QTableWidget* variableTable, QTableWidget* processTable, QListWidget *stepList);
     int hashSize();
 
 private slots:
@@ -132,21 +141,23 @@ private slots:
     void terminateProcess();
     void fileCleanup();
     void runCheckSyntax();
-    void processFinished();
-    void processReadReady();
+    void processFinished(SpinRun* run);
+    void processReadReady(SpinRun* run);
     void processStatusChange(SpinRun* run);
     void displayErrors();
     void updateVerificationTab();
     void createSimulationTab();
+    void createInteractiveTab();
     void simulationStepForward();
     void simulationStepBackwards();
     void verify();
     void simulation();
     void simulationStepClicked();
-    void interactiveSimulation();
+    void runInteractive();
     void listChoiseActivated(QModelIndex index);
     void newLtl();
-    void UpdateSimulationTab();
+    void interactiveStepClicked();
+    void interactive();
 };
 
 #endif // MAINWINDOW_H

@@ -76,7 +76,7 @@ void SimulationRun::finishedProcess() {
     foreach(int key, mapProcess.keys()) {
         mapProcess[key].line = -1;
     }
-    emit finished();
+    emit finished(this);
 }
 
 void SimulationRun::readReadyProcess() {
@@ -93,7 +93,7 @@ void SimulationRun::readReadyProcess() {
     while (!statesBack.isEmpty()) {
         goBackwards();
     }
-    emit readReady();
+    emit readReady(this);
 }
 
 void SimulationRun::parseSimulation(QString input) {
@@ -121,7 +121,7 @@ void SimulationRun::parseCode() {
     }
     codeText.remove(QRegularExpression("\\/\\*(?:.|\\n)*?\\*\\/|\\/\\/.*?\\\n")); //Removes all comments
     lines = codeText.split(QRegularExpression(";|\\n"),QString::SkipEmptyParts); // Splits every command into lines
-    QRegularExpression reVar("(byte|bool|int|pid|short|mtype)\\s+(.*?)\\s+=\\s+(.*)");
+    QRegularExpression reVar("(byte|bool|int|pid|short|mtype)\\s+(.+?)\\s*=\\s*(.*)");
     QRegularExpressionMatch match;
     foreach(QString line, lines) {
         match = reVar.match(line);

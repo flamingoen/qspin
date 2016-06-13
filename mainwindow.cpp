@@ -1,9 +1,5 @@
 #include "mainwindow.h"
 
-/* TODO list
- * there is a bug when simulation is at last step and you try to go up
- */
-
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainWindow) {
 
     ui->setupUi(this);
@@ -91,11 +87,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     connect(buttonForwardSim, SIGNAL(clicked()),this,SLOT(simulationStepForward()));
     connect(buttonBackSim,SIGNAL(clicked()),this,SLOT(simulationStepBackwards()));
     //connect(variableTabel,SIGNAL(cellChanged(int,int),this,SLOT()));
+    processTable = this->findChild<QTableWidget*>("tableProceses");
+    variableTable = this->findChild<QTableWidget*>("tableVariabels");
+    simulationSteps = this->findChild<QListWidget*>("listSteps");
 
     // Interactive Tab
     QPushButton *buttonInteractiveSim = this->findChild<QPushButton *>("buttonInteractiveSim");
     listChoises = this->findChild<QListWidget *>("choisesList");
-    connect(buttonInteractiveSim, SIGNAL(clicked()), this, SLOT(interactiveSimulation()));
+    connect(buttonInteractiveSim, SIGNAL(clicked()), this, SLOT(runInteractive()));
+    processTable_I = this->findChild<QTableWidget*>("tableProceses_I");
+    variableTable_I = this->findChild<QTableWidget*>("tableVariabels_I");
+    simulationSteps_I = this->findChild<QListWidget*>("listSteps_I");
+    fileLabel_I = this->findChild<QLabel*>("labelSimFile_I");
 
     // options
     radioColapse = this->findChild<QRadioButton *>("radioDCOLLAPSE");
@@ -204,7 +207,7 @@ void MainWindow::runVerify(){
         // COMPILE OPTIONS
         if (radioColapse->isChecked())           compileOpts << "-DCOLLAPSE ";
         else if (radioDH4->isChecked())          compileOpts << "-DH4 ";
-        if (radioSafety->isChecked())            compileOpts <<"-DSAFTY ";
+        if (radioSafety->isChecked())            compileOpts <<"-DSAFETY ";
         else if (radioLiveness->isChecked())     compileOpts <<"-DNP ";
         compileOpts << "-o" << "pan";
         // TYPE
@@ -229,27 +232,21 @@ void MainWindow::runVerify(){
 
 void MainWindow::verify(){
         clearVerificationTab();
-        spinRun = new VerificationRun(path, verType,checkFair->isChecked(),ltl, compileOpts,spinBoxSDepth->value(),hashSize());
+        verificationRun = new VerificationRun(path, verType,checkFair->isChecked(),ltl, compileOpts,spinBoxSDepth->value(),hashSize());
         outputLog->clear();
-        QThread* thread = connectProcess(spinRun);
-        connect(spinRun,SIGNAL(finished()),this,SLOT(updateVerificationTab()));
+        QThread* thread = connectProcess(verificationRun);
+        connect(verificationRun,SIGNAL(finished(SpinRun*)),this,SLOT(updateVerificationTab()));
         thread->start();
 }
 
-void MainWindow::interactiveSimulation() {
+void MainWindow::runInteractive() {
     if (prepareRun()) {
 
-        processTable = this->findChild<QTableWidget*>("tableProceses_I");
-        variableTable = this->findChild<QTableWidget*>("tableVariabels_I");
-        simulationSteps = this->findChild<QListWidget*>("listSteps_I");
-        fileLabel = this->findChild<QLabel*>("labelSimFile_I");
-
-        simType = SimulationRun::Interactive;
         fileLabel->setText(filename);
 
         syntaxRun = new SyntaxRun(path,"");
         QThread* thread = connectProcess(syntaxRun);
-        connect(syntaxRun, SIGNAL(noErrors()),this,SLOT(simulation()));
+        connect(syntaxRun, SIGNAL(noErrors()),this,SLOT(interactive()));
         connect(syntaxRun, SIGNAL(hasErrors()),this,SLOT(displayErrors()));
         thread->start();
     }
@@ -257,11 +254,6 @@ void MainWindow::interactiveSimulation() {
 
 void MainWindow::runSimulation() {
     if (prepareRun()) {
-
-        processTable = this->findChild<QTableWidget*>("tableProceses");
-        variableTable = this->findChild<QTableWidget*>("tableVariabels");
-        simulationSteps = this->findChild<QListWidget*>("listSteps");
-        fileLabel = this->findChild<QLabel*>("labelSimFile");
 
         simType = SimulationRun::Random;
         if (radioGuided->isChecked()) {
@@ -278,15 +270,26 @@ void MainWindow::runSimulation() {
 }
 
 void MainWindow::simulation(){
-        spinRun = new SimulationRun(path,simType,spinBoxSteps->value());
-        QThread* thread = connectProcess(spinRun);
-        connect(spinRun,SIGNAL(readReady()),this,SLOT(createSimulationTab()));
-        connect(spinRun,SIGNAL(finished()),this,SLOT(createSimulationTab()));
-        connect(spinRun,SIGNAL(readReady()),this,SLOT(processReadReady()));
-        connect(listChoises,SIGNAL(activated(QModelIndex)),dynamic_cast<SimulationRun*>(spinRun),SLOT(commitChoise(QModelIndex)));
-        connect(simulationSteps,SIGNAL(itemSelectionChanged()),this,SLOT(simulationStepClicked()));
-        buttonForwardSim->setDisabled(false);
-        thread->start();
+    simulationRun = new SimulationRun(path,simType,spinBoxSteps->value());
+    QThread* thread = connectProcess(simulationRun);
+    connect(simulationRun,SIGNAL(readReady(SpinRun*)),this,SLOT(createSimulationTab()));
+    connect(simulationRun,SIGNAL(finished(SpinRun*)),this,SLOT(createSimulationTab()));
+    connect(simulationRun,SIGNAL(readReady(SpinRun*)),this,SLOT(processReadReady(SpinRun*)));
+    connect(simulationSteps,SIGNAL(itemSelectionChanged()),this,SLOT(simulationStepClicked()));
+    buttonForwardSim->setDisabled(false);
+    thread->start();
+}
+
+void MainWindow::interactive(){
+    interactiveRun = new SimulationRun(path,SimulationRun::Interactive,spinBoxSteps->value());
+    QThread* thread = connectProcess(interactiveRun);
+    connect(interactiveRun,SIGNAL(readReady(SpinRun*)),this,SLOT(createInteractiveTab()));
+    connect(interactiveRun,SIGNAL(finished(SpinRun*)),this,SLOT(createInteractiveTab()));
+    connect(interactiveRun,SIGNAL(readReady(SpinRun*)),this,SLOT(processReadReady(SpinRun*)));
+    connect(listChoises,SIGNAL(activated(QModelIndex)),interactiveRun,SLOT(commitChoise(QModelIndex)));
+    connect(simulationSteps_I,SIGNAL(itemSelectionChanged()),this,SLOT(interactiveStepClicked()));
+    buttonForwardSim->setDisabled(false);
+    thread->start();
 }
 
 QThread* MainWindow::connectProcess(SpinRun* run){
@@ -294,8 +297,8 @@ QThread* MainWindow::connectProcess(SpinRun* run){
     QThread* thread = new QThread(this);
     run->moveToThread(thread);
     connect(thread,SIGNAL(started()),run,SLOT(start()));
-    connect(run, SIGNAL(finished()),this,SLOT(processFinished()));
-    connect(run, SIGNAL(finished()), thread, SLOT(quit()));
+    connect(run, SIGNAL(finished(SpinRun*)),this,SLOT(processFinished(SpinRun*)));
+    connect(run, SIGNAL(finished(SpinRun*)), thread, SLOT(quit()));
     connect(run, SIGNAL(statusChanged(SpinRun*)),this,SLOT(processStatusChange(SpinRun*)));
     connect(thread, SIGNAL(finished()),thread,SLOT(deleteLater()));
     return thread;
@@ -305,7 +308,7 @@ void MainWindow::runCheckSyntax() {
     if(prepareRun()){
         syntaxRun = new SyntaxRun(path,"");
         QThread* thread = connectProcess(syntaxRun);
-        connect(syntaxRun, SIGNAL(hasErrors),this,SLOT(displayErrors()));
+        connect(syntaxRun, SIGNAL(hasErrors()),this,SLOT(displayErrors()));
         thread->start();
     }
 }
@@ -347,26 +350,22 @@ QString MainWindow::getLtl(){
 }
 
 void MainWindow::simulationStepForward() {
-    if (spinRun->type==SpinRun::Simulation) {
-        dynamic_cast<SimulationRun*>(spinRun)->goForward();
-        UpdateSimulationTab();
-    }
+        simulationRun->goForward();
+        updateSimulationTab(simulationRun,variableTable,processTable,simulationSteps);
 }
 
 void MainWindow::simulationStepBackwards() {
-    if (spinRun->type==SpinRun::Simulation) {
-        dynamic_cast<SimulationRun*>(spinRun)->goBackwards();
-        UpdateSimulationTab();
-    }
+        simulationRun->goBackwards();
+        updateSimulationTab(interactiveRun,variableTable_I,processTable_I,simulationSteps_I);
 }
 
-void MainWindow::processFinished() {
-    outputLog->append(spinRun->readOutput());
+void MainWindow::processFinished(SpinRun* run) {
+    outputLog->append(run->readOutput());
     status->showMessage("Finished");
 }
 
-void MainWindow::processReadReady() {
-    outputLog->append(spinRun->readOutput());
+void MainWindow::processReadReady(SpinRun* run) {
+    outputLog->append(run->readOutput());
 }
 
 void MainWindow::processStatusChange(SpinRun* run) {
@@ -407,10 +406,9 @@ void MainWindow::newLtl(){
     item->setFlags(item->flags() | Qt::ItemIsEditable);
 }
 
-void MainWindow::UpdateSimulationTab() {
-    SimulationRun* simulation = dynamic_cast<SimulationRun*>(spinRun);
-    QList<SimulationRun::variable> variables = simulation->getVariables();
-    QList<SimulationRun::proc> procs = simulation->getProcs();
+void MainWindow::updateSimulationTab(SimulationRun *run, QTableWidget *variableTable, QTableWidget *processTable, QListWidget *stepList) {
+    QList<SimulationRun::variable> variables = run->getVariables();
+    QList<SimulationRun::proc> procs = run->getProcs();
     // Variablse tab
     for (int i = 0 ; i < variables.length() ; i++) {
         variableTable->setItem(variables[i].id,0,new QTableWidgetItem(variables[i].name));
@@ -426,20 +424,45 @@ void MainWindow::UpdateSimulationTab() {
             processTable->setItem(procs[i].id,1,new QTableWidgetItem(QString::number(procLine)));
         }
     }
-    editor->HighlightProcesses(simulation->getProcs());
-    buttonForwardSim->setEnabled(simulation->canGoForward());
-    buttonBackSim->setEnabled(simulation->canGoBackwards());
-    simulationSteps->item(simulation->getCurrentIndex())->setSelected(true);
+    editor->HighlightProcesses(run->getProcs());
+    stepList->item(run->getCurrentIndex())->setSelected(true);
 }
 
 void MainWindow::createSimulationTab() {
-    SimulationRun* simulation = dynamic_cast<SimulationRun*>(spinRun);
-    QList<SimulationRun::variable> variables = simulation->getVariables();
-    QList<SimulationRun::proc> procs = simulation->getProcs();
-    QStringList operations = simulation->getOperations();
+    populateSimulationLists(simulationRun,variableTable,processTable,simulationSteps);
+}
+
+void MainWindow::createInteractiveTab() {
+    populateSimulationLists(interactiveRun,variableTable_I,processTable_I,simulationSteps_I);
+    // Interactive Choises
+    listChoises->clear();
+    QList<SimulationRun::choise> choises = interactiveRun->getChoises();
+    foreach (SimulationRun::choise choise , choises) {
+        listChoises->addItem(new QListWidgetItem(choise._proc.name+" | "+choise.operation));
+    }
+    processTable->resizeColumnsToContents();
+    variableTable->resizeColumnsToContents();
+}
+
+void MainWindow::simulationStepClicked(){
+    updateStepList(simulationSteps, simulationRun);
+    updateSimulationTab(simulationRun,variableTable,processTable,simulationSteps);
+    buttonForwardSim->setEnabled(simulationRun->canGoForward());
+    buttonBackSim->setEnabled(simulationRun->canGoBackwards());
+}
+
+void MainWindow::interactiveStepClicked(){
+    updateStepList(simulationSteps_I, interactiveRun);
+    updateSimulationTab(interactiveRun,variableTable_I,processTable_I,simulationSteps_I);
+}
+
+void MainWindow::populateSimulationLists(SimulationRun* run, QTableWidget* variableTable, QTableWidget* processTable, QListWidget *stepList){
+    QList<SimulationRun::variable> variables = run->getVariables();
+    QList<SimulationRun::proc> procs = run->getProcs();
+    QStringList operations = run->getOperations();
     variableTable->setRowCount(variables.length());
     processTable->setRowCount(procs.length());
-    simulationSteps->clear();
+    stepList->clear();
     // Variablse tab
     for (int i = 0 ; i < variables.length() ; i++) {
         variableTable->setItem(variables[i].id,0,new QTableWidgetItem(variables[i].name));
@@ -452,84 +475,72 @@ void MainWindow::createSimulationTab() {
     }
     // Steps list
     foreach (QString operation , operations) {
-        simulationSteps->addItem(new QListWidgetItem(operation));
+        stepList->addItem(new QListWidgetItem(operation));
     }
-    if (int index = simulation->getCurrentIndex()) {
-        simulationSteps->item(index)->setSelected(true);
-    }
-    // Interactive Choises
-    if (simulation->simulationType == SimulationRun::Interactive) {
-        listChoises->clear();
-        QList<SimulationRun::choise> choises = simulation->getChoises();
-        foreach (SimulationRun::choise choise , choises) {
-            listChoises->addItem(new QListWidgetItem(choise._proc.name+" | "+choise.operation));
-        }
+    if (int index = run->getCurrentIndex()) {
+        stepList->item(index)->setSelected(true);
     }
     processTable->resizeColumnsToContents();
     variableTable->resizeColumnsToContents();
 }
 
-void MainWindow::simulationStepClicked(){
-    SimulationRun* simulation = dynamic_cast<SimulationRun*>(spinRun);
-    if (simulation && simulationSteps->selectedItems().length()>0) {
-        int newIndex = simulationSteps->selectionModel()->selectedIndexes()[0].row();
-        int oldIndex = simulation->getCurrentIndex();
+void MainWindow::updateStepList(QListWidget *stepList , SimulationRun *run) {
+    if (run && stepList->selectedItems().length()>0) {
+        int newIndex = stepList->selectionModel()->selectedIndexes()[0].row();
+        int oldIndex = run->getCurrentIndex();
         if (newIndex<oldIndex) {
-            simulation->goBackwards(oldIndex-newIndex);
+            run->goBackwards(oldIndex-newIndex);
         } else if (newIndex>oldIndex) {
-            simulation->goForward(newIndex-oldIndex);
+            run->goForward(newIndex-oldIndex);
         }
-        UpdateSimulationTab();
     }
 }
 
 void MainWindow::listChoiseActivated(QModelIndex index) {
-    SimulationRun* simulation = dynamic_cast<SimulationRun*>(spinRun);
-    if (simulation) {
-        QList<SimulationRun::choise> choises = simulation->getChoises();
+    if (simulationRun) {
+        QList<SimulationRun::choise> choises = simulationRun->getChoises();
         SimulationRun::choise choise = choises[index.row()];
     }
 }
 
 void MainWindow::updateVerificationTab(){
-    VerificationRun* verification = dynamic_cast<VerificationRun*>(spinRun);
     // SPINVERSIONLABEL
-    spinVerLabel->setText(verification->spinVer);
+    spinVerLabel->setText(verificationRun->spinVer);
     // EVALUATIONLABEL
-    evalLabel->setStyleSheet("background-color: " + verification->eval+ ";");
+    evalLabel->setStyleSheet("background-color: " + verificationRun->eval+ ";");
     // STATESPACE PROP
     // PARTIAL ORDER REDUCTION LABEL
-    partialLabel->setText(verification->partial);
+    partialLabel->setText(verificationRun->partial);
     // NEVER CLAIM LABEL
-    neverLabel->setText(verification->never);
+    neverLabel->setText(verificationRun->never);
     // ASSERTION LABEL
-    assertionLabel->setText(verification->assertion);
+    assertionLabel->setText(verificationRun->assertion);
     //ACCEPTANCE LABEL
-    CycleTypeLabel->setText(verification->acceptanceType.append(" cyles:"));
-    acceptanceLabel->setText(verification->acceptance);
+    CycleTypeLabel->setText(verificationRun->acceptanceType.append(" cyles:"));
+    acceptanceLabel->setText(verificationRun->acceptance);
     //INVALID END STATES LABEL
-    invalidLabel->setText(verification->invalid);
+    invalidLabel->setText(verificationRun->invalid);
     // STATESPACE SPECS
-    errorLabel->setText(verification->errors);
-    depthLabel->setText(verification->depth);
-    storedstatesLabel->setText(verification->storedStates);
-    matchedstatesLabel->setText(verification->matchedStates);
-    transitionLabel->setText(verification->transitions);
-    atomicLabel->setText(verification->atomic);
-    statesizeLabel->setText(verification->statesize);
-    hashconflictsLabel->setText(verification->hashconflict);
-    hashsizeLabel->setText(verification->hashsize);
+    errorLabel->setText(verificationRun->errors);
+    depthLabel->setText(verificationRun->depth);
+    storedstatesLabel->setText(verificationRun->storedStates);
+    matchedstatesLabel->setText(verificationRun->matchedStates);
+    transitionLabel->setText(verificationRun->transitions);
+    atomicLabel->setText(verificationRun->atomic);
+    statesizeLabel->setText(verificationRun->statesize);
+    hashconflictsLabel->setText(verificationRun->hashconflict);
+    hashsizeLabel->setText(verificationRun->hashsize);
     // MEMORY USAGE
-    statememoryLabel->setText(verification->statememory);
-    hashmemoryLabel->setText(verification->hashmemory);
-    DFSmemoryLabel->setText(verification->DFSmemory);
-    totalmemoryLabel->setText(verification->totalmemory);
+    statememoryLabel->setText(verificationRun->statememory);
+    hashmemoryLabel->setText(verificationRun->hashmemory);
+    DFSmemoryLabel->setText(verificationRun->DFSmemory);
+    totalmemoryLabel->setText(verificationRun->totalmemory);
 
-    timestampLabel->setText(verification->timestamp);
+    timestampLabel->setText(verificationRun->timestamp);
 
     //IF LTL RUN, update ltl evaluation:
-    if(dynamic_cast<VerificationRun*>(spinRun)->verificationType==VerificationRun::Acceptance && ltlList->count() > 0 && selectedLtl != -1){
-        if(verification->errors == "0"){
+    if(verificationRun->verificationType==VerificationRun::Acceptance && ltlList->count() > 0 && selectedLtl != -1){
+        if(verificationRun->errors == "0"){
            ltlList->item(selectedLtl)->setBackgroundColor(Qt::green);
         }
         else{
@@ -539,7 +550,7 @@ void MainWindow::updateVerificationTab(){
 
     // Update search depth value
     if (checkOptDepth->isChecked()) {
-        spinBoxSDepth->setValue((verification->depth).toInt()+10);
+        spinBoxSDepth->setValue((verificationRun->depth).toInt()+10);
     }
 }
 

@@ -83,7 +83,7 @@ void VerificationRun::runPan(){
 void VerificationRun::finishedVerification() {
     currentOutput.append(process->readAllStandardOutput());
     processVerification(currentOutput);
-    emit finished();
+    emit finished(this);
 }
 
 void VerificationRun::readReadyVerification() {
@@ -98,7 +98,7 @@ void VerificationRun::readReadyVerification() {
     } else {
         currentOutput.append(newOutput);
     }
-    emit readReady();
+    emit readReady(this);
 }
 
 void VerificationRun::processVerification(QString output){

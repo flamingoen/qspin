@@ -32,8 +32,8 @@ protected:
     QString currentStatus;
 
 signals:
-    void readReady();
-    void finished();
+    void readReady(SpinRun* run);
+    void finished(SpinRun* run);
     void statusChanged(SpinRun* run);
 
 public slots:

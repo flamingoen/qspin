@@ -53,6 +53,6 @@ void SyntaxRun::checkSyntax(){
         setStatus("No errors found :)");
         emit noErrors();
     }
-    emit finished();
+    emit finished(this);
 
 }
