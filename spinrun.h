@@ -6,7 +6,7 @@
 
 #ifdef _WIN32
     #define SPIN  "spin\\spin.exe"
-    #define CCOMPILER "gcc"
+    #define CCOMPILER "gcc.exe"
 #else
     #define SPIN "spin"
     #define CCOMPILER "cc"
@@ -24,12 +24,14 @@ public:
     void setStatus(QString status);
     Type type = nonSpecified;
 
+
+
 protected:
-    QProcess* process;
     QString path;
     QString currentOutput = "";
     QString finishedOutput;
     QString currentStatus;
+    QProcess* process;
 
 signals:
     void readReady(SpinRun* run);
@@ -38,6 +40,7 @@ signals:
 
 public slots:
     virtual void start() = 0;
+    void terminateProcess();
 };
 
 #endif // SPINRUN_H

@@ -15,6 +15,7 @@ class SimulationRun : public SpinRun {
 public:
     enum SimulationType {Random, Interactive, Guided};
     SimulationRun(QString _path, SimulationType _type, int _depth);
+    ~SimulationRun();
     void goForward(int steps=1 );
     void goBackwards(int steps=1);
     enum SimulationType simulationType;
@@ -95,6 +96,7 @@ private slots:
 public slots:
     void start();
     void commitChoise(QModelIndex index);
+    void terminateProcess();
 };
 
 #endif // SIMULATIONRUN_H

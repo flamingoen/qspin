@@ -53,7 +53,7 @@ void VerificationRun::runCompile(){
     QFile::remove(tempPath); // Removing the temporary file
     process = new QProcess();
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runPan()));
-    setStatus("Varification: Compiling pan.c");
+    setStatus("Verification: Compiling pan.c");
     process->start(CCOMPILER, compileOptions << "pan.c");
 }
 
@@ -75,8 +75,7 @@ void VerificationRun::runPan(){
     if (searchDepth>0)  runOptions << "-m"+QString::number(searchDepth);
     if (hashSize>0)     runOptions << "-w"+QString::number(hashSize);
     if (fairness)       runOptions << "-f";
-
-    setStatus("Varification: Running verification");
+    setStatus("Verification: Running verification");
     process->start("./pan", runOptions);
 }
 
@@ -90,9 +89,11 @@ void VerificationRun::readReadyVerification() {
     QRegExp rx("error: max search depth too small");
     QString newOutput = process->readAllStandardOutput();
     if (newOutput.contains(rx)) {
-        if (searchDepth != -1) searchDepth += (searchDepth/2);
+        if (searchDepth != -1) {
+            searchDepth += (searchDepth/2);
+        }
         else searchDepth = 15000;
-        currentOutput.append("max search depth too small: restarting with new depth = "+QString::number(searchDepth));
+        currentOutput.append("max search depth too small: restarting with new depth = "+QString::number(searchDepth) + "\n");
         process->disconnect();
         runPan();
     } else {
@@ -150,39 +151,37 @@ void VerificationRun::processVerification(QString output){
     errors = evalM.captured(1);
 
     // DEPTH
-    re.setPattern("depth reached (\\d*)");
+    re.setPattern("depth reached ([0-9+e.]*)");
     QRegularExpressionMatch depthM = re.match(output);
     depth = depthM.captured(1);
 
-    //FIXME: States can be written in scientific numbering 10
-    // Depth=     896 States= 3.7e+007 Transitions= 1.54e+008 Memory=  1433.379	t=      173 R=  2e+005
     // STORED STATES
-    re.setPattern("(\\d*) states, stored");
+    re.setPattern("([0-9+e.]*) states, stored");
     QRegularExpressionMatch storedStatesM = re.match(output);
     storedStates = storedStatesM.captured(1);
 
     // MATCHED STATES
-    re.setPattern("(\\d*) states, matched");
+    re.setPattern("([0-9+e.]*) states, matched");
     QRegularExpressionMatch matchedStatesM = re.match(output);
     matchedStates = matchedStatesM.captured(1);
 
     // TRANSITIONS
-    re.setPattern("(\\d*) transitions");
+    re.setPattern("([0-9+e.]*) transitions");
     QRegularExpressionMatch transitionsM = re.match(output);
     transitions = transitionsM.captured(1);
 
     // ATOMIC STATES
-    re.setPattern("(\\d*) atomic steps");
+    re.setPattern("([0-9+e.]*) atomic steps");
     QRegularExpressionMatch atomicM = re.match(output);
     atomic = atomicM.captured(1);
 
     // STATE SIZE
-    re.setPattern("State-vector (\\d*) byte");
+    re.setPattern("State-vector ([0-9+e.]*) byte");
     QRegularExpressionMatch statesizeM = re.match(output);
     statesize = statesizeM.captured(1);
 
     // HASH CONFLICTS
-    re.setPattern("hash conflicts:\\s* (\\d*)");
+    re.setPattern("hash conflicts:\\s* ([0-9+e.]*)");
     QRegularExpressionMatch hashconflictM = re.match(output);
     hashconflict = hashconflictM.captured(1);
 
@@ -204,7 +203,7 @@ void VerificationRun::processVerification(QString output){
     hashmemory = hashmemoryM.captured(1);
 
     //DFS MEMORY
-    re.setPattern("(\\d+\\.\\d+)\\s+memory\\s+used\\s+for\\s+DFS\\s+stack");
+    re.setPattern("(\\d+\\.\\d+)\\s+memory\\s+used\\s+for\\s+.FS\\s+stack");
     QRegularExpressionMatch DFSmemoryM = re.match(output);
     DFSmemory = DFSmemoryM.captured(1);
 

@@ -8,6 +8,7 @@ class SyntaxRun : public SpinRun{
 
 public:
     SyntaxRun(QString _path, QString _ltl);
+    ~SyntaxRun();
     QStringList lineNoList;
     QStringList errorList;
     int errors;

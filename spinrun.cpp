@@ -22,3 +22,7 @@ QString SpinRun::readOutput(){
 QString SpinRun::readStatus(){
     return currentStatus;
 }
+
+void SpinRun::terminateProcess(){
+    process->close();
+}

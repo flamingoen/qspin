@@ -21,6 +21,15 @@ SimulationRun::SimulationRun(QString _path, SimulationType _type, int _depth) : 
     currentStep.operation = "Initializing";
 }
 
+SimulationRun::~SimulationRun(){
+    process->deleteLater();
+}
+
+void SimulationRun::terminateProcess(){
+    process->close();
+    listChoises.clear();
+}
+
 void SimulationRun::start() {
     switch (simulationType) {
     case Random:

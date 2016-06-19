@@ -50,36 +50,37 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     QAction *actionLoad = this->findChild<QAction *>("actionLoad");
     QAction *actionSave = this->findChild<QAction *>("actionSave");
     QAction *actionAbort = this->findChild<QAction *>("actionAbort");
-    QAction *actionCheckSyntax = this->findChild<QAction *>("actionCheck_syntax");
+    actionCheckSyntax = this->findChild<QAction *>("actionCheck_syntax");
     QAction *actionLoad_Ltl = this->findChild<QAction *>("actionLoad_Ltl");
 
     connect(actionLoad, SIGNAL(triggered()) , this,SLOT(loadFile()));
     connect(actionSave, SIGNAL(triggered()) , this,SLOT(saveFile()));
     connect(actionAbort, SIGNAL(triggered()),this,SLOT(terminateProcess()));
     connect(actionCheckSyntax, SIGNAL(triggered()), this , SLOT(runCheckSyntax()));
-    connect(actionLoad_Ltl, SIGNAL(triggered()), this, SLOT(loadLTLfile()));
+    connect(actionLoad_Ltl, SIGNAL(triggered()), this, SLOT(loadLtlFile()));
 
     // ## Verify tab ##
-    QPushButton *verifyButton = this->findChild<QPushButton *>("buttonVerify");
+    buttonVerify = this->findChild<QPushButton *>("buttonVerify");
     // properties
     radioSafety = this->findChild<QRadioButton *>("radioSafety");
     radioAcceptance = this->findChild<QRadioButton *>("radioAcceptance");
     radioLiveness = this->findChild<QRadioButton *>("radioLiveness");
     checkFair = this->findChild<QCheckBox *>("checkFairness");
-    connect(verifyButton, SIGNAL(clicked()) , this, SLOT(runVerify()));
+    connect(buttonVerify, SIGNAL(clicked()) , this, SLOT(runVerify()));
     newltlButton = this->findChild<QPushButton *>("newltlButton");
+    deleteltlButton = this->findChild<QPushButton*>("deleteltlButton");
 
     connect(newltlButton,SIGNAL(clicked()),this,SLOT(newLtl()));
-   // connect(ltlList,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(runVerify()));
+    connect(deleteltlButton,SIGNAL(clicked()),this,SLOT(deleteLtl()));
+    // connect(ltlList,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(runVerify()));
 
 
     // ## Simulation tab
-    QPushButton *buttonRandomSim = this->findChild<QPushButton *>("buttonRandomSim");
+    buttonRandomSim = this->findChild<QPushButton *>("buttonRandomSim");
     buttonBackSim = this->findChild<QPushButton*>("buttonSimBackward");
     buttonForwardSim = this->findChild<QPushButton*>("buttonSimForward");
     radioInteractive = this->findChild<QRadioButton*>("radioInteractiveSim");
     radioGuided = this->findChild<QRadioButton*>("radioGuidedSim");
-    comboChoice = this->findChild<QComboBox *>("comboChoice");
     spinBoxSteps = this->findChild<QSpinBox *>("spinBoxSteps");
     simulationTypeLabel = this->findChild<QLabel*>("labelSimType");
     fileLabel = this->findChild<QLabel*>("labelSimFile");
@@ -92,7 +93,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     simulationSteps = this->findChild<QListWidget*>("listSteps");
 
     // Interactive Tab
-    QPushButton *buttonInteractiveSim = this->findChild<QPushButton *>("buttonInteractiveSim");
+    buttonInteractiveSim = this->findChild<QPushButton *>("buttonInteractiveSim");
     listChoises = this->findChild<QListWidget *>("choisesList");
     connect(buttonInteractiveSim, SIGNAL(clicked()), this, SLOT(runInteractive()));
     processTable_I = this->findChild<QTableWidget*>("tableProceses_I");
@@ -123,7 +124,7 @@ MainWindow::~MainWindow() {
 
 void MainWindow::loadFile() {
     if (filename!=NULL) fileCleanup();
-    QString tempPath = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Promela Files (*.pml)"));
+    QString tempPath = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Promela Files (*.pml);;All files (*)"));
     if (tempPath!=NULL) {
         editor->clear();
         QFile file(tempPath);
@@ -147,8 +148,8 @@ void MainWindow::loadFile() {
     }
 }
 
-void MainWindow::loadLTLfile(){
-    LTLpath = QFileDialog::getOpenFileName(this, tr("Open LTL File"),"",tr("LTL Files (*.ltl)"));
+void MainWindow::loadLtlFile(){
+    LTLpath = QFileDialog::getOpenFileName(this, tr("Open LTL File"),"",tr("LTL Files (*.ltl);;All Files (*)"));
     if (LTLpath!=NULL) {
         QFile LTLfile(LTLpath);
 
@@ -185,10 +186,34 @@ void MainWindow::loadLTLfile(){
     }
 }
 
+void MainWindow::saveLtlFile(){
+    if (LTLpath == NULL){
+        if (path != NULL){
+            int lastPoint = path.lastIndexOf(".");
+            QString pathNameNoExt = path.left(lastPoint);
+            LTLpath = pathNameNoExt + ".ltl";
+        }else { path = QFileDialog::getSaveFileName(this, tr("Save File"),"",tr("LTL Files (*.ltl);;All Files (*)")); }
+
+    }
+    QFile file(LTLpath);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        status->showMessage("Could not save "+LTLpath);
+    } else {
+        QTextStream out(&file);
+        for (int i = 0; i < ltlList->count(); i++){
+            out << ltlList->item(i)->text()+ "\n" ;
+        }
+
+        file.close();
+        status->showMessage("File saved: "+LTLpath);
+    }
+
+}
+
 void MainWindow::saveFile() {
     //TODO: Implement functionality to save all LTL's in ltl file
     if (path==NULL) {
-        path = QFileDialog::getSaveFileName(this, tr("Save File"),"",tr("Promela Files (*.pml)"));
+        path = QFileDialog::getSaveFileName(this, tr("Save File"),"",tr("Promela Files (*.pml);;All Files (*)"));
     }
     QFile file(path);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -204,6 +229,7 @@ void MainWindow::saveFile() {
 void MainWindow::runVerify(){
     fileCleanup();
     if (prepareRun()) {
+        compileOpts.clear();
         // COMPILE OPTIONS
         if (radioColapse->isChecked())           compileOpts << "-DCOLLAPSE ";
         else if (radioDH4->isChecked())          compileOpts << "-DH4 ";
@@ -223,7 +249,7 @@ void MainWindow::runVerify(){
         }
         // setup SyntaxRun
         syntaxRun = new SyntaxRun(path,ltl);
-        QThread* thread = connectProcess(syntaxRun);
+        thread = connectProcess(syntaxRun);
         connect(syntaxRun, SIGNAL(noErrors()),this,SLOT(verify()));
         connect(syntaxRun, SIGNAL(hasErrors()),this,SLOT(displayErrors()));
         thread->start();
@@ -234,7 +260,8 @@ void MainWindow::verify(){
         clearVerificationTab();
         verificationRun = new VerificationRun(path, verType,checkFair->isChecked(),ltl, compileOpts,spinBoxSDepth->value(),hashSize());
         outputLog->clear();
-        QThread* thread = connectProcess(verificationRun);
+        thread = connectProcess(verificationRun);
+        connect(this,SIGNAL(closeProcess()),verificationRun,SLOT(terminateProcess())); // Signal for terminating the process running Spin
         connect(verificationRun,SIGNAL(finished(SpinRun*)),this,SLOT(updateVerificationTab()));
         thread->start();
 }
@@ -245,7 +272,7 @@ void MainWindow::runInteractive() {
         fileLabel->setText(filename);
 
         syntaxRun = new SyntaxRun(path,"");
-        QThread* thread = connectProcess(syntaxRun);
+        thread = connectProcess(syntaxRun);
         connect(syntaxRun, SIGNAL(noErrors()),this,SLOT(interactive()));
         connect(syntaxRun, SIGNAL(hasErrors()),this,SLOT(displayErrors()));
         thread->start();
@@ -262,7 +289,7 @@ void MainWindow::runSimulation() {
         } else simulationTypeLabel->setText("Random");
         fileLabel->setText(filename);
         syntaxRun = new SyntaxRun(path,"");
-        QThread* thread = connectProcess(syntaxRun);
+        thread = connectProcess(syntaxRun);
         connect(syntaxRun, SIGNAL(noErrors()),this,SLOT(simulation()));
         connect(syntaxRun, SIGNAL(hasErrors()),this,SLOT(displayErrors()));
         thread->start();
@@ -271,10 +298,11 @@ void MainWindow::runSimulation() {
 
 void MainWindow::simulation(){
     simulationRun = new SimulationRun(path,simType,spinBoxSteps->value());
-    QThread* thread = connectProcess(simulationRun);
+    thread = connectProcess(simulationRun);
+    connect(this,SIGNAL(closeProcess()),simulationRun,SLOT(terminateProcess())); // Signal for terminating the process running Spin
     connect(simulationRun,SIGNAL(readReady(SpinRun*)),this,SLOT(createSimulationTab()));
     connect(simulationRun,SIGNAL(finished(SpinRun*)),this,SLOT(createSimulationTab()));
-    connect(simulationRun,SIGNAL(readReady(SpinRun*)),this,SLOT(processReadReady(SpinRun*)));
+    //connect(simulationRun,SIGNAL(readReady(SpinRun*)),this,SLOT(processReadReady(SpinRun*)));
     connect(simulationSteps,SIGNAL(itemSelectionChanged()),this,SLOT(simulationStepClicked()));
     buttonForwardSim->setDisabled(false);
     thread->start();
@@ -282,7 +310,8 @@ void MainWindow::simulation(){
 
 void MainWindow::interactive(){
     interactiveRun = new SimulationRun(path,SimulationRun::Interactive,spinBoxSteps->value());
-    QThread* thread = connectProcess(interactiveRun);
+    thread = connectProcess(interactiveRun);
+    connect(this,SIGNAL(closeProcess()),interactiveRun,SLOT(terminateProcess())); // Signal for terminating the process running Spin
     connect(interactiveRun,SIGNAL(readReady(SpinRun*)),this,SLOT(createInteractiveTab()));
     connect(interactiveRun,SIGNAL(finished(SpinRun*)),this,SLOT(createInteractiveTab()));
     connect(interactiveRun,SIGNAL(readReady(SpinRun*)),this,SLOT(processReadReady(SpinRun*)));
@@ -294,20 +323,24 @@ void MainWindow::interactive(){
 
 QThread* MainWindow::connectProcess(SpinRun* run){
     outputLog->clear();
-    QThread* thread = new QThread(this);
+    thread = new QThread(this);
     run->moveToThread(thread);
     connect(thread,SIGNAL(started()),run,SLOT(start()));
     connect(run, SIGNAL(finished(SpinRun*)),this,SLOT(processFinished(SpinRun*)));
     connect(run, SIGNAL(finished(SpinRun*)), thread, SLOT(quit()));
     connect(run, SIGNAL(statusChanged(SpinRun*)),this,SLOT(processStatusChange(SpinRun*)));
     connect(thread, SIGNAL(finished()),thread,SLOT(deleteLater()));
+    connect(thread,SIGNAL(started()),this,SLOT(disableRunButtons()));
+    //connect(thread,SIGNAL(),run, SLOT(deleteLater())); // INDSAT FOR AT FÅ PROCESSEN TIL AT LUKKE
+    connect(run,SIGNAL(finished(SpinRun*)),this,SLOT(enableRunButtons()));
+
     return thread;
 }
 
 void MainWindow::runCheckSyntax() {
     if(prepareRun()){
         syntaxRun = new SyntaxRun(path,"");
-        QThread* thread = connectProcess(syntaxRun);
+        thread = connectProcess(syntaxRun);
         connect(syntaxRun, SIGNAL(hasErrors()),this,SLOT(displayErrors()));
         thread->start();
     }
@@ -349,6 +382,20 @@ QString MainWindow::getLtl(){
     return "";
 }
 
+void MainWindow::disableRunButtons(){
+    buttonVerify->setDisabled(true);
+    buttonRandomSim->setDisabled(true);
+    buttonInteractiveSim->setDisabled(true);
+    actionCheckSyntax->setDisabled(true);
+}
+
+void MainWindow::enableRunButtons(){
+    buttonVerify->setEnabled(true);
+    buttonRandomSim->setEnabled(true);
+    buttonInteractiveSim->setEnabled(true);
+    actionCheckSyntax->setEnabled(true);
+}
+
 void MainWindow::simulationStepForward() {
         simulationRun->goForward();
         updateSimulationTab(simulationRun,variableTable,processTable,simulationSteps);
@@ -375,18 +422,20 @@ void MainWindow::processStatusChange(SpinRun* run) {
 // returns true if there is a file to run
 bool MainWindow::prepareRun(bool clearLog){
     if (path!=NULL) saveFile();
+    else if (path== NULL && editor->blockCount() > 2){ saveFile();}
     else loadFile();
+    if (ltlList->count() > 0) saveLtlFile();
     if (clearLog) outputLog->clear();
     return path!=NULL;
 }
 
 void MainWindow::terminateProcess(){
-    if(thread!= NULL && thread->isRunning()){
-        thread->disconnect();
-        thread->terminate();
-        outputLog->clear();
-        status->showMessage("Process killed.");
-    }
+    emit closeProcess();
+    listChoises->clear();
+    outputLog->clear();
+    status->showMessage("Process killed.");
+    enableRunButtons();
+    //}
 }
 
 // TODO: Flytte den her så spinRun kan bruge den til at fjerne filer?
@@ -404,6 +453,14 @@ void MainWindow::fileCleanup(){
 void MainWindow::newLtl(){
     QListWidgetItem *item = new QListWidgetItem("ltl newName {}" ,ltlList);
     item->setFlags(item->flags() | Qt::ItemIsEditable);
+}
+
+void MainWindow::deleteLtl(){
+    for (int i = 0; i < ltlList->count(); i++){
+        if(ltlList->item(i)->isSelected()){
+            ltlList->takeItem(i);
+        }
+    }
 }
 
 void MainWindow::updateSimulationTab(SimulationRun *run, QTableWidget *variableTable, QTableWidget *processTable, QListWidget *stepList) {

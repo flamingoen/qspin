@@ -55,7 +55,6 @@ private:
     QSpinBox *spinBoxHSize;
     QSpinBox *spinBoxSteps;
     QSpinBox *spinBoxSDepth;
-    QComboBox *comboChoice;
 
     QListWidget *simulationSteps;
     QListWidget *simulationSteps_I;
@@ -79,11 +78,15 @@ private:
     QTableWidget* processTable;
     QTableWidget* variableTable_I;
     QTableWidget* processTable_I;
+    QAction* actionCheckSyntax;
 
     QPushButton* newltlButton;
+    QPushButton* deleteltlButton;
     QPushButton* buttonForwardSim;
     QPushButton* buttonBackSim;
-
+    QPushButton* buttonVerify;
+    QPushButton* buttonRandomSim;
+    QPushButton* buttonInteractiveSim;
 
 
     // Verification tab
@@ -131,10 +134,14 @@ private:
     void updateSimulationTab(SimulationRun *run, QTableWidget *variableTable, QTableWidget *processTable, QListWidget *stepList);
     void populateSimulationLists(SimulationRun* run, QTableWidget* variableTable, QTableWidget* processTable, QListWidget *stepList);
     int hashSize();
+    void saveLtlFile();
+
+signals:
+    void closeProcess();
 
 private slots:
     void loadFile();
-    void loadLTLfile();
+    void loadLtlFile();
     void saveFile();
     void runVerify();
     void runSimulation();
@@ -156,8 +163,12 @@ private slots:
     void runInteractive();
     void listChoiseActivated(QModelIndex index);
     void newLtl();
+    void deleteLtl();
     void interactiveStepClicked();
     void interactive();
+    void enableRunButtons();
+    void disableRunButtons();
+
 };
 
 #endif // MAINWINDOW_H
