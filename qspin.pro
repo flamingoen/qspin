@@ -33,3 +33,9 @@ HEADERS  += mainwindow.h \
 FORMS    += mainwindow.ui
 
 CONFIG   += c++11
+
+#target.path = /usr/local/bin/
+#INSTALLS += target
+
+RESOURCES += \
+    icons.qrc

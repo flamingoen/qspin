@@ -45,6 +45,7 @@ private:
     QStringList compileOptions;
     QString ltl;
     int searchDepth;
+    int nFair = 2;
     int hashSize;
     QString tempPath;
     void processVerification(QString output);

@@ -16,6 +16,13 @@
 #include "syntaxrun.h"
 
 #include "ui_mainwindow.h"
+
+#ifdef __linux__
+ #define OS "linux"
+#else
+ #define OS "nonLinux"
+#endif
+
 using namespace std;
 
 namespace Ui {
@@ -135,6 +142,7 @@ private:
     void populateSimulationLists(SimulationRun* run, QTableWidget* variableTable, QTableWidget* processTable, QListWidget *stepList);
     int hashSize();
     void saveLtlFile();
+    void iconFallback();
 
 signals:
     void closeProcess();

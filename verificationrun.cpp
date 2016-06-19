@@ -30,9 +30,9 @@ void VerificationRun::start(){
     // INSERT LTL IF ACCEPTANCE RUN
     if(verificationType == Acceptance){
      tempPath = createTempPml();
-     process->start(SPIN,QStringList() << "-a" << tempPath.replace(" ","\\ "));
+     process->start(SPIN,QStringList() << "-a" << "\""+tempPath+"\"");
     }
-    else process->start(SPIN,QStringList() << "-a" << path.replace(" ","\\ "));
+    else process->start(SPIN,QStringList() << "-a" << "\""+path+"\"");
 }
 
 
@@ -54,7 +54,9 @@ void VerificationRun::runCompile(){
     process = new QProcess();
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runPan()));
     setStatus("Verification: Compiling pan.c");
-    process->start(CCOMPILER, compileOptions << "pan.c");
+    QStringList options = compileOptions;
+    options << "-DNFAIR="+QString::number(nFair);
+    process->start(CCOMPILER, options << "pan.c");
 }
 
 void VerificationRun::runPan(){
@@ -86,11 +88,18 @@ void VerificationRun::finishedVerification() {
 }
 
 void VerificationRun::readReadyVerification() {
-    QRegExp rx("error: max search depth too small");
+    QRegExp sd("error: max search depth too small");
+    QRegExp nf("error: too many processes");
     QString newOutput = process->readAllStandardOutput();
-    if (newOutput.contains(rx)) {
+    if (newOutput.contains(nf)) {
+        nFair += 1;
+        process->disconnect();
+        runCompile();
+        setStatus("restarted with DNFAIR="+QString::number(nFair));
+    } else if (newOutput.contains(sd)) {
         if (searchDepth != -1) {
             searchDepth += (searchDepth/2);
+            setStatus("restarted with search depth ="+QString::number(searchDepth));
         }
         else searchDepth = 15000;
         currentOutput.append("max search depth too small: restarting with new depth = "+QString::number(searchDepth) + "\n");

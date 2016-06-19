@@ -31,7 +31,8 @@ public:
         int process;
     };
     struct step {
-        int line = -1;
+        int oldLine = -1;
+        int newLine = -1;
         int i_proc = -1;
         int i_state = -1 ;
         QString var = "-";

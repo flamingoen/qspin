@@ -47,7 +47,7 @@ void SimulationRun::start() {
 void SimulationRun::randomSimulation() {
     setStatus("Running random simulation");
     setupProcess();
-    process->start(SPIN,QStringList() << "-u"+QString::number(depth) << "-p" << "-g" << "-l" << path);
+    process->start(SPIN,QStringList() << "-u"+QString::number(depth) << "-p" << "-g" << "-l" << "\""+path+"\"");
 }
 
 void SimulationRun::interactiveSimulation() {
@@ -57,7 +57,7 @@ void SimulationRun::interactiveSimulation() {
     while(!statesForward.isEmpty()) {
         goForward();
     }
-    process->start(SPIN,QStringList() << "-g" << "-l" << "-p" << "-i"  << path);
+    process->start(SPIN,QStringList() << "-g" << "-l" << "-p" << "-i"  << "\""+path+"\"");
 }
 
 void SimulationRun::guidedSimulation() {
@@ -65,7 +65,7 @@ void SimulationRun::guidedSimulation() {
     QFile::copy(filename+".qspin.trail", trailPath);
     setStatus("Running guided simulation");
     setupProcess();
-    process->start(SPIN,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << path.replace(" ","\\ "));
+    process->start(SPIN,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "\""+path+"\"");
 }
 
 void SimulationRun::setupProcess(){
@@ -108,9 +108,9 @@ void SimulationRun::readReadyProcess() {
 void SimulationRun::parseSimulation(QString input) {
     foreach(QString _step, input.split("\n")) {
         if (!parseStep(_step)){
-            if (!parseProc(_step)) {
+            //if (!parseProc(_step)) {
                 parseVar(_step);
-            }
+            //}
         }
     }
 }
@@ -167,18 +167,22 @@ bool SimulationRun::parseStep(QString _step) {
     bool matched = match.hasMatch();
     if (matched) {
         step newStep;
+        proc _proc;
         newStep.i_proc = match.captured(1).toInt();
         if (!mapProcess.contains(newStep.i_proc)) {
-            proc newProc;
-            newProc.id = p_id; p_id++;;
-            newProc.name = match.captured(2).append('['+match.captured(1)+']');
-            mapProcess.insert(newStep.i_proc,newProc);
+            _proc.id = p_id; p_id++;;
+            _proc.name = match.captured(2).append('['+match.captured(1)+']');
+        } else {
+            _proc = mapProcess[newStep.i_proc];
         }
-        newStep.line = match.captured(3).toInt();
+        newStep.oldLine = _proc.line;
+        _proc.line = match.captured(3).toInt();
+        newStep.newLine = _proc.line;
         newStep.i_state = match.captured(4).toInt();
         newStep.operation = match.captured(5);
         statesBack.push(currentStep);
         currentStep = newStep;
+        mapProcess.insert(newStep.i_proc,_proc);
     }
     return matched;
 }
@@ -253,7 +257,9 @@ void SimulationRun::goForward(int steps) {
             if (currentStep.var!="-") {
                 mapVariable[currentStep.var].value = currentStep.newValue;
             }
-            mapProcess[currentStep.i_proc].line = currentStep.line;
+            if (currentStep.i_proc!=-1) {
+                mapProcess[currentStep.i_proc].line = currentStep.newLine;
+            }
         }
     }
 }
@@ -264,7 +270,9 @@ void SimulationRun::goBackwards(int steps) {
             if (currentStep.var!="-") {
                 mapVariable[currentStep.var].value = currentStep.oldValue;
             }
-            mapProcess[currentStep.i_proc].line = currentStep.line;
+            if (currentStep.i_proc!=-1) {
+                mapProcess[currentStep.i_proc].line = currentStep.oldLine;
+            }
             statesForward.push(currentStep);
             currentStep = statesBack.pop();
         }

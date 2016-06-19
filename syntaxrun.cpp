@@ -18,7 +18,7 @@
         connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(checkSyntax()));
         setStatus("Checking syntax");
         tempPath = createTempPml();
-        process->start(SPIN,QStringList() << "-a" << tempPath.replace(" ","\\ "));
+        process->start(SPIN,QStringList() << "-a" << "\""+tempPath+"\"");
     }
 
     QString SyntaxRun::createTempPml(){

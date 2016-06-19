@@ -115,6 +115,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     editor = (CodeEditor*) this->findChild<QPlainTextEdit *>("editor");
 
     new Highlighter(editor->document());
+    iconFallback();
 }
 
 MainWindow::~MainWindow() {
@@ -636,4 +637,26 @@ void MainWindow::clearVerificationTab() {
     DFSmemoryLabel->clear();
     totalmemoryLabel->clear();
     timestampLabel->clear();
+}
+
+void MainWindow::iconFallback() {
+    if (QString::compare("linux",OS)) { // will set icons if system is NOT linux
+        QIcon loadFile;
+        QIcon saveFile;
+        QIcon abort;
+        QIcon forward;
+        QIcon backward;
+
+        loadFile.addFile(":icons/document-open",QSize(24, 24));
+        saveFile.addFile(":icons/document-save",QSize(24, 24));
+        abort.addFile(":icons/process-stop",QSize(24, 24));
+        forward.addFile(":icons/go-next",QSize(24, 24));
+        backward.addFile(":icons/go-previous",QSize(24, 24));
+
+        ui->actionLoad->setIcon(loadFile);
+        ui->actionSave->setIcon(saveFile);
+        ui->actionAbort->setIcon(abort);
+        ui->buttonSimForward->setIcon(forward);
+        ui->buttonSimBackward->setIcon(backward);
+    }
 }

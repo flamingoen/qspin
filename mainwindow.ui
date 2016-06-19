@@ -81,7 +81,7 @@
          <enum>Qt::LeftToRight</enum>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="validationTab">
          <attribute name="title">
@@ -881,6 +881,10 @@
               <property name="text">
                <string>Step back</string>
               </property>
+              <property name="icon">
+               <iconset theme="go-previous">
+                <normaloff>.</normaloff>.</iconset>
+              </property>
              </widget>
             </item>
             <item>
@@ -890,6 +894,10 @@
               </property>
               <property name="text">
                <string>Step forward</string>
+              </property>
+              <property name="icon">
+               <iconset theme="go-next">
+                <normaloff>.</normaloff>.</iconset>
               </property>
              </widget>
             </item>
@@ -1320,7 +1328,7 @@
      <x>0</x>
      <y>0</y>
      <width>1210</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1330,6 +1338,7 @@
     <addaction name="actionLoad"/>
     <addaction name="actionSave"/>
     <addaction name="actionLoad_Ltl"/>
+    <addaction name="actionAbort"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -1354,7 +1363,7 @@
   </widget>
   <action name="actionLoad">
    <property name="icon">
-    <iconset theme="folder">
+    <iconset theme="document-open">
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
@@ -1384,8 +1393,8 @@
   </action>
   <action name="actionAbort">
    <property name="icon">
-    <iconset>
-     <normaloff>../../../../../../Program Files/Qt/Examples/Qt-5.4/widgets/tools/undo/icons/exit.png</normaloff>../../../../../../Program Files/Qt/Examples/Qt-5.4/widgets/tools/undo/icons/exit.png</iconset>
+    <iconset theme="process-stop">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Abort</string>
