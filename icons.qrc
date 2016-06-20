@@ -114,5 +114,23 @@
         <file>icons/zoom-in.png</file>
         <file>icons/zoom-original.png</file>
         <file>icons/zoom-out.png</file>
+        <file>icons/emblem-default.png</file>
+        <file>icons/emblem-documents.png</file>
+        <file>icons/emblem-downloads.png</file>
+        <file>icons/emblem-favorite.png</file>
+        <file>icons/emblem-generic.png</file>
+        <file>icons/emblem-important.png</file>
+        <file>icons/emblem-mail.png</file>
+        <file>icons/emblem-new.png</file>
+        <file>icons/emblem-package.png</file>
+        <file>icons/emblem-photos.png</file>
+        <file>icons/emblem-readonly.png</file>
+        <file>icons/emblem-shared.png</file>
+        <file>icons/emblem-symbolic-link.png</file>
+        <file>icons/emblem-synchronizing.png</file>
+        <file>icons/emblem-system.png</file>
+        <file>icons/emblem-unreadable.png</file>
+        <file>icons/emblem-urgent.png</file>
+        <file>icons/emblem-web.png</file>
     </qresource>
 </RCC>

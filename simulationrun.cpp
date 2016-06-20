@@ -71,6 +71,7 @@ void SimulationRun::guidedSimulation() {
 void SimulationRun::setupProcess(){
     process = new QProcess(this);
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(finishedProcess()));
+    connect(process, SIGNAL(readyReadStandardOutput()),this,SLOT(readReadyProcess()));
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), process, SLOT(deleteLater()));
     parseCode();
 }
@@ -162,7 +163,7 @@ void SimulationRun::parseCode() {
 }
 
 bool SimulationRun::parseStep(QString _step) {
-    QRegularExpression reStep("\\B\\s+\\d+:\\s+proc\\s+(\\d+)\\s+\\((.*?):\\d+\\)\\s"+path+":(\\d+)\\s+\\(state\\s(\\d+)\\)\\s+\\[(.*?)\\]");
+    QRegularExpression reStep("\\B\\s*\\d+:\\s+proc\\s+(\\d+)\\s+\\((.*?):\\d+\\)\\s"+path+":(\\d+)\\s+\\(state\\s(\\d+)\\)\\s+\\[(.*?)\\]");
     QRegularExpressionMatch match = reStep.match(_step);
     bool matched = match.hasMatch();
     if (matched) {
@@ -215,7 +216,13 @@ bool SimulationRun::parseVar(QString _step) {
         newVar.name = matchG.captured(1);
         newVar.value = matchG.captured(2);
     } else if (matchL.hasMatch()) {
-        newVar.name = matchL.captured(1).append('[' + matchL.captured(2) + "]:" + matchL.captured(3));
+        QString  varName = matchL.captured(3);
+        newVar.name = matchL.captured(1).append('[' + matchL.captured(2) + "]:" + varName);
+        if (!mapVariable.contains(newVar.name)) {
+            newVar.value = mapVariable[varName].value;
+            newVar.id = v_id; v_id++;
+            mapVariable.insert(newVar.name,newVar);
+        }
         newVar.value = matchL.captured(4);
     } else matched = false;
 

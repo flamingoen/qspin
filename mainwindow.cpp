@@ -301,7 +301,7 @@ void MainWindow::simulation(){
     simulationRun = new SimulationRun(path,simType,spinBoxSteps->value());
     thread = connectProcess(simulationRun);
     connect(this,SIGNAL(closeProcess()),simulationRun,SLOT(terminateProcess())); // Signal for terminating the process running Spin
-    connect(simulationRun,SIGNAL(readReady(SpinRun*)),this,SLOT(createSimulationTab()));
+    //connect(simulationRun,SIGNAL(readReady(SpinRun*)),this,SLOT(createSimulationTab()));
     connect(simulationRun,SIGNAL(finished(SpinRun*)),this,SLOT(createSimulationTab()));
     //connect(simulationRun,SIGNAL(readReady(SpinRun*)),this,SLOT(processReadReady(SpinRun*)));
     connect(simulationSteps,SIGNAL(itemSelectionChanged()),this,SLOT(simulationStepClicked()));
