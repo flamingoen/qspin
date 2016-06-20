@@ -76,7 +76,7 @@ void SimulationRun::guidedSimulation() {
 void SimulationRun::setupProcess(){
     process = new QProcess(this);
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(finishedProcess()));
-    connect(process, SIGNAL(readyReadStandardOutput()),this,SLOT(readReadyProcess()));
+    //connect(process, SIGNAL(readyReadStandardOutput()),this,SLOT(readReadyProcess()));
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), process, SLOT(deleteLater()));
     parseCode();
 }

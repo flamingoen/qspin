@@ -150,6 +150,7 @@ signals:
 private slots:
     void loadFile();
     void loadLtlFile();
+    void showAbout();
     void saveFile();
     void runVerify();
     void runSimulation();

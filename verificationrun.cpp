@@ -222,3 +222,9 @@ void VerificationRun::processVerification(QString output){
     totalmemory = totalmemoryM.captured(1);
 
 }
+
+QString VerificationRun::getAcceptanceType() {
+    if (verificationType==Acceptance) return "Acceptance";
+    else if (verificationType==Liveness) return "Progress";
+    else return "";
+}

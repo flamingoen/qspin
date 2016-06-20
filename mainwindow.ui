@@ -1340,7 +1340,14 @@
     <addaction name="actionLoad_Ltl"/>
     <addaction name="actionAbort"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">
@@ -1411,6 +1418,11 @@
   <action name="actionLoad_Ltl">
    <property name="text">
     <string>L&amp;oad Ltl</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>

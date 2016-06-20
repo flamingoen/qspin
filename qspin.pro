@@ -30,7 +30,8 @@ HEADERS  += mainwindow.h \
     spinrun.h \
     syntaxrun.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    about.ui
 
 CONFIG   += c++11
 

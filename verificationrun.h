@@ -5,10 +5,10 @@
 
 class VerificationRun : public SpinRun {
     Q_OBJECT
-    Q_ENUMS(VerificationType)
 
 public:
     enum VerificationType {Safety, Acceptance, Liveness};
+    Q_ENUMS(VerificationType)
     VerificationRun(QString _path, VerificationType _type, bool _fairness,QString _ltl ,QStringList _compileOptions, int _searchDepth = -1, int _hashSize = -1);
     ~VerificationRun();
     VerificationType verificationType;
@@ -38,6 +38,9 @@ public:
     QString hashmemory;
     QString DFSmemory;
     QString totalmemory;
+
+    //functions
+    QString getAcceptanceType();
 
 private:
     QString finishedOutput;

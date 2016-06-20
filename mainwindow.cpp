@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "ui_about.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainWindow) {
 
@@ -52,7 +53,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     QAction *actionAbort = this->findChild<QAction *>("actionAbort");
     actionCheckSyntax = this->findChild<QAction *>("actionCheck_syntax");
     QAction *actionLoad_Ltl = this->findChild<QAction *>("actionLoad_Ltl");
+    QAction *action_about = this->findChild<QAction *>("actionAbout");
 
+    connect(action_about,SIGNAL(triggered()),this,SLOT(showAbout()));
     connect(actionLoad, SIGNAL(triggered()) , this,SLOT(loadFile()));
     connect(actionSave, SIGNAL(triggered()) , this,SLOT(saveFile()));
     connect(actionAbort, SIGNAL(triggered()),this,SLOT(terminateProcess()));
@@ -314,7 +317,7 @@ void MainWindow::interactive(){
     thread = connectProcess(interactiveRun);
     connect(this,SIGNAL(closeProcess()),interactiveRun,SLOT(terminateProcess())); // Signal for terminating the process running Spin
     connect(interactiveRun,SIGNAL(readReady(SpinRun*)),this,SLOT(createInteractiveTab()));
-    connect(interactiveRun,SIGNAL(finished(SpinRun*)),this,SLOT(createInteractiveTab()));
+    //connect(interactiveRun,SIGNAL(finished(SpinRun*)),this,SLOT(createInteractiveTab()));
     connect(interactiveRun,SIGNAL(readReady(SpinRun*)),this,SLOT(processReadReady(SpinRun*)));
     connect(listChoises,SIGNAL(activated(QModelIndex)),interactiveRun,SLOT(commitChoise(QModelIndex)));
     connect(simulationSteps_I,SIGNAL(itemSelectionChanged()),this,SLOT(interactiveStepClicked()));
@@ -574,7 +577,7 @@ void MainWindow::updateVerificationTab(){
     // ASSERTION LABEL
     assertionLabel->setText(verificationRun->assertion);
     //ACCEPTANCE LABEL
-    CycleTypeLabel->setText(verificationRun->acceptanceType.append(" cyles:"));
+    CycleTypeLabel->setText(verificationRun->getAcceptanceType().append(" cyles:"));
     acceptanceLabel->setText(verificationRun->acceptance);
     //INVALID END STATES LABEL
     invalidLabel->setText(verificationRun->invalid);
@@ -659,4 +662,11 @@ void MainWindow::iconFallback() {
         ui->buttonSimForward->setIcon(forward);
         ui->buttonSimBackward->setIcon(backward);
     }
+}
+
+void MainWindow::showAbout() {
+    QDialog* about = new QDialog(0,0);
+    Ui_About aboutUi;
+    aboutUi.setupUi(about);
+    about->show();
 }
