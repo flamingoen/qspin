@@ -95,6 +95,7 @@ void SimulationRun::finishedProcess() {
 }
 
 void SimulationRun::readReadyProcess() {
+    listChoises.clear();
     QString input = process->readAllStandardOutput();
     while (!statesForward.isEmpty()) {
         goForward();
@@ -380,5 +381,4 @@ bool SimulationRun::canGoBackwards() {
 void SimulationRun::commitChoise(QModelIndex index) {
     QString cmd = listChoises[index.row()].number+"\n\r";
     process->write(cmd.toLatin1().data());
-    listChoises.clear();
 }
