@@ -101,7 +101,6 @@ void SimulationRun::readReadyProcess() {
     }
     parseSimulation(input);
     currentOutput.append(input);
-    listChoises.clear();
     foreach(QString line , input.split("\n")){
         parseChoises(line);
     }
@@ -114,9 +113,9 @@ void SimulationRun::readReadyProcess() {
 void SimulationRun::parseSimulation(QString input) {
     foreach(QString _step, input.split("\n")) {
         if (!parseStep(_step)){
-            //if (!parseProc(_step)) {
+            if (!parseProc(_step)) {
                 parseVar(_step);
-            //}
+            }
         }
     }
 }
@@ -381,4 +380,5 @@ bool SimulationRun::canGoBackwards() {
 void SimulationRun::commitChoise(QModelIndex index) {
     QString cmd = listChoises[index.row()].number+"\n\r";
     process->write(cmd.toLatin1().data());
+    listChoises.clear();
 }
