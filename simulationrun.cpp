@@ -62,7 +62,12 @@ void SimulationRun::interactiveSimulation() {
 
 void SimulationRun::guidedSimulation() {
     QString trailPath = QDir::toNativeSeparators(path) + ".trail";
-    QFile::copy(filename+".qspin.trail", trailPath);
+    QDir dir(QDir::currentPath());
+    dir.setNameFilters(QStringList() << "*.trail");
+    dir.setFilter(QDir::Files);
+    foreach(QString dirFile, dir.entryList()) {
+        QFile::copy(dirFile, trailPath);
+    }
     setStatus("Running guided simulation");
     setupProcess();
     process->start(SPIN,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "\""+path+"\"");

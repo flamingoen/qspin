@@ -34,8 +34,8 @@ FORMS    += mainwindow.ui
 
 CONFIG   += c++11
 
-#target.path = /usr/local/bin/
-#INSTALLS += target
+target.path = /usr/local/bin/
+INSTALLS += target
 
 RESOURCES += \
     icons.qrc
