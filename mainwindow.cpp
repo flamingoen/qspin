@@ -333,7 +333,7 @@ QThread* MainWindow::connectProcess(SpinRun* run){
     connect(run, SIGNAL(finished(SpinRun*)),this,SLOT(processFinished(SpinRun*)));
     connect(run, SIGNAL(finished(SpinRun*)), thread, SLOT(quit()));
     connect(run, SIGNAL(statusChanged(SpinRun*)),this,SLOT(processStatusChange(SpinRun*)));
-    connect(thread, SIGNAL(finished()),thread,SLOT(deleteLater()));
+    //connect(thread, SIGNAL(finished()),thread,SLOT(deleteLater()));
     connect(thread,SIGNAL(started()),this,SLOT(disableRunButtons()));
     //connect(thread,SIGNAL(),run, SLOT(deleteLater())); // INDSAT FOR AT FÅ PROCESSEN TIL AT LUKKE
     connect(run,SIGNAL(finished(SpinRun*)),this,SLOT(enableRunButtons()));

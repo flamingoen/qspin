@@ -379,6 +379,6 @@ bool SimulationRun::canGoBackwards() {
 }
 
 void SimulationRun::commitChoise(QModelIndex index) {
-    QString cmd = listChoises[index.row()].number+"\n\r";
+    QString cmd = listChoises[index.row()].number+"\n";
     process->write(cmd.toLatin1().data());
 }
