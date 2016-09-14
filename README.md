@@ -1,5 +1,22 @@
 # qspin
 
+## Changelog
+
+### 14/9-2016
+- Added 'save as' function
+- Added 'new' function
+- Program will now show process errors (ex. when SPIN is missing)
+- Program will now only clears log when a new process starts
+- Fixed tab length in editor
+- Added save warning when trying to overwrite unsaved chanegs
+- Will now clear und-redo stack of document when loaded
+
+## Planed
+
+- Major code clean up
+- Add aditional data types to the simulator
+- Fix issue of some parts of simulations running in UI thread
+
 ## Installation
 
 ### Linux:
