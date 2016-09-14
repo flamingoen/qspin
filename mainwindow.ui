@@ -54,7 +54,7 @@
         <enum>QPlainTextEdit::NoWrap</enum>
        </property>
        <property name="tabStopWidth">
-        <number>8</number>
+        <number>30</number>
        </property>
        <property name="backgroundVisible">
         <bool>false</bool>
@@ -259,7 +259,7 @@
                  <item>
                   <widget class="QRadioButton" name="radioLiveness">
                    <property name="text">
-                    <string>Progess</string>
+                    <string>P&amp;rogess</string>
                    </property>
                   </widget>
                  </item>
@@ -922,7 +922,7 @@
                  <item>
                   <widget class="QRadioButton" name="radioRandomSim">
                    <property name="text">
-                    <string>Ra&amp;ndom</string>
+                    <string>&amp;Random</string>
                    </property>
                    <property name="checked">
                     <bool>true</bool>
@@ -1335,8 +1335,10 @@
     <property name="title">
      <string>Fi&amp;le</string>
     </property>
+    <addaction name="actionNew"/>
     <addaction name="actionLoad"/>
     <addaction name="actionSave"/>
+    <addaction name="actionSave_As"/>
     <addaction name="actionLoad_Ltl"/>
     <addaction name="actionAbort"/>
    </widget>
@@ -1404,7 +1406,7 @@
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
-    <string>Abort</string>
+    <string>&amp;Abort</string>
    </property>
   </action>
   <action name="actionCheck_syntax">
@@ -1422,7 +1424,29 @@
   </action>
   <action name="actionAbout">
    <property name="text">
-    <string>About</string>
+    <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="actionSave_As">
+   <property name="icon">
+    <iconset theme="document-save-as"/>
+   </property>
+   <property name="text">
+    <string>Save As...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="actionNew">
+   <property name="icon">
+    <iconset theme="document-new"/>
+   </property>
+   <property name="text">
+    <string>New</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
    </property>
   </action>
  </widget>

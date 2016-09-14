@@ -37,10 +37,12 @@ signals:
     void readReady(SpinRun* run);
     void finished(SpinRun* run);
     void statusChanged(SpinRun* run);
+    void processError(QString errorMsg);
 
 public slots:
     virtual void start() = 0;
     void terminateProcess();
+    void error();
 };
 
 #endif // SPINRUN_H

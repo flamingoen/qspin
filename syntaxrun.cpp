@@ -15,7 +15,9 @@
     //TODO: Denne skal måske have en deletelater metode (destructor)
     void SyntaxRun::start(){
         process = new QProcess();
-        connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(checkSyntax()));
+        connect(process, SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(checkSyntax()));
+        connect(process, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(error()));
+        connect(process, SIGNAL(readyReadStandardError()), this, SLOT(error()));
         setStatus("Checking syntax");
         tempPath = createTempPml();
         process->start(SPIN,QStringList() << "-a" << "\""+tempPath+"\"");

@@ -1,19 +1,19 @@
 #include "mainwindow.h"
 #include "ui_about.h"
 
+// changelog:
+// added 'save as' function
+// added 'new' function
+// Program will now show process errors (ex. when SPIN is missing)
+// program will now only clears log when a new process starts
+// Fixed tab length in editor
+// Added save warning when trying to overwrite unsaved chanegs
+// Will now clear und-redo stack of document when loaded
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainWindow) {
 
     ui->setupUi(this);
     this->setWindowTitle("QSpin");
-
-    //Setting font of groupbox titles
-    // The stylesheet is not inherited to children of the QGroupBox, thereby the labels won't suffer the effect of the change in the parents stylesheet.
-    //QGroupBox *statespaceprop = this->findChild<QGroupBox *>("groupBox_4");
-    //statespaceprop->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } ");
-    //QGroupBox *statespacespecs = this->findChild<QGroupBox *>("groupBox_5");
-    //statespacespecs->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } ");
-    //QGroupBox *memoryusage = this->findChild<QGroupBox *>("groupBox_6");
-    //memoryusage->setStyleSheet("QGroupBox { font-weight: bold; text-decoration: underline; } ");
 
     // Connecting to objects
 
@@ -54,13 +54,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     actionCheckSyntax = this->findChild<QAction *>("actionCheck_syntax");
     QAction *actionLoad_Ltl = this->findChild<QAction *>("actionLoad_Ltl");
     QAction *action_about = this->findChild<QAction *>("actionAbout");
+    QAction *action_saveAs = this->findChild<QAction *>("actionSave_As");
+    QAction *action_new = this->findChild<QAction *>("actionNew");
 
+    connect(action_new,SIGNAL(triggered()),this,SLOT(newFile()));
     connect(action_about,SIGNAL(triggered()),this,SLOT(showAbout()));
     connect(actionLoad, SIGNAL(triggered()) , this,SLOT(loadFile()));
     connect(actionSave, SIGNAL(triggered()) , this,SLOT(saveFile()));
     connect(actionAbort, SIGNAL(triggered()),this,SLOT(terminateProcess()));
     connect(actionCheckSyntax, SIGNAL(triggered()), this , SLOT(runCheckSyntax()));
     connect(actionLoad_Ltl, SIGNAL(triggered()), this, SLOT(loadLtlFile()));
+    connect(action_saveAs, SIGNAL(triggered()),this,SLOT(saveFileAs()));
+
 
     // ## Verify tab ##
     buttonVerify = this->findChild<QPushButton *>("buttonVerify");
@@ -126,6 +131,16 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
+void MainWindow::newFile() {
+    if (saveWarning()){
+        fileCleanup();
+        path = nullptr;
+        editor->clear();
+        editor->document()->setModified(false);
+        clearVerificationTab();
+    }
+}
+
 void MainWindow::loadFile() {
     if (filename!=NULL) fileCleanup();
     QString tempPath = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Promela Files (*.pml);;All files (*)"));
@@ -145,6 +160,8 @@ void MainWindow::loadFile() {
             QRegExp rx("/((([a-z]|[A-Z]|\\d)+).pml)");
             rx.indexIn(path);
             filename = rx.cap(1);
+            editor->document()->clearUndoRedoStacks();
+            editor->document()->setModified(false);
             status->showMessage("File loaded: "+path);
         }
     } else {
@@ -214,11 +231,17 @@ void MainWindow::saveLtlFile(){
 
 }
 
+void MainWindow::saveFileAs() {
+    QString tempPath = QFileDialog::getSaveFileName(this, tr("Save File"),"",tr("Promela Files (*.pml);;All Files (*)"));
+    if (tempPath!=NULL) {
+        path = tempPath;
+        saveFile();
+    }
+}
+
 void MainWindow::saveFile() {
     //TODO: Implement functionality to save all LTL's in ltl file
-    if (path==NULL) {
-        path = QFileDialog::getSaveFileName(this, tr("Save File"),"",tr("Promela Files (*.pml);;All Files (*)"));
-    }
+    if (path==NULL) saveFileAs();
     QFile file(path);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         status->showMessage("Could not save "+path);
@@ -226,8 +249,21 @@ void MainWindow::saveFile() {
         QTextStream out(&file);
         out << editor->toPlainText();
         file.close();
+        editor->document()->setModified(false);
         status->showMessage("File saved: "+path);
     }
+}
+
+bool MainWindow::saveWarning() {
+    if (editor->document()->isModified()) {
+        int ans;
+        ans = QMessageBox::warning(this, tr("document has been modified"),tr("The document has been modified.\nDo you want to save your changes?"),
+                                   QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save);
+        if (ans==QMessageBox::Save){
+            saveFile();
+        }
+        return !(ans==QMessageBox::Cancel);
+    } else return true;
 }
 
 void MainWindow::runVerify(){
@@ -333,12 +369,19 @@ QThread* MainWindow::connectProcess(SpinRun* run){
     connect(run, SIGNAL(finished(SpinRun*)),this,SLOT(processFinished(SpinRun*)));
     connect(run, SIGNAL(finished(SpinRun*)), thread, SLOT(quit()));
     connect(run, SIGNAL(statusChanged(SpinRun*)),this,SLOT(processStatusChange(SpinRun*)));
+    connect(run, SIGNAL(processError(QString)),this,SLOT(processError(QString)));
     //connect(thread, SIGNAL(finished()),thread,SLOT(deleteLater()));
     connect(thread,SIGNAL(started()),this,SLOT(disableRunButtons()));
     //connect(thread,SIGNAL(),run, SLOT(deleteLater())); // INDSAT FOR AT FÅ PROCESSEN TIL AT LUKKE
     connect(run,SIGNAL(finished(SpinRun*)),this,SLOT(enableRunButtons()));
 
     return thread;
+}
+
+void MainWindow::processError(QString error) {
+    status->showMessage(error);
+    outputLog->append(error);
+    terminateProcess();
 }
 
 void MainWindow::runCheckSyntax() {
@@ -436,10 +479,9 @@ bool MainWindow::prepareRun(bool clearLog){
 void MainWindow::terminateProcess(){
     emit closeProcess();
     listChoises->clear();
-    outputLog->clear();
+    outputLog->append("Process killed");
     status->showMessage("Process killed.");
     enableRunButtons();
-    //}
 }
 
 // TODO: Flytte den her så spinRun kan bruge den til at fjerne filer?

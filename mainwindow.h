@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QtConcurrent/QtConcurrent>
 #include <QFileDialog>
+#include <QMessageBox>
 #include <stdlib.h>
 #include <iostream>
 #include <sstream>
@@ -143,6 +144,7 @@ private:
     int hashSize();
     void saveLtlFile();
     void iconFallback();
+    bool saveWarning();
 
 signals:
     void closeProcess();
@@ -152,6 +154,8 @@ private slots:
     void loadLtlFile();
     void showAbout();
     void saveFile();
+    void saveFileAs();
+    void newFile();
     void runVerify();
     void runSimulation();
     void terminateProcess();
@@ -177,7 +181,7 @@ private slots:
     void interactive();
     void enableRunButtons();
     void disableRunButtons();
-
+    void processError(QString);
 };
 
 #endif // MAINWINDOW_H

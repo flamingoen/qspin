@@ -26,3 +26,23 @@ QString SpinRun::readStatus(){
 void SpinRun::terminateProcess(){
     process->close();
 }
+
+void SpinRun::error() {
+    QString errorMsg = "";
+    switch (process->error()) {
+    case QProcess::FailedToStart:
+        errorMsg = "Process failed to start, check SPIN path or installation";
+        break;
+    case QProcess::Crashed:
+        errorMsg = "Process crashed unexpected";
+        break;
+    case QProcess::Timedout:
+        errorMsg = "Process stopped due to a time out";
+        break;
+    default:
+        errorMsg = "Unexpected error while running process";
+        break;
+    }
+    emit processError(errorMsg);
+    terminateProcess();
+}
