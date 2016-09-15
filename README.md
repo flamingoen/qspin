@@ -2,6 +2,13 @@
 
 ## Changelog
 
+### Planed
+
+- Major code clean up
+- Change representation of data types (Data type class)
+  - Add aditional data types to the simulator
+- Fix issue of some parts of simulations running in UI thread
+
 ### 14/9-2016
 - Added 'save as' function
 - Added 'new' function
@@ -10,12 +17,6 @@
 - Fixed tab length in editor
 - Added save warning when trying to overwrite unsaved chanegs
 - Will now clear und-redo stack of document when loaded
-
-## Planed
-
-- Major code clean up
-- Add aditional data types to the simulator
-- Fix issue of some parts of simulations running in UI thread
 
 ## Installation
 
