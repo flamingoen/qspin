@@ -20,6 +20,8 @@
 
 ## Installation
 
+QSpin will for all three supported operating systems need a c compiler added to the path and a working version of SPIN. Mac and Linux will need to have SPIN in their path, for windows it is shipped with the zipped release. On windows mingw can be used as a c compiler
+
 ### Linux:
 
 Make sure Qt5 is installed on your computer. Follow the guidelines for your distrubution. When Qt5 is installed, do the following:
@@ -58,4 +60,4 @@ After Qt5 have been installed, do the following:
 
 ### Windows:
 
-I will get back to this - An older version exists under realeses. 
+In the realese tab their will be a zip with the executable and SPIN. The spin folder needs to be in the same folder as the QSpin executable in order to run. It is also important that a c compiler is present and able to run from the path with the command 'cc'
