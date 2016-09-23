@@ -26,7 +26,7 @@ SimulationRun::~SimulationRun(){
 }
 
 void SimulationRun::terminateProcess(){
-    process->close();
+    SpinRun::terminateProcess();
     listChoises.clear();
 }
 
@@ -68,9 +68,11 @@ void SimulationRun::guidedSimulation() {
     foreach(QString dirFile, dir.entryList()) {
         QFile::copy(dirFile, trailPath);
     }
-    setStatus("Running guided simulation");
-    setupProcess();
-    process->start(SPIN,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "\""+path+"\"");
+    if (QFile::exists(filename+".trail")){
+        setStatus("Running guided simulation");
+        setupProcess();
+        process->start(SPIN,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "\""+path+"\"");
+    } else emit processError("Cannot run simulation: Trail path not found");
 }
 
 void SimulationRun::setupProcess(){

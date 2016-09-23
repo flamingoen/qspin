@@ -24,7 +24,10 @@ QString SpinRun::readStatus(){
 }
 
 void SpinRun::terminateProcess(){
-    process->close();
+    if (process!=NULL) {
+        process->close();
+        setStatus("Process killed");
+    }
 }
 
 void SpinRun::error() {

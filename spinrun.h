@@ -24,14 +24,12 @@ public:
     void setStatus(QString status);
     Type type = nonSpecified;
 
-
-
 protected:
     QString path;
     QString currentOutput = "";
     QString finishedOutput;
     QString currentStatus;
-    QProcess* process;
+    QProcess* process = NULL;
 
 signals:
     void readReady(SpinRun* run);

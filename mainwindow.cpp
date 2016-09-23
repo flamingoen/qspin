@@ -371,7 +371,8 @@ QThread* MainWindow::connectProcess(SpinRun* run){
     connect(run, SIGNAL(statusChanged(SpinRun*)),this,SLOT(processStatusChange(SpinRun*)));
     connect(run, SIGNAL(processError(QString)),this,SLOT(processError(QString)));
     //connect(thread, SIGNAL(finished()),thread,SLOT(deleteLater()));
-    connect(thread,SIGNAL(started()),this,SLOT(disableRunButtons()));
+    //connect(thread,SIGNAL(started()),this,SLOT(disableRunButtons()));
+    disableRunButtons(); // hotfix to fix wrong order of signals - making sure this runs first!
     //connect(thread,SIGNAL(),run, SLOT(deleteLater())); // INDSAT FOR AT FÅ PROCESSEN TIL AT LUKKE
     connect(run,SIGNAL(finished(SpinRun*)),this,SLOT(enableRunButtons()));
 
@@ -382,6 +383,7 @@ void MainWindow::processError(QString error) {
     status->showMessage(error);
     outputLog->append(error);
     terminateProcess();
+
 }
 
 void MainWindow::runCheckSyntax() {
@@ -463,7 +465,9 @@ void MainWindow::processReadReady(SpinRun* run) {
 }
 
 void MainWindow::processStatusChange(SpinRun* run) {
-    status->showMessage(run->readStatus());
+    QString statusmsg = run->readStatus();
+    status->showMessage(statusmsg);
+    outputLog->append(statusmsg);
 }
 
 // returns true if there is a file to run
@@ -479,8 +483,6 @@ bool MainWindow::prepareRun(bool clearLog){
 void MainWindow::terminateProcess(){
     emit closeProcess();
     listChoises->clear();
-    outputLog->append("Process killed");
-    status->showMessage("Process killed.");
     enableRunButtons();
 }
 
