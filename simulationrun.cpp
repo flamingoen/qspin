@@ -81,6 +81,10 @@ void SimulationRun::setupProcess(){
     //connect(process, SIGNAL(readyReadStandardOutput()),this,SLOT(readReadyProcess()));
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), process, SLOT(deleteLater()));
     parseCode();
+    step newStep;
+    newStep.operation="Simulation";
+    statesBack.push(currentStep);
+    currentStep = newStep;
 }
 
 void SimulationRun::finishedProcess() {
@@ -158,7 +162,7 @@ void SimulationRun::parseCode() {
                 _step.var = var.name;
                 _step.newValue = var.value;
                 _step.oldValue = "-";
-                _step.operation = var.name.append(" = ").append(var.value);
+                _step.operation = "init :\t"+var.name + " = " + var.value;
                 statesBack.push(currentStep);
                 currentStep = _step;
                 if (type=="bool") {
@@ -168,6 +172,7 @@ void SimulationRun::parseCode() {
             }
         }
     }
+
 }
 
 bool SimulationRun::parseStep(QString _step) {
@@ -188,7 +193,7 @@ bool SimulationRun::parseStep(QString _step) {
         _proc.line = match.captured(3).toInt();
         newStep.newLine = _proc.line;
         newStep.i_state = match.captured(4).toInt();
-        newStep.operation = match.captured(5);
+        newStep.operation = _proc.name+":\t"+match.captured(5);
         statesBack.push(currentStep);
         currentStep = newStep;
         mapProcess.insert(newStep.i_proc,_proc);
