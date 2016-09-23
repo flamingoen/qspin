@@ -141,18 +141,15 @@ void SimulationRun::parseCode() {
     foreach(QString line, lines) {
         match = reVar.match(line);
         if (match.hasMatch()) {
-            QStringList parsedLine = line.split(QRegularExpression("\\s+|,|="),QString::SkipEmptyParts);
-            QString varType = parsedLine[0];
-            for (int i=1 ; i<parsedLine.length() ; i++) {
+            QStringList expression = line.split(QRegularExpression("="),QString::SkipEmptyParts);
+            QStringList lhs = expression[0].split(QRegularExpression("\\s+|,"),QString::SkipEmptyParts);
+            QString type = lhs[0];
+            lhs.removeFirst(); // remove the type from the list
+            foreach (QString name, lhs) {
                 variable var;
-                var.name = parsedLine[i];
-                var.type = varType;
-                i++; //incriment to get next value
-                var.value = parsedLine[i];
-                if (varType=="bool") {
-                    if (var.value=="true") var.value = "1";
-                    else var.value = "0";
-                }
+                var.name = name;
+                var.type = type;
+                var.value = expression[1];
                 var.id = v_id; v_id++;
                 mapVariable.insert(var.name,var);
                 step _step;
@@ -162,6 +159,10 @@ void SimulationRun::parseCode() {
                 _step.operation = var.name.append(" = ").append(var.value);
                 statesBack.push(currentStep);
                 currentStep = _step;
+                if (type=="bool") {
+                    if (var.value=="true") var.value = "1";
+                    else var.value = "0";
+                }
             }
         }
     }
