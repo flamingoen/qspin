@@ -99,10 +99,10 @@ void VerificationRun::readReadyVerification() {
     } else if (newOutput.contains(sd)) {
         if (searchDepth != -1) {
             searchDepth += (searchDepth/2);
-            setStatus("restarted with search depth ="+QString::number(searchDepth));
+            setStatus("max search depth too small: restarted with search depth ="+QString::number(searchDepth));
         }
         else searchDepth = 15000;
-        currentOutput.append("max search depth too small: restarting with new depth = "+QString::number(searchDepth) + "\n");
+        //currentOutput.append("max search depth too small: restarting with new depth = "+QString::number(searchDepth) + "\n");
         process->disconnect();
         runPan();
     } else {

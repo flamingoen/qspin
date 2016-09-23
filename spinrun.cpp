@@ -9,7 +9,8 @@ SpinRun::SpinRun(QString _path, Type _type) {
 }
 
 void SpinRun::setStatus(QString status) {
-    currentStatus = status;
+    if (currentStatus!="") currentStatus.append("\n");
+    currentStatus.append(status);
     emit statusChanged(this);
 }
 
@@ -20,7 +21,9 @@ QString SpinRun::readOutput(){
 }
 
 QString SpinRun::readStatus(){
-    return currentStatus;
+    QString status = currentStatus;
+    currentStatus = "";
+    return status;
 }
 
 void SpinRun::terminateProcess(){
