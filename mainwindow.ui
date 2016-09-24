@@ -81,7 +81,7 @@
          <enum>Qt::LeftToRight</enum>
         </property>
         <property name="currentIndex">
-         <number>2</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="validationTab">
          <attribute name="title">
@@ -1360,7 +1360,7 @@
          </layout>
         </widget>
        </widget>
-       <widget class="QGroupBox" name="groupBox">
+       <widget class="QGroupBox" name="logBox">
         <property name="title">
          <string>Log</string>
         </property>
@@ -1405,7 +1405,21 @@
     </property>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>&amp;view</string>
+    </property>
+    <widget class="QMenu" name="menuEditor">
+     <property name="title">
+      <string>Editor</string>
+     </property>
+     <addaction name="actionWord_Wrap"/>
+    </widget>
+    <addaction name="menuEditor"/>
+    <addaction name="actionOutput_Log"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuView"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -1506,6 +1520,28 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionWord_Wrap">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Word Wrap</string>
+   </property>
+   <property name="toolTip">
+    <string>Toogle word wrap in the editor</string>
+   </property>
+  </action>
+  <action name="actionOutput_Log">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Output Log</string>
    </property>
   </action>
  </widget>

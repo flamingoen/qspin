@@ -58,22 +58,32 @@ class CodeEditor : public QPlainTextEdit {
 public:
     CodeEditor(QWidget *parent = 0);
     QList<QColor> colorList;
+    QStringList errors;
+    QList<SimulationRun::proc> procList;
 
+    void clear();
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     void HighlightErrorLines(QStringList lineNos);
-    void HighlightProcesses(QList<SimulationRun::proc>);
+    void HighlightProcesses(QList<SimulationRun::proc> procs);
+
     int lineNumberAreaWidth();
+
+public slots:
+    void setWordWrap(bool wrap);
+    void updateHighlights();
 
 protected:
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
 
 private slots:
     void updateLineNumberAreaWidth(int newBlockCount);
-    void highlightCurrentLine();
+    QList<QTextEdit::ExtraSelection> highlightCurrentLine();
     void updateLineNumberArea(const QRect &, int);
 
 private:
     QWidget *lineNumberArea;
+    QList<QTextEdit::ExtraSelection> procesSelections();
+    QList<QTextEdit::ExtraSelection> errorSelections();
 };
 
 class LineNumberArea : public QWidget {

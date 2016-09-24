@@ -56,6 +56,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     QAction *action_about = this->findChild<QAction *>("actionAbout");
     QAction *action_saveAs = this->findChild<QAction *>("actionSave_As");
     QAction *action_new = this->findChild<QAction *>("actionNew");
+    QAction *action_wordWrap = this->findChild<QAction *>("actionWord_Wrap");
+    QAction *action_showHideLog = this->findChild<QAction *>("actionOutput_Log");
 
     connect(action_new,SIGNAL(triggered()),this,SLOT(newFile()));
     connect(action_about,SIGNAL(triggered()),this,SLOT(showAbout()));
@@ -121,6 +123,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     status = this->findChild<QStatusBar *>("statusbar");
     outputLog = this->findChild<QTextEdit *>("log");
     editor = (CodeEditor*) this->findChild<QPlainTextEdit *>("editor");
+    groupBox_log = this->findChild<QGroupBox *>("logBox");
+    connect(action_wordWrap, SIGNAL(triggered(bool)),editor,SLOT(setWordWrap(bool)));
+    connect(action_showHideLog, SIGNAL(triggered(bool)),this,SLOT(showHideLog(bool)));
 
     new Highlighter(editor->document());
     iconFallback();
@@ -135,9 +140,11 @@ void MainWindow::newFile() {
     if (saveWarning()){
         fileCleanup();
         path = nullptr;
+        clearVerificationTab();
+        clearSimulationTab();
+        clearInteractiveTab();
         editor->clear();
         editor->document()->setModified(false);
-        clearVerificationTab();
     }
 }
 
@@ -291,7 +298,7 @@ void MainWindow::runVerify(){
         syntaxRun = new SyntaxRun(path,ltl);
         thread = connectProcess(syntaxRun);
         connect(syntaxRun, SIGNAL(noErrors()),this,SLOT(verify()));
-        connect(syntaxRun, SIGNAL(hasErrors()),this,SLOT(displayErrors()));
+        connect(syntaxRun, SIGNAL(finished(SpinRun*)),this,SLOT(displayErrors()));
         thread->start();
     }
 }
@@ -314,7 +321,7 @@ void MainWindow::runInteractive() {
         syntaxRun = new SyntaxRun(path,"");
         thread = connectProcess(syntaxRun);
         connect(syntaxRun, SIGNAL(noErrors()),this,SLOT(interactive()));
-        connect(syntaxRun, SIGNAL(hasErrors()),this,SLOT(displayErrors()));
+        connect(syntaxRun, SIGNAL(finished(SpinRun*)),this,SLOT(displayErrors()));
         thread->start();
     }
 }
@@ -331,7 +338,7 @@ void MainWindow::runSimulation() {
         syntaxRun = new SyntaxRun(path,"");
         thread = connectProcess(syntaxRun);
         connect(syntaxRun, SIGNAL(noErrors()),this,SLOT(simulation()));
-        connect(syntaxRun, SIGNAL(hasErrors()),this,SLOT(displayErrors()));
+        connect(syntaxRun, SIGNAL(finished(SpinRun*)),this,SLOT(displayErrors()));
         thread->start();
     }
 }
@@ -390,7 +397,7 @@ void MainWindow::runCheckSyntax() {
     if(prepareRun()){
         syntaxRun = new SyntaxRun(path,"");
         thread = connectProcess(syntaxRun);
-        connect(syntaxRun, SIGNAL(hasErrors()),this,SLOT(displayErrors()));
+        connect(syntaxRun, SIGNAL(finished(SpinRun*)),this,SLOT(displayErrors()));
         thread->start();
     }
 }
@@ -408,10 +415,7 @@ void MainWindow::displayErrors() {
             lineNoList.removeAt(i);
         }
     }
-    if (lineNoList.count() > 0){
-        editor->HighlightErrorLines(lineNoList);
-
-    }
+    editor->HighlightErrorLines(lineNoList);
 }
 
 int MainWindow::hashSize() {
@@ -686,6 +690,19 @@ void MainWindow::clearVerificationTab() {
     timestampLabel->clear();
 }
 
+void MainWindow::clearSimulationTab() {
+    simulationSteps->clear();
+    processTable->clear();
+    variableTable->clear();
+}
+
+void MainWindow::clearInteractiveTab() {
+    simulationSteps_I->clear();
+    processTable_I->clear();
+    variableTable_I->clear();
+    listChoises->clear();
+}
+
 void MainWindow::iconFallback() {
     if (QString::compare("linux",OS)) { // will set icons if system is NOT linux
         QIcon loadFile;
@@ -713,4 +730,9 @@ void MainWindow::showAbout() {
     Ui_About aboutUi;
     aboutUi.setupUi(about);
     about->show();
+}
+
+void MainWindow::showHideLog(bool show) {
+    if (show)   groupBox_log->show();
+    else        groupBox_log->hide();
 }

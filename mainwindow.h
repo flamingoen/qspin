@@ -96,6 +96,8 @@ private:
     QPushButton* buttonRandomSim;
     QPushButton* buttonInteractiveSim;
 
+    QGroupBox* groupBox_log;
+
 
     // Verification tab
     QLabel *spinVerLabel;
@@ -138,6 +140,8 @@ private:
     bool prepareRun(bool clearLog=true);
     QThread* connectProcess(SpinRun* run);
     void clearVerificationTab();
+    void clearSimulationTab();
+    void clearInteractiveTab();
     void updateStepList(QListWidget *stepList ,SimulationRun *run);
     void updateSimulationTab(SimulationRun *run, QTableWidget *variableTable, QTableWidget *processTable, QListWidget *stepList);
     void populateSimulationLists(SimulationRun* run, QTableWidget* variableTable, QTableWidget* processTable, QListWidget *stepList);
@@ -182,6 +186,7 @@ private slots:
     void enableRunButtons();
     void disableRunButtons();
     void processError(QString);
+    void showHideLog(bool show);
 };
 
 #endif // MAINWINDOW_H

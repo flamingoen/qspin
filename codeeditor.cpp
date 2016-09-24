@@ -53,10 +53,10 @@ CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent) {
 
     connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth(int)));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
-    connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
+    connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(updateHighlights()));
 
     updateLineNumberAreaWidth(0);
-    highlightCurrentLine();
+    updateHighlights();
 }
 
 int CodeEditor::lineNumberAreaWidth() {
@@ -94,7 +94,7 @@ void CodeEditor::resizeEvent(QResizeEvent *e) {
     lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
 }
 
-void CodeEditor::highlightCurrentLine() {
+QList<QTextEdit::ExtraSelection> CodeEditor::highlightCurrentLine() {
     QList<QTextEdit::ExtraSelection> extraSelections;
 
     if (!isReadOnly()) {
@@ -109,13 +109,13 @@ void CodeEditor::highlightCurrentLine() {
         extraSelections.append(selection);
     }
 
-    setExtraSelections(extraSelections);
+    return extraSelections;
 }
 
-void CodeEditor::HighlightErrorLines(QStringList lineNos) {
+QList<QTextEdit::ExtraSelection> CodeEditor::errorSelections() {
     QList<QTextEdit::ExtraSelection> extraSelections;
 
-    foreach(QString lineNo, lineNos) {
+    foreach(QString lineNo, errors) {
         QTextEdit::ExtraSelection selection;
 
         QColor lineColor = QColor(Qt::red);
@@ -131,22 +131,27 @@ void CodeEditor::HighlightErrorLines(QStringList lineNos) {
         selection.cursor = cursor;
         extraSelections.append(selection);
     }
-    setExtraSelections(extraSelections);
+    return extraSelections;
 }
 
-void CodeEditor::HighlightProcesses(QList<SimulationRun::proc> procs) {
+void CodeEditor::HighlightErrorLines(QStringList lineNos) {
+    errors = lineNos;
+    updateHighlights();
+}
+
+QList<QTextEdit::ExtraSelection> CodeEditor::procesSelections() {
     QList<QTextEdit::ExtraSelection> extraSelections;
 
-    for (int i = 0 ; i<procs.length() ; i++) {
-        if (procs[i].line>0) {
+    for (int i = 0 ; i<procList.length() ; i++) {
+        if (procList[i].line>0) {
             QTextEdit::ExtraSelection selection;
-            QColor lineColor = colorList[procs[i].id%colorList.length()];
+            QColor lineColor = colorList[procList[i].id%colorList.length()];
             QTextCursor cursor(this->document());
 
             selection.format.setBackground(lineColor);
             selection.format.setProperty(QTextFormat::FullWidthSelection,true);
 
-            for (int j=1 ; j<procs[i].line ; j++) {
+            for (int j=1 ; j<procList[i].line ; j++) {
                 cursor.movePosition(QTextCursor::Down);
             }
 
@@ -154,7 +159,12 @@ void CodeEditor::HighlightProcesses(QList<SimulationRun::proc> procs) {
             extraSelections.append(selection);
         }
     }
-    setExtraSelections(extraSelections);
+    return extraSelections;
+}
+
+void CodeEditor::HighlightProcesses(QList<SimulationRun::proc> procs) {
+    procList=procs;
+    updateHighlights();
 }
 
 void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event) {
@@ -180,4 +190,21 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event) {
         bottom = top + (int) blockBoundingRect(block).height();
         ++blockNumber;
     }
+}
+
+void CodeEditor::setWordWrap(bool b){
+    if (b)  setWordWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+    else    setWordWrapMode(QTextOption::NoWrap);
+}
+
+void CodeEditor::updateHighlights(){
+    QList<QTextEdit::ExtraSelection> selections = highlightCurrentLine()+procesSelections()+errorSelections();
+    setExtraSelections(selections);
+}
+
+void CodeEditor::clear() {
+    errors.clear();
+    procList.clear();
+    updateHighlights();
+    QPlainTextEdit::clear();
 }
