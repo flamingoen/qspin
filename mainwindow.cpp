@@ -118,6 +118,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     spinBoxHSize = this->findChild<QSpinBox *>("spinBoxHashSize");
     spinBoxSDepth = this->findChild<QSpinBox *>("spinBoxSearchDepth");
     checkOptDepth = this->findChild<QCheckBox *>("checkOptimizeDepth");
+    checkSaveDepth = this->findChild<QCheckBox *>("checkAutoDepth");
+    comboBoxSearch = this->findChild<QComboBox *>("comboBoxSearchType");
 
     // ## other ##
     status = this->findChild<QStatusBar *>("statusbar");
@@ -278,17 +280,14 @@ void MainWindow::runVerify(){
     if (prepareRun()) {
         compileOpts.clear();
         // COMPILE OPTIONS
-        if (radioColapse->isChecked())           compileOpts << "-DCOLLAPSE ";
-        else if (radioDH4->isChecked())          compileOpts << "-DH4 ";
-        if (radioSafety->isChecked())            compileOpts <<"-DSAFETY ";
-        else if (radioLiveness->isChecked())     compileOpts <<"-DNP ";
+        if      (radioColapse->isChecked())         compileOpts << "-DCOLLAPSE ";
+        else if (radioDH4->isChecked())             compileOpts << "-DH4 ";
+        if      (radioSafety->isChecked())          compileOpts <<"-DSAFETY ";
+        else if (radioLiveness->isChecked())        compileOpts <<"-DNP ";
+        if      (comboBoxSearch->currentIndex()==1) compileOpts << "-DBFS";
         compileOpts << "-o" << "pan";
-        // TYPE
-        verType = VerificationRun::Safety;
-        if (radioAcceptance->isChecked())
-            verType = VerificationRun::Acceptance;
-        if (radioLiveness->isChecked())
-            verType = VerificationRun::Liveness;
+        // RUN OPTIONS
+
         // FETCH LTL
         ltl = "";
         if(verType == VerificationRun::Acceptance && ltlList->count() > 0){
@@ -305,7 +304,7 @@ void MainWindow::runVerify(){
 
 void MainWindow::verify(){
         clearVerificationTab();
-        verificationRun = new VerificationRun(path, verType,checkFair->isChecked(),ltl, compileOpts,spinBoxSDepth->value(),hashSize());
+        verificationRun = new VerificationRun(path, verType,checkFair->isChecked(),ltl, compileOpts,spinBoxSDepth->value(),hashSize(),checkSaveDepth->isChecked());
         outputLog->clear();
         thread = connectProcess(verificationRun);
         connect(this,SIGNAL(closeProcess()),verificationRun,SLOT(terminateProcess())); // Signal for terminating the process running Spin
@@ -316,7 +315,7 @@ void MainWindow::verify(){
 void MainWindow::runInteractive() {
     if (prepareRun()) {
 
-        fileLabel->setText(filename);
+        fileLabel_I->setText(QDir::toNativeSeparators(filename));
 
         syntaxRun = new SyntaxRun(path,"");
         thread = connectProcess(syntaxRun);
@@ -334,7 +333,7 @@ void MainWindow::runSimulation() {
             simType = SimulationRun::Guided;
             simulationTypeLabel->setText("Guided");
         } else simulationTypeLabel->setText("Random");
-        fileLabel->setText(filename);
+        fileLabel->setText(QDir::toNativeSeparators(filename));
         syntaxRun = new SyntaxRun(path,"");
         thread = connectProcess(syntaxRun);
         connect(syntaxRun, SIGNAL(noErrors()),this,SLOT(simulation()));

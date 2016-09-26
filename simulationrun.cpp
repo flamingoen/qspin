@@ -68,7 +68,7 @@ void SimulationRun::guidedSimulation() {
     foreach(QString dirFile, dir.entryList()) {
         QFile::copy(dirFile, trailPath);
     }
-    if (QFile::exists(filename+".trail")){
+    if (QFile::exists(trailPath)){
         setStatus("Running guided simulation");
         setupProcess();
         process->start(SPIN,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "\""+path+"\"");

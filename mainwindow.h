@@ -59,10 +59,13 @@ private:
     QCheckBox *checkFair;
     QCheckBox *checkHSize;
     QCheckBox *checkOptDepth;
+    QCheckBox *checkSaveDepth;
 
     QSpinBox *spinBoxHSize;
     QSpinBox *spinBoxSteps;
     QSpinBox *spinBoxSDepth;
+
+    QComboBox *comboBoxSearch;
 
     QListWidget *simulationSteps;
     QListWidget *simulationSteps_I;
@@ -82,6 +85,7 @@ private:
     VerificationRun::VerificationType verType;
     QListWidget* ltlList;
     QStringList compileOpts;
+    QStringList runOpts;
     QTableWidget* variableTable;
     QTableWidget* processTable;
     QTableWidget* variableTable_I;

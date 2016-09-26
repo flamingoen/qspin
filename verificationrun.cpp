@@ -9,13 +9,14 @@
  * Tilføj en remove ltl knap
  */
 
-VerificationRun::VerificationRun(QString _path, VerificationType _type, bool _fairness, QString _ltl, QStringList _compileOptions, int _searchDepth, int _hashSize) : SpinRun(_path , Verification){
+VerificationRun::VerificationRun(QString _path, VerificationType _type, bool _fairness, QString _ltl, QStringList _compileOptions, int _searchDepth, int _hashSize, bool _autoDepth) : SpinRun(_path , Verification){
     verificationType = _type;
     fairness = _fairness;
     ltl = _ltl;
     compileOptions = _compileOptions;
     searchDepth = _searchDepth;
     hashSize = _hashSize;
+    autoDepth = _autoDepth;
 }
 
 VerificationRun::~VerificationRun() {
@@ -96,7 +97,7 @@ void VerificationRun::readReadyVerification() {
         process->disconnect();
         runCompile();
         setStatus("restarted with DNFAIR="+QString::number(nFair));
-    } else if (newOutput.contains(sd)) {
+    } else if (newOutput.contains(sd) and autoDepth) {
         if (searchDepth != -1) {
             searchDepth += (searchDepth/2);
             setStatus("max search depth too small: restarted with search depth ="+QString::number(searchDepth));
