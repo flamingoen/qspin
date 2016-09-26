@@ -9,6 +9,13 @@
   - Add aditional data types to the simulator
 - Fix issue of some parts of simulations running in UI thread
 
+### 23/9-2016
+- Added a scroll area around the simulation tabs
+- Now showing which process is running each command in the step list
+- Status of the runs are now loged in the output log
+- Program will no longer crash if their is no trail file
+- Fixed issue where program would crash when in promela parsing multiple declerations in one line
+
 ### 14/9-2016
 - Added 'save as' function
 - Added 'new' function
