@@ -1452,7 +1452,7 @@
     <addaction name="actionSave"/>
     <addaction name="actionSave_As"/>
     <addaction name="actionLoad_Ltl"/>
-    <addaction name="actionAbort"/>
+    <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -1597,6 +1597,11 @@
    </property>
    <property name="text">
     <string>&amp;Output Log</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>exit</string>
    </property>
   </action>
  </widget>

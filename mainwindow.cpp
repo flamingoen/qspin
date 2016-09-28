@@ -58,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     QAction *action_new = this->findChild<QAction *>("actionNew");
     QAction *action_wordWrap = this->findChild<QAction *>("actionWord_Wrap");
     QAction *action_showHideLog = this->findChild<QAction *>("actionOutput_Log");
+    QAction *action_exit = this->findChild<QAction *>("actionExit");
 
     connect(action_new,SIGNAL(triggered()),this,SLOT(newFile()));
     connect(action_about,SIGNAL(triggered()),this,SLOT(showAbout()));
@@ -67,6 +68,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     connect(actionCheckSyntax, SIGNAL(triggered()), this , SLOT(runCheckSyntax()));
     connect(actionLoad_Ltl, SIGNAL(triggered()), this, SLOT(loadLtlFile()));
     connect(action_saveAs, SIGNAL(triggered()),this,SLOT(saveFileAs()));
+    connect(action_exit, SIGNAL(triggered()),this,SLOT(QCoreApplication::exit()));
 
 
     // ## Verify tab ##
@@ -286,7 +288,12 @@ void MainWindow::runVerify(){
         else if (radioLiveness->isChecked())        compileOpts <<"-DNP ";
         if      (comboBoxSearch->currentIndex()==1) compileOpts << "-DBFS";
         compileOpts << "-o" << "pan";
-        // RUN OPTIONS
+        // TYPE
+        verType = VerificationRun::Safety;
+        if (radioAcceptance->isChecked())
+            verType = VerificationRun::Acceptance;
+        if (radioLiveness->isChecked())
+            verType = VerificationRun::Liveness;
 
         // FETCH LTL
         ltl = "";
