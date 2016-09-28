@@ -191,6 +191,7 @@ private slots:
     void disableRunButtons();
     void processError(QString);
     void showHideLog(bool show);
+    void exit();
 };
 
 #endif // MAINWINDOW_H

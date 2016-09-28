@@ -68,7 +68,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     connect(actionCheckSyntax, SIGNAL(triggered()), this , SLOT(runCheckSyntax()));
     connect(actionLoad_Ltl, SIGNAL(triggered()), this, SLOT(loadLtlFile()));
     connect(action_saveAs, SIGNAL(triggered()),this,SLOT(saveFileAs()));
-    connect(action_exit, SIGNAL(triggered()),this,SLOT(QCoreApplication::exit()));
+    connect(action_exit, SIGNAL(triggered()),this,SLOT(exit()));
 
 
     // ## Verify tab ##
@@ -741,4 +741,8 @@ void MainWindow::showAbout() {
 void MainWindow::showHideLog(bool show) {
     if (show)   groupBox_log->show();
     else        groupBox_log->hide();
+}
+
+void MainWindow::exit() {
+    QCoreApplication::exit();
 }
