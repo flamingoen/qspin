@@ -16,7 +16,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
 
     ui->setupUi(this);
     this->setWindowTitle("QSpin");
-    this->setWindowState(Qt::WindowMaximized);
+
+    // Load the previous window state and geometry.
+    QSettings settings;
+    restoreGeometry(settings.value("MainWindow/geometry").toByteArray());
+    restoreState(settings.value("MainWindow/state").toByteArray());
 
     // Connecting to objects
 
@@ -139,6 +143,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
 }
 
 MainWindow::~MainWindow() {
+    // Save the window state and geometry.
+    QSettings settings;
+    settings.setValue("MainWindow/geometry", saveGeometry());
+    settings.setValue("MainWindow/state", saveState());
+
     fileCleanup();
     delete ui;
 }
