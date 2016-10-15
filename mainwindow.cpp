@@ -1,3 +1,5 @@
+#include <QFileInfo>
+#include <QSettings>
 #include "mainwindow.h"
 #include "ui_about.h"
 
@@ -63,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
 
     connect(action_new,SIGNAL(triggered()),this,SLOT(newFile()));
     connect(action_about,SIGNAL(triggered()),this,SLOT(showAbout()));
-    connect(actionLoad, SIGNAL(triggered()) , this,SLOT(loadFile()));
+    connect(actionLoad, SIGNAL(triggered()) , this,SLOT(loadPmlFile()));
     connect(actionSave, SIGNAL(triggered()) , this,SLOT(saveFile()));
     connect(actionAbort, SIGNAL(triggered()),this,SLOT(terminateProcess()));
     connect(actionCheckSyntax, SIGNAL(triggered()), this , SLOT(runCheckSyntax()));
@@ -153,9 +155,12 @@ void MainWindow::newFile() {
     }
 }
 
-void MainWindow::loadFile() {
+void MainWindow::loadPmlFile() {
     if (filename!=NULL) fileCleanup();
-    QString tempPath = QFileDialog::getOpenFileName(this, tr("Open File"),"",tr("Promela Files (*.pml);;All files (*)"));
+    QString tempPath = showOpenFileDialog(
+        tr("Open File"),
+        tr("Promela Files (*.pml);;All files (*)")
+    );
     if (tempPath!=NULL) {
         editor->clear();
         QFile file(tempPath);
@@ -182,7 +187,7 @@ void MainWindow::loadFile() {
 }
 
 void MainWindow::loadLtlFile(){
-    LTLpath = QFileDialog::getOpenFileName(this, tr("Open LTL File"),"",tr("LTL Files (*.ltl);;All Files (*)"));
+    LTLpath = showOpenFileDialog(tr("Open LTL File"),tr("LTL Files (*.ltl);;All Files (*)"));
     if (LTLpath!=NULL) {
         QFile LTLfile(LTLpath);
 
@@ -276,6 +281,26 @@ bool MainWindow::saveWarning() {
         }
         return !(ans==QMessageBox::Cancel);
     } else return true;
+}
+
+QString MainWindow::showOpenFileDialog(QString caption, QString filter)
+{
+    QSettings settings;
+    QString directory = settings.value("FileDialogPreviousDirectory").toString();
+
+    QString fileName = QFileDialog::getOpenFileName(
+        this,
+        caption,
+        directory,
+        filter
+    );
+
+    if (!fileName.isEmpty()) {
+        QFileInfo info(fileName);
+        settings.setValue("FileDialogPreviousDirectory", info.absoluteDir().path());
+    }
+
+    return fileName;
 }
 
 void MainWindow::runVerify(){
@@ -485,7 +510,7 @@ void MainWindow::processStatusChange(SpinRun* run) {
 bool MainWindow::prepareRun(bool clearLog){
     if (path!=NULL) saveFile();
     else if (path== NULL && editor->blockCount() > 2){ saveFile();}
-    else loadFile();
+    else loadPmlFile();
     if (ltlList->count() > 0) saveLtlFile();
     if (clearLog) outputLog->clear();
     return path!=NULL;

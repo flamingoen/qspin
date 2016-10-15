@@ -153,12 +153,13 @@ private:
     void saveLtlFile();
     void iconFallback();
     bool saveWarning();
+    QString showOpenFileDialog(QString caption, QString filter);
 
 signals:
     void closeProcess();
 
 private slots:
-    void loadFile();
+    void loadPmlFile();
     void loadLtlFile();
     void showAbout();
     void saveFile();
