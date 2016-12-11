@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
 
     ui->setupUi(this);
     this->setWindowTitle("QSpin");
+    this->setWindowState(Qt::WindowMaximized);
 
     // Connecting to objects
 
