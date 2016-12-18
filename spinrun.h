@@ -5,8 +5,8 @@
 #include <QtConcurrent/QtConcurrent>
 
 #ifdef _WIN32
-    #define SPIN  "spin\\spin.exe"
-    #define CCOMPILER "gcc.exe"
+    #define SPIN  "spin"
+    #define CCOMPILER "gcc"
 #else
     #define SPIN "spin"
     #define CCOMPILER "cc"
