@@ -97,7 +97,7 @@ void VerificationRun::readReadyVerification() {
         process->disconnect();
         runCompile();
         setStatus("restarted with DNFAIR="+QString::number(nFair));
-    } else if (newOutput.contains(sd) and autoDepth) {
+    } else if (newOutput.contains(sd) && autoDepth) {
         if (searchDepth != -1) {
             searchDepth += (searchDepth/2);
             setStatus("max search depth too small: restarted with search depth ="+QString::number(searchDepth));
@@ -114,8 +114,7 @@ void VerificationRun::readReadyVerification() {
 
 void VerificationRun::processVerification(QString output){
     // TIMESTAMP
-    QDateTime * time = new QDateTime();
-    timestamp = (time->currentDateTimeUtc().toLocalTime()).toString();
+    timestamp = QDateTime::currentDateTimeUtc().toLocalTime().toString();
 
     // SPIN VERSION
     QRegularExpression re("(Spin Version .+)\\)");
