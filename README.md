@@ -9,6 +9,14 @@
   - Add aditional data types to the simulator
 - Fix issue of some parts of simulations running in UI thread
 
+### 23/12-2016
+thanks to RandomInEqualities for these changes
+ - Idea file removed
+ - Should now compile in visual studio
+ - Restore window geometry across executions
+ - Remember last used file location
+ - Use spin from path on windows isntead of local file
+
 ### 23/9-2016
 - Added a scroll area around the simulation tabs
 - Now showing which process is running each command in the step list
