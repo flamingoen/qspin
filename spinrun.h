@@ -5,12 +5,12 @@
 #include <QtConcurrent/QtConcurrent>
 
 #ifdef _WIN32
-    #define SPIN  "spin"
-    #define CCOMPILER "gcc"
+    #define CCOMPILER "gcc.exe" // TODO: add option for using gcc from windows instead
 #else
-    #define SPIN "spin"
     #define CCOMPILER "cc"
 #endif
+
+#define SPIN "spin" // TODO: add spin to path variables in windows
 
 class SpinRun : public QObject{
     Q_OBJECT
