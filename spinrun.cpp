@@ -3,9 +3,11 @@
 
 //TODO add destructor
 
-SpinRun::SpinRun(QString _path, Type _type) {
+SpinRun::SpinRun(QString _path, QString _fileName, Type _type) {
     path = _path;
+    fileName = _fileName;
     type = _type;
+    filePath = path + QDir::separator() + fileName;
 }
 
 void SpinRun::setStatus(QString status) {
@@ -51,4 +53,10 @@ void SpinRun::error() {
     }
     emit processError(errorMsg);
     terminateProcess();
+}
+
+QString SpinRun::listToString(QStringList list) {
+    QString s = "";
+    foreach(QString item , list) { s.append(item+" "); }
+    return s;
 }

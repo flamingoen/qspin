@@ -9,7 +9,7 @@ class VerificationRun : public SpinRun {
 public:
     enum VerificationType {Safety, Acceptance, Liveness};
     Q_ENUMS(VerificationType)
-    VerificationRun(QString _path, VerificationType _type, bool _fairness,QString _ltl ,QStringList _compileOptions, int _searchDepth = -1, int _hashSize = -1, bool _autoDepth = true);
+    VerificationRun(QString _path, QString _fileName, VerificationType _type, bool _fairness,QString _ltl ,QStringList _compileOptions, int _searchDepth = -1, int _hashSize = -1, bool _autoDepth = true);
     ~VerificationRun();
     VerificationType verificationType;
 

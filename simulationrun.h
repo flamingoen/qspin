@@ -7,14 +7,19 @@
 #include <QRegularExpression>
 #include <QList>
 #include <QTableWidgetItem>
+#include <variable.h>
 
+#include "parser.cpp"
+
+using boost::spirit::standard::space;
+typedef parser::p_grammar<std::string::const_iterator> p_grammar;
 class SimulationRun : public SpinRun {
     Q_OBJECT
     Q_ENUMS(SimulationType)
 
 public:
     enum SimulationType {Random, Interactive, Guided};
-    SimulationRun(QString _path, SimulationType _type, int _depth);
+    SimulationRun(QString _path, QString _fileName, SimulationType _type, int _depth);
     ~SimulationRun();
     void goForward(int steps=1 );
     void goBackwards(int steps=1);
@@ -71,10 +76,12 @@ public:
 private:
     int depth;
     step currentStep;// = {-1,-1,-1,"-","-","-","Initializing"};
+    QStringList types = {"BIT", "BOOL", "BYTE", "PID", "SHORT", "INT", "MTYPE", "CHAN"};
     QStack<step> statesBack;
     QStack<step> statesForward;
     QMap<int,proc> mapProcess;
     QMap<QString,variable> mapVariable;
+    QMap<QString,Variable *> mapVariables;
     QList<choise> listChoises;
     QString filename;
 
@@ -87,8 +94,10 @@ private:
     bool parseProc(QString _step);
     bool parseVar(QString _step);
     void parseCode();
+    //void parseCode_old();
     void setupProcess();
     void parseChoises(QString _step);
+    p_grammar grammar;
 
 private slots:
     void finishedProcess();

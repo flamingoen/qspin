@@ -18,14 +18,17 @@ class SpinRun : public QObject{
 
 public:
     enum Type {Simulation,Verification,Syntax,nonSpecified};
-    SpinRun(QString _path, Type _type);
+    SpinRun(QString _path, QString _fileName, Type _type);
     QString readOutput();
     QString readStatus();
     void setStatus(QString status);
+    QString listToString(QStringList list);
     Type type = nonSpecified;
 
 protected:
     QString path;
+    QString fileName;
+    QString filePath;
     QString currentOutput = "";
     QString finishedOutput;
     QString currentStatus;

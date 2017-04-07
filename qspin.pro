@@ -20,7 +20,9 @@ SOURCES += main.cpp\
     verificationrun.cpp \
     simulationrun.cpp \
     spinrun.cpp \
-    syntaxrun.cpp
+    syntaxrun.cpp \
+    parser.cpp \
+    variable.cpp
 
 HEADERS  += mainwindow.h \
     highlighter.h \
@@ -28,7 +30,8 @@ HEADERS  += mainwindow.h \
     verificationrun.h \
     simulationrun.h \
     spinrun.h \
-    syntaxrun.h
+    syntaxrun.h \
+    variable.h
 
 FORMS    += mainwindow.ui \
     about.ui
@@ -40,3 +43,5 @@ INSTALLS += target
 
 RESOURCES += \
     icons.qrc
+
+DISTFILES +=

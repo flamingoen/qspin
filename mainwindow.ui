@@ -98,8 +98,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>890</width>
-               <height>495</height>
+               <width>895</width>
+               <height>499</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -241,7 +241,7 @@
                      <item>
                       <widget class="QRadioButton" name="radioSafety">
                        <property name="text">
-                        <string>Safety On&amp;ly</string>
+                        <string>Sa&amp;fety Only</string>
                        </property>
                        <property name="checked">
                         <bool>true</bool>
@@ -251,7 +251,7 @@
                      <item>
                       <widget class="QRadioButton" name="radioAcceptance">
                        <property name="text">
-                        <string>Acceptance</string>
+                        <string>Accepta&amp;nce</string>
                        </property>
                        <property name="checkable">
                         <bool>true</bool>
@@ -261,20 +261,7 @@
                      <item>
                       <widget class="QRadioButton" name="radioLiveness">
                        <property name="text">
-                        <string>P&amp;rogess</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QCheckBox" name="checkFairness">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                       <property name="text">
-                        <string>Fairness</string>
+                        <string>Pro&amp;gess</string>
                        </property>
                       </widget>
                      </item>
@@ -323,6 +310,25 @@
                         </widget>
                        </item>
                       </layout>
+                     </item>
+                     <item>
+                      <widget class="QCheckBox" name="checkFairness">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="toolTip">
+                        <string>Adds weak fairness to the search in combination with either acceptance or non-progress cycles</string>
+                       </property>
+                       <property name="toolTipDuration">
+                        <number>-1</number>
+                       </property>
+                       <property name="text">
+                        <string>Weak fairness restriction</string>
+                       </property>
+                      </widget>
                      </item>
                      <item>
                       <layout class="QHBoxLayout" name="horizontalLayout_12">
@@ -383,6 +389,9 @@
                      </item>
                      <item>
                       <widget class="QCheckBox" name="checkAutoDepth">
+                       <property name="toolTip">
+                        <string>Automaticly incriment the depth of the search if the first former search reaches max depth</string>
+                       </property>
                        <property name="text">
                         <string>Auto optimize depth</string>
                        </property>
@@ -393,6 +402,9 @@
                      </item>
                      <item>
                       <widget class="QCheckBox" name="checkOptimizeDepth">
+                       <property name="toolTip">
+                        <string>Saves the depth of the previous search</string>
+                       </property>
                        <property name="text">
                         <string>Save depth</string>
                        </property>
@@ -402,36 +414,22 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QRadioButton" name="radioNoMem">
-                       <property name="text">
-                        <string>&amp;No Memory Compression</string>
-                       </property>
-                       <property name="checked">
-                        <bool>true</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QRadioButton" name="radioDCOLLAPSE">
-                       <property name="text">
-                        <string>DCOLLAPSE</string>
-                       </property>
-                       <property name="checkable">
-                        <bool>true</bool>
-                       </property>
-                       <property name="autoExclusive">
-                        <bool>true</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QRadioButton" name="radioDH4">
-                       <property name="text">
-                        <string>DHC&amp;4</string>
-                       </property>
-                       <property name="autoExclusive">
-                        <bool>true</bool>
-                       </property>
+                      <widget class="QComboBox" name="comboBoxMemComp">
+                       <item>
+                        <property name="text">
+                         <string>No Memory Compression</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>DCOLLAPSE</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>DHC4 (potential false negative)</string>
+                        </property>
+                       </item>
                       </widget>
                      </item>
                      <item>
@@ -861,8 +859,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>890</width>
-               <height>495</height>
+               <width>895</width>
+               <height>499</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1011,7 +1009,7 @@
                      <item>
                       <widget class="QRadioButton" name="radioRandomSim">
                        <property name="text">
-                        <string>&amp;Random</string>
+                        <string>Ra&amp;ndom</string>
                        </property>
                        <property name="checked">
                         <bool>true</bool>
@@ -1237,8 +1235,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>890</width>
-               <height>495</height>
+               <width>895</width>
+               <height>499</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -1440,7 +1438,7 @@
      <x>0</x>
      <y>0</y>
      <width>1352</width>
-     <height>20</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1456,7 +1454,7 @@
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>Help</string>
+     <string>&amp;Help</string>
     </property>
     <addaction name="actionAbout"/>
    </widget>
@@ -1495,6 +1493,7 @@
    <addaction name="actionSave"/>
    <addaction name="actionAbort"/>
    <addaction name="actionCheck_syntax"/>
+   <addaction name="actionParserTest"/>
   </widget>
   <action name="actionLoad">
    <property name="icon">
@@ -1601,7 +1600,16 @@
   </action>
   <action name="actionExit">
    <property name="text">
-    <string>exit</string>
+    <string>&amp;exit</string>
+   </property>
+  </action>
+  <action name="actionParserTest">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/emblem-system.png</normaloff>:/icons/emblem-system.png</iconset>
+   </property>
+   <property name="text">
+    <string>ParserTest</string>
    </property>
   </action>
  </widget>
@@ -1612,6 +1620,8 @@
    <header>codeeditor.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

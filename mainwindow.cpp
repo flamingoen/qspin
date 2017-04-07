@@ -3,24 +3,11 @@
 #include "mainwindow.h"
 #include "ui_about.h"
 
-// changelog:
-// added 'save as' function
-// added 'new' function
-// Program will now show process errors (ex. when SPIN is missing)
-// program will now only clears log when a new process starts
-// Fixed tab length in editor
-// Added save warning when trying to overwrite unsaved chanegs
-// Will now clear und-redo stack of document when loaded
-
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainWindow) {
 
     ui->setupUi(this);
     this->setWindowTitle("QSpin");
-
-    // Load the previous window state and geometry.
-    QSettings settings;
-    restoreGeometry(settings.value("MainWindow/geometry").toByteArray());
-    restoreState(settings.value("MainWindow/state").toByteArray());
+    loadSettings();
 
     // Connecting to objects
 
@@ -66,6 +53,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     QAction *action_wordWrap = this->findChild<QAction *>("actionWord_Wrap");
     QAction *action_showHideLog = this->findChild<QAction *>("actionOutput_Log");
     QAction *action_exit = this->findChild<QAction *>("actionExit");
+    QAction *action_parserTest = this->findChild<QAction *>("actionParserTest");
 
     connect(action_new,SIGNAL(triggered()),this,SLOT(newFile()));
     connect(action_about,SIGNAL(triggered()),this,SLOT(showAbout()));
@@ -76,6 +64,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     connect(actionLoad_Ltl, SIGNAL(triggered()), this, SLOT(loadLtlFile()));
     connect(action_saveAs, SIGNAL(triggered()),this,SLOT(saveFileAs()));
     connect(action_exit, SIGNAL(triggered()),this,SLOT(exit()));
+    connect(action_parserTest, SIGNAL(triggered()),this,SLOT(parserTest()));
 
 
     // ## Verify tab ##
@@ -91,7 +80,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
 
     connect(newltlButton,SIGNAL(clicked()),this,SLOT(newLtl()));
     connect(deleteltlButton,SIGNAL(clicked()),this,SLOT(deleteLtl()));
-    // connect(ltlList,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(runVerify()));
 
 
     // ## Simulation tab
@@ -106,7 +94,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     connect(buttonRandomSim, SIGNAL(clicked()), this, SLOT(runSimulation()));
     connect(buttonForwardSim, SIGNAL(clicked()),this,SLOT(simulationStepForward()));
     connect(buttonBackSim,SIGNAL(clicked()),this,SLOT(simulationStepBackwards()));
-    //connect(variableTabel,SIGNAL(cellChanged(int,int),this,SLOT()));
     processTable = this->findChild<QTableWidget*>("tableProceses");
     variableTable = this->findChild<QTableWidget*>("tableVariabels");
     simulationSteps = this->findChild<QListWidget*>("listSteps");
@@ -121,19 +108,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     fileLabel_I = this->findChild<QLabel*>("labelSimFile_I");
 
     // options
-    radioColapse = this->findChild<QRadioButton *>("radioDCOLLAPSE");
-    radioDH4 = this->findChild<QRadioButton *>("radioDH4");
     checkHSize = this->findChild<QCheckBox *>("checkHashSize");
     spinBoxHSize = this->findChild<QSpinBox *>("spinBoxHashSize");
     spinBoxSDepth = this->findChild<QSpinBox *>("spinBoxSearchDepth");
     checkOptDepth = this->findChild<QCheckBox *>("checkOptimizeDepth");
     checkSaveDepth = this->findChild<QCheckBox *>("checkAutoDepth");
     comboBoxSearch = this->findChild<QComboBox *>("comboBoxSearchType");
+    comboBoxMem = this->findChild<QComboBox *>("comboBoxMemComp");
 
     // ## other ##
     status = this->findChild<QStatusBar *>("statusbar");
     outputLog = this->findChild<QTextEdit *>("log");
     editor = (CodeEditor*) this->findChild<QPlainTextEdit *>("editor");
+    connect(editor,SIGNAL(textChanged()),this,SLOT(editorTextChanged()));
     groupBox_log = this->findChild<QGroupBox *>("logBox");
     connect(action_wordWrap, SIGNAL(triggered(bool)),editor,SLOT(setWordWrap(bool)));
     connect(action_showHideLog, SIGNAL(triggered(bool)),this,SLOT(showHideLog(bool)));
@@ -143,13 +130,31 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
 }
 
 MainWindow::~MainWindow() {
+    saveSettings();
+    fileCleanup();
+    delete ui;
+}
+
+void MainWindow::loadSettings() {
+    // Load the previous window state and geometry.
+    QSettings settings;
+    restoreGeometry(settings.value("MainWindow/geometry").toByteArray());
+    restoreState(settings.value("MainWindow/state").toByteArray());
+}
+
+void MainWindow::saveSettings() {
     // Save the window state and geometry.
     QSettings settings;
     settings.setValue("MainWindow/geometry", saveGeometry());
     settings.setValue("MainWindow/state", saveState());
+}
 
-    fileCleanup();
-    delete ui;
+void MainWindow::closeEvent(QCloseEvent *event) {
+    if (saveWarning()) {
+        event->accept();
+    } else {
+        event->ignore();
+    }
 }
 
 void MainWindow::newFile() {
@@ -165,33 +170,40 @@ void MainWindow::newFile() {
 }
 
 void MainWindow::loadPmlFile() {
-    if (filename!=NULL) fileCleanup();
-    QString tempPath = showOpenFileDialog(
-        tr("Open File"),
-        tr("Promela Files (*.pml);;All files (*)")
-    );
-    if (tempPath!=NULL) {
-        editor->clear();
-        QFile file(tempPath);
-
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        status->showMessage("Failed to open "+tempPath);
-        } else {
-            QTextStream in(&file);
-            while(!in.atEnd()) {
-                editor->appendPlainText(in.readLine());
-            }
-            file.close();
-            path = tempPath;
-            QRegExp rx("/((([a-z]|[A-Z]|\\d)+).pml)");
-            rx.indexIn(path);
-            filename = rx.cap(1);
-            editor->document()->clearUndoRedoStacks();
-            editor->document()->setModified(false);
-            status->showMessage("File loaded: "+path);
+    if (saveWarning()){
+        if (filename!=NULL) {
+            fileCleanup();
+            clearVerificationTab();
+            clearSimulationTab();
+            clearInteractiveTab();
         }
-    } else {
-        status->showMessage("No file chosen");
+        QString tempPath = showOpenFileDialog(
+            tr("Open File"),
+            tr("Promela Files (*.pml);;All files (*)")
+        );
+        if (tempPath!=NULL) {
+            editor->clear();
+            QFile file(tempPath);
+
+            if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            status->showMessage("Failed to open "+tempPath);
+            } else {
+                QTextStream in(&file);
+                while(!in.atEnd()) {
+                    editor->appendPlainText(in.readLine());
+                }
+                file.close();
+                path = tempPath;
+                QRegExp rx("/((([a-z]|[A-Z]|\\d)+).pml)");
+                rx.indexIn(path);
+                filename = rx.cap(1);
+                editor->document()->clearUndoRedoStacks();
+                editor->document()->setModified(false);
+                status->showMessage("File loaded: "+path);
+            }
+        } else {
+            status->showMessage("No file chosen");
+        }
     }
 }
 
@@ -317,8 +329,8 @@ void MainWindow::runVerify(){
     if (prepareRun()) {
         compileOpts.clear();
         // COMPILE OPTIONS
-        if      (radioColapse->isChecked())         compileOpts << "-DCOLLAPSE ";
-        else if (radioDH4->isChecked())             compileOpts << "-DH4 ";
+        if      (comboBoxMem->currentIndex()==1 )   compileOpts << "-DCOLLAPSE ";
+        else if (comboBoxMem->currentIndex()==2 )   compileOpts << "-DH4 ";
         if      (radioSafety->isChecked())          compileOpts <<"-DSAFETY ";
         else if (radioLiveness->isChecked())        compileOpts <<"-DNP ";
         if      (comboBoxSearch->currentIndex()==1) compileOpts << "-DBFS";
@@ -336,7 +348,7 @@ void MainWindow::runVerify(){
            ltl = getLtl();
         }
         // setup SyntaxRun
-        syntaxRun = new SyntaxRun(path,ltl);
+        syntaxRun = new SyntaxRun(tempFilePath, tempFilename, ltl);
         thread = connectProcess(syntaxRun);
         connect(syntaxRun, SIGNAL(noErrors()),this,SLOT(verify()));
         connect(syntaxRun, SIGNAL(finished(SpinRun*)),this,SLOT(displayErrors()));
@@ -346,7 +358,7 @@ void MainWindow::runVerify(){
 
 void MainWindow::verify(){
         clearVerificationTab();
-        verificationRun = new VerificationRun(path, verType,checkFair->isChecked(),ltl, compileOpts,spinBoxSDepth->value(),hashSize(),checkSaveDepth->isChecked());
+        verificationRun = new VerificationRun(tempFilePath, tempFilename, verType,checkFair->isChecked(),ltl, compileOpts,spinBoxSDepth->value(),hashSize(),checkSaveDepth->isChecked());
         outputLog->clear();
         thread = connectProcess(verificationRun);
         connect(this,SIGNAL(closeProcess()),verificationRun,SLOT(terminateProcess())); // Signal for terminating the process running Spin
@@ -359,7 +371,7 @@ void MainWindow::runInteractive() {
 
         fileLabel_I->setText(QDir::toNativeSeparators(filename));
 
-        syntaxRun = new SyntaxRun(path,"");
+        syntaxRun = new SyntaxRun(tempFilePath,tempFilename, "");
         thread = connectProcess(syntaxRun);
         connect(syntaxRun, SIGNAL(noErrors()),this,SLOT(interactive()));
         connect(syntaxRun, SIGNAL(finished(SpinRun*)),this,SLOT(displayErrors()));
@@ -376,7 +388,7 @@ void MainWindow::runSimulation() {
             simulationTypeLabel->setText("Guided");
         } else simulationTypeLabel->setText("Random");
         fileLabel->setText(QDir::toNativeSeparators(filename));
-        syntaxRun = new SyntaxRun(path,"");
+        syntaxRun = new SyntaxRun(tempFilePath,tempFilename,"");
         thread = connectProcess(syntaxRun);
         connect(syntaxRun, SIGNAL(noErrors()),this,SLOT(simulation()));
         connect(syntaxRun, SIGNAL(finished(SpinRun*)),this,SLOT(displayErrors()));
@@ -385,7 +397,7 @@ void MainWindow::runSimulation() {
 }
 
 void MainWindow::simulation(){
-    simulationRun = new SimulationRun(path,simType,spinBoxSteps->value());
+    simulationRun = new SimulationRun(tempFilePath,tempFilename,simType,spinBoxSteps->value());
     thread = connectProcess(simulationRun);
     connect(this,SIGNAL(closeProcess()),simulationRun,SLOT(terminateProcess())); // Signal for terminating the process running Spin
     //connect(simulationRun,SIGNAL(readReady(SpinRun*)),this,SLOT(createSimulationTab()));
@@ -397,7 +409,7 @@ void MainWindow::simulation(){
 }
 
 void MainWindow::interactive(){
-    interactiveRun = new SimulationRun(path,SimulationRun::Interactive,spinBoxSteps->value());
+    interactiveRun = new SimulationRun(tempFilePath,tempFilename,SimulationRun::Interactive,spinBoxSteps->value());
     thread = connectProcess(interactiveRun);
     connect(this,SIGNAL(closeProcess()),interactiveRun,SLOT(terminateProcess())); // Signal for terminating the process running Spin
     connect(interactiveRun,SIGNAL(readReady(SpinRun*)),this,SLOT(createInteractiveTab()));
@@ -436,7 +448,7 @@ void MainWindow::processError(QString error) {
 
 void MainWindow::runCheckSyntax() {
     if(prepareRun()){
-        syntaxRun = new SyntaxRun(path,"");
+        syntaxRun = new SyntaxRun(tempFilePath,tempFilename,"");
         thread = connectProcess(syntaxRun);
         connect(syntaxRun, SIGNAL(finished(SpinRun*)),this,SLOT(displayErrors()));
         thread->start();
@@ -517,12 +529,19 @@ void MainWindow::processStatusChange(SpinRun* run) {
 
 // returns true if there is a file to run
 bool MainWindow::prepareRun(bool clearLog){
-    if (path!=NULL) saveFile();
-    else if (path== NULL && editor->blockCount() > 2){ saveFile();}
-    else loadPmlFile();
+    //if (path!=NULL) saveFile();
+    //else loadPmlFile();
     if (ltlList->count() > 0) saveLtlFile();
     if (clearLog) outputLog->clear();
-    return path!=NULL;
+    if (tempDir.isValid()){
+        QFile file(tempFilePath+QDir::separator()+tempFilename);
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text)){
+            QTextStream out(&file);
+            out << editor->toPlainText();
+            file.close();
+        }
+    }
+    return 1;
 }
 
 void MainWindow::terminateProcess(){
@@ -533,10 +552,10 @@ void MainWindow::terminateProcess(){
 
 // TODO: Flytte den her så spinRun kan bruge den til at fjerne filer?
 void MainWindow::fileCleanup(){
-    QDir dir(QDir::currentPath());
+    QDir dir(tempDir.path());
     dir.setNameFilters(QStringList() << "pan*" << "*.trail");
     dir.setFilter(QDir::Files);
-    dir.remove(path+".trail");
+    dir.remove(filename);
     foreach(QString dirFile, dir.entryList())
     {
         dir.remove(dirFile);
@@ -729,6 +748,7 @@ void MainWindow::clearVerificationTab() {
     DFSmemoryLabel->clear();
     totalmemoryLabel->clear();
     timestampLabel->clear();
+    spinBoxSDepth->setValue(10000);
 }
 
 void MainWindow::clearSimulationTab() {
@@ -780,4 +800,31 @@ void MainWindow::showHideLog(bool show) {
 
 void MainWindow::exit() {
     QCoreApplication::exit();
+}
+
+bool MainWindow::parserTest() {
+    std::string value = editor->toPlainText().remove(QRegularExpression("\\/\\*(?:.|\\n)*?\\*\\/|\\/\\/.*?\\\n")).toStdString();
+    std::string::const_iterator iter = value.begin();
+    std::string::const_iterator end = value.end();
+    std::vector<std::vector<std::string>> parseList;
+    bool res;
+    res  = phrase_parse(iter,end,grammar,space,parseList);
+    if (res) {
+        for (uint i=0 ; i<parseList.size() ; i++) {
+            cout << "[ ";
+            for(uint j=0 ; j<parseList[i].size() ; j++) {
+                   cout << parseList[i][j] << " ";
+            } cout << " ] ";
+        } cout << "\n";
+    }
+    return res;
+}
+
+void MainWindow::editorTextChanged() {
+//    parserTest();
+//    if ( parserTest() ) {
+//        outputLog->append("Parsing succesfull");
+//    } else {
+//        outputLog->append("Parsing failed");
+//    }
 }

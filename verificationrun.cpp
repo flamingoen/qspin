@@ -5,11 +5,10 @@
  * tilføje en error list, der fortæller hvilke fejl man har
  * Husk exception handling til at (især vores regex)
  * SMID I TRY CATCH - hvis der sker en fejl, indsæt fejl i SPINVER label hvor der står at man bliver nødt til at bruge rawlog
- * Unable fairness knappen når den alligevel ikke kan bruges (Safety??)
  * Tilføj en remove ltl knap
  */
 
-VerificationRun::VerificationRun(QString _path, VerificationType _type, bool _fairness, QString _ltl, QStringList _compileOptions, int _searchDepth, int _hashSize, bool _autoDepth) : SpinRun(_path , Verification){
+VerificationRun::VerificationRun(QString _path, QString _fileName, VerificationType _type, bool _fairness, QString _ltl, QStringList _compileOptions, int _searchDepth, int _hashSize, bool _autoDepth) : SpinRun(_path , _fileName, Verification){
     verificationType = _type;
     fairness = _fairness;
     ltl = _ltl;
@@ -25,43 +24,43 @@ VerificationRun::~VerificationRun() {
 
 void VerificationRun::start(){
     process = new QProcess();
+    process->setWorkingDirectory(path);
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runCompile()));
-    setStatus("Verification: Creating model");
+    setStatus("Verification: Creating model with spin -a");
 
     // INSERT LTL IF ACCEPTANCE RUN
-    if(verificationType == Acceptance){
-     tempPath = createTempPml();
-     process->start(SPIN,QStringList() << "-a" << "\""+tempPath+"\"");
-    }
-    else process->start(SPIN,QStringList() << "-a" << "\""+path+"\"");
+    if(verificationType == Acceptance) tempPath = createTempPml();
+    process->start(SPIN,QStringList() << "-a" << "\""+filePath+"\"");
 }
 
 
 QString VerificationRun::createTempPml(){
-    QFile::copy(path,path+".qspin");
-    QFile tempFile(path+".qspin");
+    QFile::copy(filePath,path+".qspin");
+    QFile tempFile(filePath+".qspin");
 
     if ( tempFile.open(QIODevice::Append | QIODevice::ReadWrite) )
     {
         QTextStream stream( &tempFile );
         stream << "\n " + ltl << endl;
     }
-    return path+".qspin";
+    return filePath+".qspin";
 }
 
 
 void VerificationRun::runCompile(){
     QFile::remove(tempPath); // Removing the temporary file
     process = new QProcess();
+    process->setWorkingDirectory(path);
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runPan()));
-    setStatus("Verification: Compiling pan.c");
     QStringList options = compileOptions;
-    options << "-DNFAIR="+QString::number(nFair);
-    process->start(CCOMPILER, options << "pan.c");
+    options << "-DNFAIR="+QString::number(nFair) << "pan.c";
+    setStatus("Verification: Compiling " + QString(CCOMPILER) + " " + listToString(options));
+    process->start(CCOMPILER, options);
 }
 
 void VerificationRun::runPan(){
     process = new QProcess();
+    process->setWorkingDirectory(path);
     connect(process, SIGNAL(readyReadStandardOutput()),this,SLOT(readReadyVerification()));
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(finishedVerification()));
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), process, SLOT(deleteLater()));
@@ -70,15 +69,18 @@ void VerificationRun::runPan(){
     switch (verificationType) {
     case Safety:
         break;
-    case Acceptance:    runOptions << "-a";
+    case Acceptance:
+        runOptions << "-a";
+        if (fairness) runOptions << "-f";
         break;
-    case Liveness:      runOptions << "-l";
+    case Liveness:
+        runOptions << "-l";
+        if (fairness) runOptions << "-f";
         break;
     }
     if (searchDepth>0)  runOptions << "-m"+QString::number(searchDepth);
     if (hashSize>0)     runOptions << "-w"+QString::number(hashSize);
-    if (fairness)       runOptions << "-f";
-    setStatus("Verification: Running verification");
+    setStatus("Verification: Running verification with ./pan "+listToString(runOptions));
     process->start("./pan", runOptions);
 }
 
@@ -103,7 +105,6 @@ void VerificationRun::readReadyVerification() {
             setStatus("max search depth too small: restarted with search depth ="+QString::number(searchDepth));
         }
         else searchDepth = 15000;
-        //currentOutput.append("max search depth too small: restarting with new depth = "+QString::number(searchDepth) + "\n");
         process->disconnect();
         runPan();
     } else {

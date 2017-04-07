@@ -9,6 +9,7 @@
 #include <iostream>
 #include <sstream>
 #include <QSyntaxHighlighter>
+#include <QTemporaryFile>
 #include "highlighter.h"
 #include "codeeditor.h"
 
@@ -25,6 +26,9 @@
 #endif
 
 using namespace std;
+using boost::spirit::standard::space;
+
+typedef parser::p_grammar<std::string::const_iterator> p_grammar;
 
 namespace Ui {
 class MainWindow;
@@ -51,8 +55,6 @@ private:
     QRadioButton *radioSafety;
     QRadioButton *radioAcceptance;
     QRadioButton *radioLiveness;
-    QRadioButton *radioColapse;
-    QRadioButton *radioDH4;
     QRadioButton* radioInteractive;
     QRadioButton* radioGuided;
 
@@ -66,6 +68,7 @@ private:
     QSpinBox *spinBoxSDepth;
 
     QComboBox *comboBoxSearch;
+    QComboBox *comboBoxMem;
 
     QListWidget *simulationSteps;
     QListWidget *simulationSteps_I;
@@ -78,6 +81,9 @@ private:
     SimulationRun *interactiveRun;
 
     QFile file;
+    QTemporaryDir tempDir;
+    QString tempFilePath = tempDir.path();
+    QString tempFilename = "promela.pml";
 	QFile LTLfile; // Could be local
 	int selectedLtl;
 
@@ -149,11 +155,13 @@ private:
     void updateStepList(QListWidget *stepList ,SimulationRun *run);
     void updateSimulationTab(SimulationRun *run, QTableWidget *variableTable, QTableWidget *processTable, QListWidget *stepList);
     void populateSimulationLists(SimulationRun* run, QTableWidget* variableTable, QTableWidget* processTable, QListWidget *stepList);
+    void closeEvent(QCloseEvent *event);
     int hashSize();
     void saveLtlFile();
     void iconFallback();
     bool saveWarning();
     QString showOpenFileDialog(QString caption, QString filter);
+    p_grammar grammar;
 
 signals:
     void closeProcess();
@@ -193,6 +201,10 @@ private slots:
     void processError(QString);
     void showHideLog(bool show);
     void exit();
+    bool parserTest();
+    void editorTextChanged();
+    void loadSettings();
+    void saveSettings();
 };
 
 #endif // MAINWINDOW_H

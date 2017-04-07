@@ -10,12 +10,9 @@
  * TODO: In interactive when it is infinite
  * */
 
-SimulationRun::SimulationRun(QString _path, SimulationType _type, int _depth) : SpinRun(_path , Simulation){
+SimulationRun::SimulationRun(QString _path, QString _fileName, SimulationType _type, int _depth) : SpinRun(_path , _fileName, Simulation){
     simulationType = _type;
     depth = _depth;
-    QRegExp rx("/((([a-z]|[A-Z]|\\d)+).pml)");
-    rx.indexIn(path);
-    filename = rx.cap(1);
     statesBack.clear();
     statesForward.clear();
     currentStep.operation = "Initializing";
@@ -45,23 +42,23 @@ void SimulationRun::start() {
 }
 
 void SimulationRun::randomSimulation() {
-    setStatus("Running random simulation");
+    setStatus("Running random simulation with spin -p -g -l");
     setupProcess();
-    process->start(SPIN,QStringList() << "-u"+QString::number(depth) << "-p" << "-g" << "-l" << "\""+path+"\"");
+    process->start(SPIN,QStringList() << "-u"+QString::number(depth) << "-p" << "-g" << "-l" << "\""+path+ QDir::separator() + fileName+"\"");
 }
 
 void SimulationRun::interactiveSimulation() {
-    setStatus("Running interactive simulation");
     setupProcess();
     connect(process, SIGNAL(readyReadStandardOutput()),this,SLOT(readReadyProcess()));
     while(!statesForward.isEmpty()) {
         goForward();
     }
-    process->start(SPIN,QStringList() << "-g" << "-l" << "-p" << "-i"  << "\""+path+"\"");
+    setStatus("Running interactive simulation with spin -g -l -p -i");
+    process->start(SPIN,QStringList() << "-g" << "-l" << "-p" << "-i"  << "\""+path+ QDir::separator() + fileName+"\"");
 }
 
 void SimulationRun::guidedSimulation() {
-    QString trailPath = QDir::toNativeSeparators(path) + ".trail";
+    QString trailPath = QDir::toNativeSeparators(path+ QDir::separator() + fileName) + ".trail";
     QDir dir(QDir::currentPath());
     dir.setNameFilters(QStringList() << "*.trail");
     dir.setFilter(QDir::Files);
@@ -69,9 +66,9 @@ void SimulationRun::guidedSimulation() {
         QFile::copy(dirFile, trailPath);
     }
     if (QFile::exists(trailPath)){
-        setStatus("Running guided simulation");
+        setStatus("Running guided simulation with -t -g -l -p -r -s -X");
         setupProcess();
-        process->start(SPIN,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "\""+path+"\"");
+        process->start(SPIN,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "\""+path+ QDir::separator() + fileName+"\"");
     } else emit processError("Cannot run simulation: Trail path not found");
 }
 
@@ -128,9 +125,9 @@ void SimulationRun::parseSimulation(QString input) {
 }
 
 void SimulationRun::parseCode() {
-    QFile file(path);
+    QFile file(path+ QDir::separator() + fileName);
     QString codeText = "";
-    QStringList lines;
+
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
     setStatus("Failed to open file");
     } else {
@@ -140,43 +137,79 @@ void SimulationRun::parseCode() {
         }
         file.close();
     }
-    codeText.remove(QRegularExpression("\\/\\*(?:.|\\n)*?\\*\\/|\\/\\/.*?\\\n")); //Removes all comments
-    lines = codeText.split(QRegularExpression(";|\\n"),QString::SkipEmptyParts); // Splits every command into lines
-    QRegularExpression reVar("(byte|bool|int|pid|short|mtype)\\s+(.+?)\\s*=\\s*(.*)");
-    QRegularExpressionMatch match;
-    foreach(QString line, lines) {
-        match = reVar.match(line);
-        if (match.hasMatch()) {
-            QStringList expression = line.split(QRegularExpression("="),QString::SkipEmptyParts);
-            QStringList lhs = expression[0].split(QRegularExpression("\\s+|,"),QString::SkipEmptyParts);
-            QString type = lhs[0];
-            lhs.removeFirst(); // remove the type from the list
-            foreach (QString name, lhs) {
-                variable var;
-                var.name = name;
-                var.type = type;
-                var.value = expression[1];
-                var.id = v_id; v_id++;
-                mapVariable.insert(var.name,var);
-                step _step;
-                _step.var = var.name;
-                _step.newValue = var.value;
-                _step.oldValue = "-";
-                _step.operation = "init :\t"+var.name + " = " + var.value;
-                statesBack.push(currentStep);
-                currentStep = _step;
-                if (type=="bool") {
-                    if (var.value=="true") var.value = "1";
-                    else var.value = "0";
-                }
-            }
+    std::string value = codeText.remove(QRegularExpression("\\/\\*(?:.|\\n)*?\\*\\/|\\/\\/.*?\\\n")).toStdString();
+    std::string::const_iterator iter = value.begin();
+    std::string::const_iterator end = value.end();
+    std::vector<std::vector<std::string>> parseList;
+
+    phrase_parse(iter,end,grammar,space,parseList);
+
+    for ( uint i=0 ; i<parseList.size() ; i++) {
+        uint start = 0;
+        QString varProc = "global";
+        QString varType;
+
+        if (!parseList[i][0].compare("PROCTYPE")) {
+            varProc = QString::fromStdString(parseList[i][1]);
+            start = 2;
+        }
+        for ( uint j = start ; j<parseList[i].size() ; j++) {
+            QString tmp = QString::fromStdString(parseList[i][j]);
+            if (types.contains(tmp)) varType = tmp;
+            else mapVariables.insert( tmp , new Variable( varType , tmp , varProc));
         }
     }
-
 }
 
+//void SimulationRun::parseCode_old() {
+//    QFile file(path+ QDir::separator() + fileName);
+//    QString codeText = "";
+//    QStringList lines;
+//    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+//    setStatus("Failed to open file");
+//    } else {
+//        QTextStream in(&file);
+//        while(!in.atEnd()) {
+//            codeText.append(in.readLine()+"\n");
+//        }
+//        file.close();
+//    }
+//    codeText.remove(QRegularExpression("\\/\\*(?:.|\\n)*?\\*\\/|\\/\\/.*?\\\n")); //Removes all comments
+//    lines = codeText.split(QRegularExpression(";|\\n"),QString::SkipEmptyParts); // Splits every command into lines
+//    QRegularExpression reVar("(byte|bool|int|pid|short|mtype)\\s+(.+?)\\s*=\\s*(.*)");
+//    QRegularExpressionMatch match;
+//    foreach(QString line, lines) {
+//        match = reVar.match(line);
+//        if (match.hasMatch()) {
+//            QStringList expression = line.split(QRegularExpression("="),QString::SkipEmptyParts);
+//            QStringList lhs = expression[0].split(QRegularExpression("\\s+|,"),QString::SkipEmptyParts);
+//            QString type = lhs[0];
+//            lhs.removeFirst(); // remove the type from the list
+//            foreach (QString name, lhs) {
+//                variable var;
+//                var.name = name;
+//                var.type = type;
+//                var.value = expression[1];
+//                var.id = v_id; v_id++;
+//                mapVariable.insert(var.name,var);
+//                step _step;
+//                _step.var = var.name;
+//                _step.newValue = var.value;
+//                _step.oldValue = "-";
+//                _step.operation = "init :\t"+var.name + " = " + var.value;
+//                statesBack.push(currentStep);
+//                currentStep = _step;
+//                if (type=="bool") {
+//                    if (var.value=="true") var.value = "1";
+//                    else var.value = "0";
+//                }
+//            }
+//        }
+//    }
+//}
+
 bool SimulationRun::parseStep(QString _step) {
-    QRegularExpression reStep("\\B\\s*\\d+:\\s+proc\\s+(\\d+)\\s+\\((.*?):\\d+\\)\\s"+path+":(\\d+)\\s+\\(state\\s(\\d+)\\)\\s+\\[(.*?)\\]");
+    QRegularExpression reStep("\\B\\s*\\d+:\\s+proc\\s+(\\d+)\\s+\\((.*?):\\d+\\)\\s"+path+ QDir::separator() + fileName+":(\\d+)\\s+\\(state\\s(\\d+)\\)\\s+\\[(.*?)\\]");
     QRegularExpressionMatch match = reStep.match(_step);
     bool matched = match.hasMatch();
     if (matched) {
@@ -258,7 +291,7 @@ bool SimulationRun::parseVar(QString _step) {
 }
 
 void SimulationRun::parseChoises(QString _step) {
-    QRegularExpression reChoise("choice\\s+(\\d+):\\s+proc\\s+(\\d+)\\s+\\(.*?\\)\\s+"+path+":\\d+\\s+\\(state\\s+\\d+\\)\\s\\[(.*?)\\]");
+    QRegularExpression reChoise("choice\\s+(\\d+):\\s+proc\\s+(\\d+)\\s+\\(.*?\\)\\s+"+path+ QDir::separator() + fileName+":\\d+\\s+\\(state\\s+\\d+\\)\\s\\[(.*?)\\]");
     QRegularExpressionMatch match = reChoise.match(_step);
     if (match.hasMatch()) {
         choise _choise;
