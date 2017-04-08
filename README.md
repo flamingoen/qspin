@@ -9,6 +9,11 @@
   - Add aditional data types to the simulator
 - Fix issue of some parts of simulations running in UI thread
 
+### 7/4-2017
+- First part of work with a parser for promela language
+- Moved runtime compiling of spin to temperary folder
+- several bugfixes 
+
 ### 23/12-2016
 thanks to RandomInEqualities for these changes
  - Idea file removed
