@@ -1,7 +1,6 @@
 #include <QFileInfo>
 #include <QSettings>
 #include "mainwindow.h"
-#include "ui_about.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainWindow) {
 
@@ -48,6 +47,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     actionCheckSyntax = this->findChild<QAction *>("actionCheck_syntax");
     QAction *actionLoad_Ltl = this->findChild<QAction *>("actionLoad_Ltl");
     QAction *action_about = this->findChild<QAction *>("actionAbout");
+    QAction *action_settings = this->findChild<QAction *>("actionSettings");
     QAction *action_saveAs = this->findChild<QAction *>("actionSave_As");
     QAction *action_new = this->findChild<QAction *>("actionNew");
     QAction *action_wordWrap = this->findChild<QAction *>("actionWord_Wrap");
@@ -57,6 +57,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
 
     connect(action_new,SIGNAL(triggered()),this,SLOT(newFile()));
     connect(action_about,SIGNAL(triggered()),this,SLOT(showAbout()));
+    connect(action_settings,SIGNAL(triggered()),this,SLOT(showSettings()));
     connect(actionLoad, SIGNAL(triggered()) , this,SLOT(loadPmlFile()));
     connect(actionSave, SIGNAL(triggered()) , this,SLOT(saveFile()));
     connect(actionAbort, SIGNAL(triggered()),this,SLOT(terminateProcess()));
@@ -137,16 +138,17 @@ MainWindow::~MainWindow() {
 
 void MainWindow::loadSettings() {
     // Load the previous window state and geometry.
-    QSettings settings;
-    restoreGeometry(settings.value("MainWindow/geometry").toByteArray());
-    restoreState(settings.value("MainWindow/state").toByteArray());
+    QSettings opts;
+    restoreGeometry(opts.value("MainWindow/geometry").toByteArray());
+    restoreState(opts.value("MainWindow/state").toByteArray());
 }
 
 void MainWindow::saveSettings() {
     // Save the window state and geometry.
-    QSettings settings;
-    settings.setValue("MainWindow/geometry", saveGeometry());
-    settings.setValue("MainWindow/state", saveState());
+    QSettings opts;
+    opts.setValue("MainWindow/geometry", saveGeometry());
+    opts.setValue("MainWindow/state", saveState());
+    settings->saveSettings();
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
@@ -348,7 +350,7 @@ void MainWindow::runVerify(){
            ltl = getLtl();
         }
         // setup SyntaxRun
-        syntaxRun = new SyntaxRun(tempFilePath, tempFilename, ltl);
+        syntaxRun = new SyntaxRun(settings->getSpin(), tempFilePath, tempFilename, ltl);
         thread = connectProcess(syntaxRun);
         connect(syntaxRun, SIGNAL(noErrors()),this,SLOT(verify()));
         connect(syntaxRun, SIGNAL(finished(SpinRun*)),this,SLOT(displayErrors()));
@@ -358,7 +360,7 @@ void MainWindow::runVerify(){
 
 void MainWindow::verify(){
         clearVerificationTab();
-        verificationRun = new VerificationRun(tempFilePath, tempFilename, verType,checkFair->isChecked(),ltl, compileOpts,spinBoxSDepth->value(),hashSize(),checkSaveDepth->isChecked());
+        verificationRun = new VerificationRun(settings->getSpin(), settings->getCompiler(), tempFilePath, tempFilename, verType,checkFair->isChecked(),ltl, compileOpts,spinBoxSDepth->value(),hashSize(),checkSaveDepth->isChecked());
         outputLog->clear();
         thread = connectProcess(verificationRun);
         connect(this,SIGNAL(closeProcess()),verificationRun,SLOT(terminateProcess())); // Signal for terminating the process running Spin
@@ -371,7 +373,7 @@ void MainWindow::runInteractive() {
 
         fileLabel_I->setText(QDir::toNativeSeparators(filename));
 
-        syntaxRun = new SyntaxRun(tempFilePath,tempFilename, "");
+        syntaxRun = new SyntaxRun(settings->getSpin(), tempFilePath,tempFilename, "");
         thread = connectProcess(syntaxRun);
         connect(syntaxRun, SIGNAL(noErrors()),this,SLOT(interactive()));
         connect(syntaxRun, SIGNAL(finished(SpinRun*)),this,SLOT(displayErrors()));
@@ -388,7 +390,7 @@ void MainWindow::runSimulation() {
             simulationTypeLabel->setText("Guided");
         } else simulationTypeLabel->setText("Random");
         fileLabel->setText(QDir::toNativeSeparators(filename));
-        syntaxRun = new SyntaxRun(tempFilePath,tempFilename,"");
+        syntaxRun = new SyntaxRun(settings->getSpin(), tempFilePath,tempFilename,"");
         thread = connectProcess(syntaxRun);
         connect(syntaxRun, SIGNAL(noErrors()),this,SLOT(simulation()));
         connect(syntaxRun, SIGNAL(finished(SpinRun*)),this,SLOT(displayErrors()));
@@ -397,7 +399,7 @@ void MainWindow::runSimulation() {
 }
 
 void MainWindow::simulation(){
-    simulationRun = new SimulationRun(tempFilePath,tempFilename,simType,spinBoxSteps->value());
+    simulationRun = new SimulationRun(settings->getSpin(), tempFilePath,tempFilename,simType,spinBoxSteps->value());
     thread = connectProcess(simulationRun);
     connect(this,SIGNAL(closeProcess()),simulationRun,SLOT(terminateProcess())); // Signal for terminating the process running Spin
     //connect(simulationRun,SIGNAL(readReady(SpinRun*)),this,SLOT(createSimulationTab()));
@@ -409,7 +411,7 @@ void MainWindow::simulation(){
 }
 
 void MainWindow::interactive(){
-    interactiveRun = new SimulationRun(tempFilePath,tempFilename,SimulationRun::Interactive,spinBoxSteps->value());
+    interactiveRun = new SimulationRun(settings->getSpin(), tempFilePath,tempFilename,SimulationRun::Interactive,spinBoxSteps->value());
     thread = connectProcess(interactiveRun);
     connect(this,SIGNAL(closeProcess()),interactiveRun,SLOT(terminateProcess())); // Signal for terminating the process running Spin
     connect(interactiveRun,SIGNAL(readReady(SpinRun*)),this,SLOT(createInteractiveTab()));
@@ -448,7 +450,7 @@ void MainWindow::processError(QString error) {
 
 void MainWindow::runCheckSyntax() {
     if(prepareRun()){
-        syntaxRun = new SyntaxRun(tempFilePath,tempFilename,"");
+        syntaxRun = new SyntaxRun(settings->getSpin(), tempFilePath,tempFilename,"");
         thread = connectProcess(syntaxRun);
         connect(syntaxRun, SIGNAL(finished(SpinRun*)),this,SLOT(displayErrors()));
         thread->start();
@@ -791,6 +793,10 @@ void MainWindow::showAbout() {
     Ui_About aboutUi;
     aboutUi.setupUi(about);
     about->show();
+}
+
+void MainWindow::showSettings() {
+    settings->show();
 }
 
 void MainWindow::showHideLog(bool show) {

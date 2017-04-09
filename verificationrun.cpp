@@ -8,7 +8,8 @@
  * Tilføj en remove ltl knap
  */
 
-VerificationRun::VerificationRun(QString _path, QString _fileName, VerificationType _type, bool _fairness, QString _ltl, QStringList _compileOptions, int _searchDepth, int _hashSize, bool _autoDepth) : SpinRun(_path , _fileName, Verification){
+VerificationRun::VerificationRun(QString _spin, QString _compiler, QString _path, QString _fileName, VerificationType _type, bool _fairness, QString _ltl, QStringList _compileOptions, int _searchDepth, int _hashSize, bool _autoDepth) : SpinRun(_spin, _path , _fileName, Verification){
+    compiler = _compiler;
     verificationType = _type;
     fairness = _fairness;
     ltl = _ltl;
@@ -26,11 +27,12 @@ void VerificationRun::start(){
     process = new QProcess();
     process->setWorkingDirectory(path);
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runCompile()));
+    connect(process, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(error()));
     setStatus("Verification: Creating model with spin -a");
 
     // INSERT LTL IF ACCEPTANCE RUN
     if(verificationType == Acceptance) tempPath = createTempPml();
-    process->start(SPIN,QStringList() << "-a" << "\""+filePath+"\"");
+    process->start(spin,QStringList() << "-a" << "\""+filePath+"\"");
 }
 
 
@@ -52,10 +54,11 @@ void VerificationRun::runCompile(){
     process = new QProcess();
     process->setWorkingDirectory(path);
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(runPan()));
+    connect(process, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(error()));
     QStringList options = compileOptions;
     options << "-DNFAIR="+QString::number(nFair) << "pan.c";
-    setStatus("Verification: Compiling " + QString(CCOMPILER) + " " + listToString(options));
-    process->start(CCOMPILER, options);
+    setStatus("Verification: Compiling " + QString(compiler) + " " + listToString(options));
+    process->start(compiler, options);
 }
 
 void VerificationRun::runPan(){
@@ -64,6 +67,7 @@ void VerificationRun::runPan(){
     connect(process, SIGNAL(readyReadStandardOutput()),this,SLOT(readReadyVerification()));
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(finishedVerification()));
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), process, SLOT(deleteLater()));
+    connect(process, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(error()));
 
     QStringList runOptions;
     switch (verificationType) {

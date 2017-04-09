@@ -3,7 +3,8 @@
 
 //TODO add destructor
 
-SpinRun::SpinRun(QString _path, QString _fileName, Type _type) {
+SpinRun::SpinRun(QString _spin, QString _path, QString _fileName, Type _type) {
+    spin = _spin;
     path = _path;
     fileName = _fileName;
     type = _type;
@@ -39,7 +40,7 @@ void SpinRun::error() {
     QString errorMsg = "";
     switch (process->error()) {
     case QProcess::FailedToStart:
-        errorMsg = "Process failed to start, check SPIN path or installation";
+        errorMsg = "Process failed to start, check SPIN and C compiler paths and try again";
         break;
     case QProcess::Crashed:
         errorMsg = "Process crashed unexpected";

@@ -1,6 +1,6 @@
 #include "syntaxrun.h"
 
-    SyntaxRun::SyntaxRun(QString _path, QString _fileName, QString _ltl) : SpinRun(_path , _fileName, Syntax) {
+    SyntaxRun::SyntaxRun(QString _spin, QString _path, QString _fileName, QString _ltl) : SpinRun(_spin, _path , _fileName, Syntax) {
         path = _path;
         fileName = _fileName;
         ltl = _ltl;
@@ -21,7 +21,7 @@
         connect(process, SIGNAL(readyReadStandardError()), this, SLOT(error()));
         setStatus("Checking syntax with spin -a");
         tempPath = createTempPml();
-        process->start(SPIN,QStringList() << "-a" << "\""+filePath+"\"");
+        process->start(spin,QStringList() << "-a" << "\""+filePath+"\"");
     }
 
     QString SyntaxRun::createTempPml(){

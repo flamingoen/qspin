@@ -4,25 +4,18 @@
 #include <QObject>
 #include <QtConcurrent/QtConcurrent>
 
-#ifdef _WIN32
-    #define CCOMPILER "gcc.exe" // TODO: add option for using gcc from windows instead
-#else
-    #define CCOMPILER "cc"
-#endif
-
-#define SPIN "spin" // TODO: add spin to path variables in windows
-
 class SpinRun : public QObject{
     Q_OBJECT
     Q_ENUMS(Type)
 
 public:
     enum Type {Simulation,Verification,Syntax,nonSpecified};
-    SpinRun(QString _path, QString _fileName, Type _type);
+    SpinRun(QString _spin, QString _path, QString _fileName, Type _type);
     QString readOutput();
     QString readStatus();
     void setStatus(QString status);
     QString listToString(QStringList list);
+    QString spin;
     Type type = nonSpecified;
 
 protected:

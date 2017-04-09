@@ -98,8 +98,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>895</width>
-               <height>499</height>
+               <width>890</width>
+               <height>497</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -859,8 +859,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>895</width>
-               <height>499</height>
+               <width>890</width>
+               <height>497</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1235,8 +1235,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>895</width>
-               <height>499</height>
+               <width>890</width>
+               <height>497</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -1438,7 +1438,7 @@
      <x>0</x>
      <y>0</y>
      <width>1352</width>
-     <height>25</height>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1471,8 +1471,15 @@
     <addaction name="menuEditor"/>
     <addaction name="actionOutput_Log"/>
    </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>S&amp;ettings</string>
+    </property>
+    <addaction name="actionSettings"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
+   <addaction name="menuSettings"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -1610,6 +1617,11 @@
    </property>
    <property name="text">
     <string>ParserTest</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Configure QSpin</string>
    </property>
   </action>
  </widget>

@@ -12,10 +12,12 @@
 #include <QTemporaryFile>
 #include "highlighter.h"
 #include "codeeditor.h"
+#include "ui_about.h"
 
 #include "verificationrun.h"
 #include "simulationrun.h"
 #include "syntaxrun.h"
+#include "settingswindow.h"
 
 #include "ui_mainwindow.h"
 
@@ -44,6 +46,8 @@ public:
     void runSyntax(QString ltl);
 
 private:
+    settingsWindow* settings = new settingsWindow();
+
     QString ltl = "";
     QString path;
     QString LTLpath;
@@ -170,6 +174,7 @@ private slots:
     void loadPmlFile();
     void loadLtlFile();
     void showAbout();
+    void showSettings();
     void saveFile();
     void saveFileAs();
     void newFile();

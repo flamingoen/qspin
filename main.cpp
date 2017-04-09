@@ -2,7 +2,7 @@
 #include <QApplication>
 
 int main(int argc, char *argv[]) {
-    QApplication::setOrganizationName("QSpinCorp");
+    QApplication::setOrganizationName("Flamingoen");
     QApplication::setApplicationName("QSpin");
 
     QApplication a(argc, argv);

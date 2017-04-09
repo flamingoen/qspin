@@ -10,7 +10,7 @@
  * TODO: In interactive when it is infinite
  * */
 
-SimulationRun::SimulationRun(QString _path, QString _fileName, SimulationType _type, int _depth) : SpinRun(_path , _fileName, Simulation){
+SimulationRun::SimulationRun(QString _spin, QString _path, QString _fileName, SimulationType _type, int _depth) : SpinRun(_spin, _path , _fileName, Simulation){
     simulationType = _type;
     depth = _depth;
     statesBack.clear();
@@ -44,7 +44,7 @@ void SimulationRun::start() {
 void SimulationRun::randomSimulation() {
     setStatus("Running random simulation with spin -p -g -l");
     setupProcess();
-    process->start(SPIN,QStringList() << "-u"+QString::number(depth) << "-p" << "-g" << "-l" << "\""+path+ QDir::separator() + fileName+"\"");
+    process->start(spin,QStringList() << "-u"+QString::number(depth) << "-p" << "-g" << "-l" << "\""+path+ QDir::separator() + fileName+"\"");
 }
 
 void SimulationRun::interactiveSimulation() {
@@ -54,7 +54,7 @@ void SimulationRun::interactiveSimulation() {
         goForward();
     }
     setStatus("Running interactive simulation with spin -g -l -p -i");
-    process->start(SPIN,QStringList() << "-g" << "-l" << "-p" << "-i"  << "\""+path+ QDir::separator() + fileName+"\"");
+    process->start(spin,QStringList() << "-g" << "-l" << "-p" << "-i"  << "\""+path+ QDir::separator() + fileName+"\"");
 }
 
 void SimulationRun::guidedSimulation() {
@@ -68,7 +68,7 @@ void SimulationRun::guidedSimulation() {
     if (QFile::exists(trailPath)){
         setStatus("Running guided simulation with -t -g -l -p -r -s -X");
         setupProcess();
-        process->start(SPIN,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "\""+path+ QDir::separator() + fileName+"\"");
+        process->start(spin,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "\""+path+ QDir::separator() + fileName+"\"");
     } else emit processError("Cannot run simulation: Trail path not found");
 }
 
@@ -77,6 +77,7 @@ void SimulationRun::setupProcess(){
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(finishedProcess()));
     //connect(process, SIGNAL(readyReadStandardOutput()),this,SLOT(readReadyProcess()));
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), process, SLOT(deleteLater()));
+    connect(process, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(error()));
     parseCode();
     step newStep;
     newStep.operation="Simulation";

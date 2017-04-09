@@ -22,7 +22,8 @@ SOURCES += main.cpp\
     spinrun.cpp \
     syntaxrun.cpp \
     parser.cpp \
-    variable.cpp
+    variable.cpp \
+    settingswindow.cpp
 
 HEADERS  += mainwindow.h \
     highlighter.h \
@@ -31,10 +32,12 @@ HEADERS  += mainwindow.h \
     simulationrun.h \
     spinrun.h \
     syntaxrun.h \
-    variable.h
+    variable.h \
+    settingswindow.h
 
 FORMS    += mainwindow.ui \
-    about.ui
+    about.ui \
+    options.ui
 
 CONFIG   += c++11
 

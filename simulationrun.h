@@ -19,7 +19,7 @@ class SimulationRun : public SpinRun {
 
 public:
     enum SimulationType {Random, Interactive, Guided};
-    SimulationRun(QString _path, QString _fileName, SimulationType _type, int _depth);
+    SimulationRun(QString _spin, QString _path, QString _fileName, SimulationType _type, int _depth);
     ~SimulationRun();
     void goForward(int steps=1 );
     void goBackwards(int steps=1);
