@@ -63,7 +63,7 @@ void VerificationRun::runCompile(){
 
 void VerificationRun::runPan(){
     process = new QProcess();
-    process->setWorkingDirectory(path);
+    setStatus(path);
     connect(process, SIGNAL(readyReadStandardOutput()),this,SLOT(readReadyVerification()));
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(finishedVerification()));
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), process, SLOT(deleteLater()));
@@ -84,8 +84,8 @@ void VerificationRun::runPan(){
     }
     if (searchDepth>0)  runOptions << "-m"+QString::number(searchDepth);
     if (hashSize>0)     runOptions << "-w"+QString::number(hashSize);
-    setStatus("Verification: Running verification with ./pan "+listToString(runOptions));
-    process->start("./pan", runOptions);
+    setStatus("Verification: Running verification with " + QString(PAN) + " " +listToString(runOptions));
+    process->start(PAN, runOptions);
 }
 
 void VerificationRun::finishedVerification() {

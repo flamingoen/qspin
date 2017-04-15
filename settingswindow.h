@@ -9,8 +9,8 @@
 #include "ui_options.h"
 
 #ifdef _WIN32
-    #define CCOMPILER "C:\MinGW\bin\gcc.exe"
-    #define SPIN "spin\spin.exe"
+    #define CCOMPILER "C:\\MinGW\\bin\\gcc.exe"
+    #define SPIN "spin\\spin.exe"
 #else
     #define CCOMPILER "cc"
     #define SPIN "spin"

@@ -42,19 +42,22 @@ void SimulationRun::start() {
 }
 
 void SimulationRun::randomSimulation() {
-    setStatus("Running random simulation with spin -p -g -l");
+    setStatus("Running random simulation with: " + QString(spin) + "-u" + QString::number(depth) + "-p -g -l" + "\""+fileName+"\"");
+    setStatus("\""+path+ QDir::separator() + fileName+"\"");
     setupProcess();
-    process->start(spin,QStringList() << "-u"+QString::number(depth) << "-p" << "-g" << "-l" << "\""+path+ QDir::separator() + fileName+"\"");
+    process->setWorkingDirectory(path);
+    process->start(spin,QStringList() << "-u"+QString::number(depth) << "-p" << "-g" << "-l" << "\""+fileName+"\"");
 }
 
 void SimulationRun::interactiveSimulation() {
     setupProcess();
+    process->setWorkingDirectory(path);
     connect(process, SIGNAL(readyReadStandardOutput()),this,SLOT(readReadyProcess()));
     while(!statesForward.isEmpty()) {
         goForward();
     }
     setStatus("Running interactive simulation with spin -g -l -p -i");
-    process->start(spin,QStringList() << "-g" << "-l" << "-p" << "-i"  << "\""+path+ QDir::separator() + fileName+"\"");
+    process->start(spin,QStringList() << "-g" << "-l" << "-p" << "-i"  << "\""+fileName+"\"");
 }
 
 void SimulationRun::guidedSimulation() {
@@ -68,7 +71,8 @@ void SimulationRun::guidedSimulation() {
     if (QFile::exists(trailPath)){
         setStatus("Running guided simulation with -t -g -l -p -r -s -X");
         setupProcess();
-        process->start(spin,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "\""+path+ QDir::separator() + fileName+"\"");
+        process->setWorkingDirectory(path);
+        process->start(spin,QStringList() << "-t" << "-g" << "-l" << "-p" << "-r" << "-s" << "-X" << "\""+fileName+"\"");
     } else emit processError("Cannot run simulation: Trail path not found");
 }
 
@@ -210,7 +214,7 @@ void SimulationRun::parseCode() {
 //}
 
 bool SimulationRun::parseStep(QString _step) {
-    QRegularExpression reStep("\\B\\s*\\d+:\\s+proc\\s+(\\d+)\\s+\\((.*?):\\d+\\)\\s"+path+ QDir::separator() + fileName+":(\\d+)\\s+\\(state\\s(\\d+)\\)\\s+\\[(.*?)\\]");
+    QRegularExpression reStep("\\B\\s*\\d+:\\s+proc\\s+(\\d+)\\s+\\((.*?):\\d+\\)\\s"+fileName+":(\\d+)\\s+\\(state\\s(\\d+)\\)\\s+\\[(.*?)\\]");
     QRegularExpressionMatch match = reStep.match(_step);
     bool matched = match.hasMatch();
     if (matched) {
@@ -292,7 +296,7 @@ bool SimulationRun::parseVar(QString _step) {
 }
 
 void SimulationRun::parseChoises(QString _step) {
-    QRegularExpression reChoise("choice\\s+(\\d+):\\s+proc\\s+(\\d+)\\s+\\(.*?\\)\\s+"+path+ QDir::separator() + fileName+":\\d+\\s+\\(state\\s+\\d+\\)\\s\\[(.*?)\\]");
+    QRegularExpression reChoise("choice\\s+(\\d+):\\s+proc\\s+(\\d+)\\s+\\(.*?\\)\\s+"+fileName+":\\d+\\s+\\(state\\s+\\d+\\)\\s\\[(.*?)\\]");
     QRegularExpressionMatch match = reChoise.match(_step);
     if (match.hasMatch()) {
         choise _choise;

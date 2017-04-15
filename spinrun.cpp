@@ -5,7 +5,7 @@
 
 SpinRun::SpinRun(QString _spin, QString _path, QString _fileName, Type _type) {
     spin = _spin;
-    path = _path;
+    path = QDir::toNativeSeparators(_path);
     fileName = _fileName;
     type = _type;
     filePath = path + QDir::separator() + fileName;

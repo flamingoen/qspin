@@ -3,6 +3,12 @@
 
 #include <spinrun.h>
 
+#ifdef _WIN32
+    #define PAN QString(path)+QDir::separator()+"pan.exe"
+#else
+    #define PAN "./pan"
+#endif
+
 class VerificationRun : public SpinRun {
     Q_OBJECT
 

@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QtConcurrent/QtConcurrent>
+#include <QDir>
 
 class SpinRun : public QObject{
     Q_OBJECT

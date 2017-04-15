@@ -12,7 +12,6 @@ greaterThan(QT_MAJOR_VERSION, 4): QT+= concurrent
 TARGET = qspin
 TEMPLATE = app
 
-
 SOURCES += main.cpp\
         mainwindow.cpp \
     highlighter.cpp \
@@ -47,4 +46,11 @@ INSTALLS += target
 RESOURCES += \
     icons.qrc
 
-DISTFILES +=
+DISTFILES += \
+    winIcon.rc
+
+win32 {
+INCLUDEPATH  += C:\Users\Martin\Documents\qspin\boost_1_63_0 -lboost_filesystem
+LIBS += "-LC:\Users\Martin\Documents\qspin\boost_1_63_0\stage\lib"
+RC_FILE = winIcon.rc
+}
