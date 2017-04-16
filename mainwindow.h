@@ -210,6 +210,8 @@ private slots:
     void editorTextChanged();
     void loadSettings();
     void saveSettings();
+    void clearLog();
+    void reloadFile();
 };
 
 #endif // MAINWINDOW_H

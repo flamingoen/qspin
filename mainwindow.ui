@@ -1450,6 +1450,8 @@
     <addaction name="actionSave"/>
     <addaction name="actionSave_As"/>
     <addaction name="actionLoad_Ltl"/>
+    <addaction name="actionReload_File"/>
+    <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -1470,6 +1472,7 @@
     </widget>
     <addaction name="menuEditor"/>
     <addaction name="actionOutput_Log"/>
+    <addaction name="actionClear_Log"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -1621,7 +1624,23 @@
   </action>
   <action name="actionSettings">
    <property name="text">
-    <string>Configure QSpin</string>
+    <string>&amp;Configure QSpin</string>
+   </property>
+  </action>
+  <action name="actionClear_Log">
+   <property name="text">
+    <string>Clear Log</string>
+   </property>
+   <property name="toolTip">
+    <string>Clears the output log</string>
+   </property>
+  </action>
+  <action name="actionReload_File">
+   <property name="text">
+    <string>Reload File</string>
+   </property>
+   <property name="toolTip">
+    <string>Reloads the current document</string>
    </property>
   </action>
  </widget>

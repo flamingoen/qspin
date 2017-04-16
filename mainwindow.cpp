@@ -54,6 +54,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     QAction *action_showHideLog = this->findChild<QAction *>("actionOutput_Log");
     QAction *action_exit = this->findChild<QAction *>("actionExit");
     QAction *action_parserTest = this->findChild<QAction *>("actionParserTest");
+    QAction *action_clear_log = this->findChild<QAction *>("actionClear_Log");
+    QAction *action_reload = this->findChild<QAction *>("actionReload_File");
 
     connect(action_new,SIGNAL(triggered()),this,SLOT(newFile()));
     connect(action_about,SIGNAL(triggered()),this,SLOT(showAbout()));
@@ -66,6 +68,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     connect(action_saveAs, SIGNAL(triggered()),this,SLOT(saveFileAs()));
     connect(action_exit, SIGNAL(triggered()),this,SLOT(exit()));
     connect(action_parserTest, SIGNAL(triggered()),this,SLOT(parserTest()));
+    connect(action_clear_log, SIGNAL(triggered()),this,SLOT(clearLog()));
+    connect(action_reload, SIGNAL(triggered()),this,SLOT(reloadFile()));
 
 
     // ## Verify tab ##
@@ -168,6 +172,26 @@ void MainWindow::newFile() {
         clearInteractiveTab();
         editor->clear();
         editor->document()->setModified(false);
+    }
+}
+
+void MainWindow::reloadFile() {
+    if (saveWarning()) {
+        if (tempFilePath!=NULL) {
+            editor->clear();
+            QFile file(path);
+            if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                status->showMessage("Failed to open "+path);
+            } else {
+                QTextStream in(&file);
+                while(!in.atEnd()) {
+                    editor->appendPlainText(in.readLine());
+                }
+                file.close();
+                editor->document()->setModified(false);
+                status->showMessage("File reloaded: "+path);
+            }
+        }else status->showMessage("Warning: No file to reload");
     }
 }
 
@@ -767,6 +791,8 @@ void MainWindow::clearInteractiveTab() {
     listChoises->clear();
 }
 
+void MainWindow::clearLog() { outputLog->clear(); }
+
 void MainWindow::iconFallback() {
     if (QString::compare("linux",OS)) { // will set icons if system is NOT linux
         QIcon loadFile;
@@ -829,9 +855,9 @@ bool MainWindow::parserTest() {
 
 void MainWindow::editorTextChanged() {
 //    parserTest();
-//    if ( parserTest() ) {
-//        outputLog->append("Parsing succesfull");
-//    } else {
-//        outputLog->append("Parsing failed");
-//    }
+    if ( parserTest() ) {
+        outputLog->append("Parsing succesfull");
+    } else {
+        outputLog->append("Parsing failed");
+    }
 }
