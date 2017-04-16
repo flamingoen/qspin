@@ -609,7 +609,8 @@ void MainWindow::createInteractiveTab() {
     listChoises->clear();
     QList<SimulationRun::choise> choises = interactiveRun->getChoises();
     foreach (SimulationRun::choise choise , choises) {
-        listChoises->addItem(new QListWidgetItem(choise._proc.name+" | "+choise.operation));
+        if (choise._proc.name=="")  listChoises->addItem(new QListWidgetItem(choise.operation));
+        else                        listChoises->addItem(new QListWidgetItem(choise._proc.name+" | "+choise.operation));
     }
     processTable->resizeColumnsToContents();
     variableTable->resizeColumnsToContents();

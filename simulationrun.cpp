@@ -296,7 +296,8 @@ bool SimulationRun::parseVar(QString _step) {
 }
 
 void SimulationRun::parseChoises(QString _step) {
-    QRegularExpression reChoise("choice\\s+(\\d+):\\s+proc\\s+(\\d+)\\s+\\(.*?\\)\\s+"+fileName+":\\d+\\s+\\(state\\s+\\d+\\)\\s\\[(.*?)\\]");
+    QString procString = "proc\\s+(\\d+)\\s+\\(.*?\\)\\s+"+fileName+":\\d+\\s+\\(state\\s+\\d+\\)\\s";
+    QRegularExpression reChoise("choice\\s+(\\d+):\\s+"+procString+"\\[(.*?)\\]");
     QRegularExpressionMatch match = reChoise.match(_step);
     if (match.hasMatch()) {
         choise _choise;
@@ -304,6 +305,15 @@ void SimulationRun::parseChoises(QString _step) {
         _choise._proc = mapProcess[match.captured(2).toInt()];
         _choise.operation = match.captured(3);
         listChoises.append(_choise);
+    } else {
+        QRegularExpression reChoise("choice\\s+(\\d+):\\s+(.*)");
+        match = reChoise.match(_step);
+        if (match.hasMatch()) {
+            choise _choise;
+            _choise.number = match.captured(1);
+            _choise.operation = match.captured(2);
+            listChoises.append(_choise);
+        }
     }
 }
 
