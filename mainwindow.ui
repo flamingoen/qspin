@@ -81,7 +81,7 @@
          <enum>Qt::LeftToRight</enum>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="validationTab">
          <attribute name="title">
@@ -261,7 +261,7 @@
                      <item>
                       <widget class="QRadioButton" name="radioLiveness">
                        <property name="text">
-                        <string>Pro&amp;gess</string>
+                        <string>P&amp;rogess</string>
                        </property>
                       </widget>
                      </item>
@@ -1108,7 +1108,7 @@
                       <bool>true</bool>
                      </property>
                      <property name="editTriggers">
-                      <set>QAbstractItemView::EditKeyPressed</set>
+                      <set>QAbstractItemView::NoEditTriggers</set>
                      </property>
                      <property name="alternatingRowColors">
                       <bool>true</bool>
@@ -1140,6 +1140,9 @@
                      </property>
                      <property name="sizeAdjustPolicy">
                       <enum>QAbstractScrollArea::AdjustToContents</enum>
+                     </property>
+                     <property name="editTriggers">
+                      <set>QAbstractItemView::NoEditTriggers</set>
                      </property>
                      <property name="alternatingRowColors">
                       <bool>false</bool>
@@ -1190,6 +1193,9 @@
                      </property>
                      <property name="sizeAdjustPolicy">
                       <enum>QAbstractScrollArea::AdjustToContents</enum>
+                     </property>
+                     <property name="editTriggers">
+                      <set>QAbstractItemView::NoEditTriggers</set>
                      </property>
                      <attribute name="horizontalHeaderDefaultSectionSize">
                       <number>60</number>
@@ -1317,7 +1323,11 @@
                   </property>
                   <layout class="QGridLayout" name="gridLayout_7">
                    <item row="0" column="0">
-                    <widget class="QListWidget" name="listSteps_I"/>
+                    <widget class="QListWidget" name="listSteps_I">
+                     <property name="editTriggers">
+                      <set>QAbstractItemView::NoEditTriggers</set>
+                     </property>
+                    </widget>
                    </item>
                   </layout>
                  </widget>
@@ -1338,6 +1348,9 @@
                      </property>
                      <property name="sizeAdjustPolicy">
                       <enum>QAbstractScrollArea::AdjustToContents</enum>
+                     </property>
+                     <property name="editTriggers">
+                      <set>QAbstractItemView::NoEditTriggers</set>
                      </property>
                      <property name="columnCount">
                       <number>2</number>
@@ -1379,6 +1392,9 @@
                      </property>
                      <property name="sizeAdjustPolicy">
                       <enum>QAbstractScrollArea::AdjustToContents</enum>
+                     </property>
+                     <property name="editTriggers">
+                      <set>QAbstractItemView::NoEditTriggers</set>
                      </property>
                      <property name="columnCount">
                       <number>2</number>
@@ -1629,7 +1645,7 @@
   </action>
   <action name="actionClear_Log">
    <property name="text">
-    <string>Clear Log</string>
+    <string>&amp;Clear Log</string>
    </property>
    <property name="toolTip">
     <string>Clears the output log</string>
@@ -1637,7 +1653,7 @@
   </action>
   <action name="actionReload_File">
    <property name="text">
-    <string>Reload File</string>
+    <string>&amp;Reload File</string>
    </property>
    <property name="toolTip">
     <string>Reloads the current document</string>
