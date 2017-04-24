@@ -164,6 +164,7 @@ private:
     void saveLtlFile();
     void iconFallback();
     bool saveWarning();
+    void clearUI();
     QString showOpenFileDialog(QString caption, QString filter);
     p_grammar grammar;
 

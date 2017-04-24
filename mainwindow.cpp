@@ -167,9 +167,7 @@ void MainWindow::newFile() {
     if (saveWarning()){
         fileCleanup();
         path = nullptr;
-        clearVerificationTab();
-        clearSimulationTab();
-        clearInteractiveTab();
+        clearUI();
         editor->clear();
         editor->document()->setModified(false);
     }
@@ -223,6 +221,7 @@ void MainWindow::loadPmlFile() {
                 QRegExp rx("/((([a-z]|[A-Z]|\\d)+).pml)");
                 rx.indexIn(path);
                 filename = rx.cap(1);
+                clearUI();
                 editor->document()->clearUndoRedoStacks();
                 editor->document()->setModified(false);
                 status->showMessage("File loaded: "+path);
@@ -792,6 +791,13 @@ void MainWindow::clearInteractiveTab() {
 }
 
 void MainWindow::clearLog() { outputLog->clear(); }
+
+void MainWindow::clearUI() {
+    clearInteractiveTab();
+    clearSimulationTab();
+    clearVerificationTab();
+    clearLog();
+}
 
 void MainWindow::iconFallback() {
     if (QString::compare("linux",OS)) { // will set icons if system is NOT linux
