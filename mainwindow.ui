@@ -1121,7 +1121,7 @@
                 <item>
                  <widget class="QGroupBox" name="groupBox_8">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="MinimumExpanding">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
@@ -1133,7 +1133,7 @@
                    <item row="0" column="0">
                     <widget class="QTableWidget" name="tableVariabels">
                      <property name="sizePolicy">
-                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                        <horstretch>0</horstretch>
                        <verstretch>0</verstretch>
                       </sizepolicy>
@@ -1174,7 +1174,7 @@
                 <item>
                  <widget class="QGroupBox" name="groupBox_9">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="MinimumExpanding">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
@@ -1186,7 +1186,7 @@
                    <item row="0" column="0">
                     <widget class="QTableWidget" name="tableProceses">
                      <property name="sizePolicy">
-                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                        <horstretch>0</horstretch>
                        <verstretch>0</verstretch>
                       </sizepolicy>
