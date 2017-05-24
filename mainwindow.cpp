@@ -601,12 +601,12 @@ void MainWindow::deleteLtl(){
 }
 
 void MainWindow::updateSimulationTab(SimulationRun *run, QTableWidget *variableTable, QTableWidget *processTable, QListWidget *stepList) {
-    QList<SimulationRun::variable> variables = run->getVariables();
+    QList<Variable*> variables = run->getVariables();
     QList<SimulationRun::proc> procs = run->getProcs();
     // Variablse tab
     for (int i = 0 ; i < variables.length() ; i++) {
-        variableTable->setItem(variables[i].id,0,new QTableWidgetItem(variables[i].name));
-        variableTable->setItem(variables[i].id,1,new QTableWidgetItem(variables[i].value));
+        variableTable->setItem(variables[i]->id,0,new QTableWidgetItem(variables[i]->name));
+        variableTable->setItem(variables[i]->id,1,new QTableWidgetItem(variables[i]->value));
     }
     // Process tab
     for (int i = 0 ; i < procs.length() ; i++) {
@@ -652,7 +652,7 @@ void MainWindow::interactiveStepClicked(){
 }
 
 void MainWindow::populateSimulationLists(SimulationRun* run, QTableWidget* variableTable, QTableWidget* processTable, QListWidget *stepList){
-    QList<SimulationRun::variable> variables = run->getVariables();
+    QList<Variable*> variables = run->getVariables();
     QList<SimulationRun::proc> procs = run->getProcs();
     QStringList operations = run->getOperations();
     variableTable->setRowCount(variables.length());
@@ -660,8 +660,8 @@ void MainWindow::populateSimulationLists(SimulationRun* run, QTableWidget* varia
     stepList->clear();
     // Variablse tab
     for (int i = 0 ; i < variables.length() ; i++) {
-        variableTable->setItem(variables[i].id,0,new QTableWidgetItem(variables[i].name));
-        variableTable->setItem(variables[i].id,1,new QTableWidgetItem(variables[i].value));
+        variableTable->setItem(variables[i]->id,0,new QTableWidgetItem(variables[i]->name));
+        variableTable->setItem(variables[i]->id,1,new QTableWidgetItem(variables[i]->value));
     }
     // Process tab
     for (int i = 0 ; i < procs.length() ; i++) {
@@ -779,14 +779,14 @@ void MainWindow::clearVerificationTab() {
 
 void MainWindow::clearSimulationTab() {
     simulationSteps->clear();
-    processTable->clear();
-    variableTable->clear();
+    processTable->clearContents();
+    variableTable->clearContents();
 }
 
 void MainWindow::clearInteractiveTab() {
     simulationSteps_I->clear();
-    processTable_I->clear();
-    variableTable_I->clear();
+    processTable_I->clearContents();
+    variableTable_I->clearContents();
     listChoises->clear();
 }
 
@@ -856,14 +856,14 @@ bool MainWindow::parserTest() {
             } cout << " ] ";
         } cout << "\n";
     }
-    return res;
-}
-
-void MainWindow::editorTextChanged() {
-//    parserTest();
-    if ( parserTest() ) {
+    if ( res ) {
         outputLog->append("Parsing succesfull");
     } else {
         outputLog->append("Parsing failed");
     }
+    return res;
+}
+
+void MainWindow::editorTextChanged() {
+    parserTest();
 }

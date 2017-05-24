@@ -5,11 +5,16 @@
 
 class Variable : public QObject {
     Q_OBJECT
-    QString type, name, value, process;
 
 public:
-    Variable(QString type, QString name, QString process = "global");
+    QString type, name, value, process, pid;
+    QList<Variable> vars;
+    int id;
+    Variable(QString type, QString name, QString process = "global", QString pid = 0);
     void setValue(QString value);
+
+private:
+    static int lastId;
 };
 
 #endif // VARIABLE_H

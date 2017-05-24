@@ -7,6 +7,7 @@
 #include <QRegularExpression>
 #include <QList>
 #include <QTableWidgetItem>
+#include <QPair>
 #include <variable.h>
 
 #include "parser.cpp"
@@ -57,7 +58,7 @@ public:
         QString operation;
     };
 
-    QList<variable> getVariables();
+    QList<Variable*> getVariables();
     QList<proc> getProcs();
     step getCurrentStep();
     bool currentStepChangeVariable();
@@ -80,10 +81,10 @@ private:
     QStack<step> statesBack;
     QStack<step> statesForward;
     QMap<int,proc> mapProcess;
-    QMap<QString,variable> mapVariable;
     QMap<QString,Variable *> mapVariables;
     QList<choise> listChoises;
     QString filename;
+    QMap<QString,QList<QString>> procTemplate;
 
 
     void randomSimulation();

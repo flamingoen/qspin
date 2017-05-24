@@ -1,15 +1,6 @@
 #include "simulationrun.h"
 #include <QDebug>
 
-/* TODOLIST FOR SIMULATION
- * TODO: Implement seed
- * TODO: Interactive simulation
- * TODO: Implement missing types (Array, chan, utype)
- * TODO: Lock editor while simulation is being made
- * TODO: Parse print statements
- * TODO: In interactive when it is infinite
- * */
-
 SimulationRun::SimulationRun(QString _spin, QString _path, QString _fileName, SimulationType _type, int _depth) : SpinRun(_spin, _path , _fileName, Simulation){
     simulationType = _type;
     depth = _depth;
@@ -155,63 +146,21 @@ void SimulationRun::parseCode() {
         QString varType;
 
         if (!parseList[i][0].compare("PROCTYPE")) {
-            varProc = QString::fromStdString(parseList[i][1]);
-            start = 2;
-        }
-        for ( uint j = start ; j<parseList[i].size() ; j++) {
-            QString tmp = QString::fromStdString(parseList[i][j]);
-            if (types.contains(tmp)) varType = tmp;
-            else mapVariables.insert( tmp , new Variable( varType , tmp , varProc));
+            QString procName = QString::fromStdString(parseList[i][1]);
+            QList<QString> varList;
+            for ( uint j=2 ; j<parseList[i].size() ; j++) {
+                varList << QString::fromStdString(parseList[i][j]);
+            }
+            procTemplate.insert(procName,varList);
+        } else {
+            for ( uint j = start ; j<parseList[i].size() ; j++) {
+                QString tmp = QString::fromStdString(parseList[i][j]);
+                if (types.contains(tmp)) varType = tmp;
+                else mapVariables.insert( tmp , new Variable( varType , tmp , varProc));
+            }
         }
     }
 }
-
-//void SimulationRun::parseCode_old() {
-//    QFile file(path+ QDir::separator() + fileName);
-//    QString codeText = "";
-//    QStringList lines;
-//    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-//    setStatus("Failed to open file");
-//    } else {
-//        QTextStream in(&file);
-//        while(!in.atEnd()) {
-//            codeText.append(in.readLine()+"\n");
-//        }
-//        file.close();
-//    }
-//    codeText.remove(QRegularExpression("\\/\\*(?:.|\\n)*?\\*\\/|\\/\\/.*?\\\n")); //Removes all comments
-//    lines = codeText.split(QRegularExpression(";|\\n"),QString::SkipEmptyParts); // Splits every command into lines
-//    QRegularExpression reVar("(byte|bool|int|pid|short|mtype)\\s+(.+?)\\s*=\\s*(.*)");
-//    QRegularExpressionMatch match;
-//    foreach(QString line, lines) {
-//        match = reVar.match(line);
-//        if (match.hasMatch()) {
-//            QStringList expression = line.split(QRegularExpression("="),QString::SkipEmptyParts);
-//            QStringList lhs = expression[0].split(QRegularExpression("\\s+|,"),QString::SkipEmptyParts);
-//            QString type = lhs[0];
-//            lhs.removeFirst(); // remove the type from the list
-//            foreach (QString name, lhs) {
-//                variable var;
-//                var.name = name;
-//                var.type = type;
-//                var.value = expression[1];
-//                var.id = v_id; v_id++;
-//                mapVariable.insert(var.name,var);
-//                step _step;
-//                _step.var = var.name;
-//                _step.newValue = var.value;
-//                _step.oldValue = "-";
-//                _step.operation = "init :\t"+var.name + " = " + var.value;
-//                statesBack.push(currentStep);
-//                currentStep = _step;
-//                if (type=="bool") {
-//                    if (var.value=="true") var.value = "1";
-//                    else var.value = "0";
-//                }
-//            }
-//        }
-//    }
-//}
 
 bool SimulationRun::parseStep(QString _step) {
     QRegularExpression reStep("\\B\\s*\\d+:\\s+proc\\s+(\\d+)\\s+\\((.*?):\\d+\\)\\s"+fileName+":(\\d+)\\s+\\(state\\s(\\d+)\\)\\s+\\[(.*?)\\]");
@@ -239,17 +188,18 @@ bool SimulationRun::parseStep(QString _step) {
     return matched;
 }
 
-// As it is done in parseStep, this function is no longer needed
 bool SimulationRun::parseProc(QString _step) {
     QRegularExpression reCreateProc("creates proc\\s+(\\d+)\\s+\\((.*)?\\)");
     QRegularExpressionMatch match = reCreateProc.match(_step);
     bool matched = match.hasMatch();
     if (matched) {
-        proc newProc;
-        newProc.name = match.captured(2).append('['+match.captured(1)+']');
-        newProc.line = 0;
-        newProc.id = p_id; p_id++;
-        mapProcess.insert(match.captured(1).toInt(),newProc);
+        QString procName = match.captured(2);
+        QString procPid = match.captured(1);
+        QList<QString> varList = procTemplate[procName];
+        for (int i = 0 ; i<varList.size() ; i+=2) {
+            QString varName = procName.append('['+procPid+"]:"+varList[i+1]);
+            mapVariables.insert(varName,new Variable(varList[i],varName,procName));
+        }
     }
     return matched;
 }
@@ -261,37 +211,27 @@ bool SimulationRun::parseVar(QString _step) {
     QRegularExpressionMatch matchG = reVariable.match(_step);
     QRegularExpressionMatch matchL = reLocVar.match(_step);
     bool matched = true;
-    variable newVar;
+    QString varName, varValue;
+
     // match either global or local variable
     if (matchG.hasMatch()) {
-        newVar.name = matchG.captured(1);
-        newVar.value = matchG.captured(2);
+        varName = matchG.captured(1);
+        varValue = matchG.captured(2);
     } else if (matchL.hasMatch()) {
-        QString  varName = matchL.captured(3);
-        newVar.name = matchL.captured(1).append('[' + matchL.captured(2) + "]:" + varName);
-        if (!mapVariable.contains(newVar.name)) {
-            newVar.value = mapVariable[varName].value;
-            newVar.id = v_id; v_id++;
-            mapVariable.insert(newVar.name,newVar);
-        }
-        newVar.value = matchL.captured(4);
+        varName = matchL.captured(1).append('[' + matchL.captured(2) + "]:" + matchL.captured(3));
+        varValue = matchL.captured(4);
     } else matched = false;
 
     // Add change to the step and replace in the map
     if (matched) {
-        if (mapVariable.contains(newVar.name)) {
-            variable oldVar = mapVariable[newVar.name];
-            currentStep.newValue = newVar.value;
-            currentStep.oldValue = oldVar.value;
-            newVar.id = oldVar.id;
-        } else {
-            newVar.id = v_id; v_id++;
-            currentStep.oldValue = "-";
-            currentStep.newValue = newVar.value;
-        }
-        currentStep.var = newVar.name;
-        mapVariable.insert(newVar.name,newVar);
+        Variable *var = mapVariables[varName];
+        currentStep.newValue = varValue;
+        if (mapVariables.contains(varName)) currentStep.oldValue = var->value;
+        else currentStep.oldValue = "-";
+        currentStep.var = varName;
+        var->value = varValue;
     }
+
     return matched;
 }
 
@@ -323,7 +263,7 @@ void SimulationRun::goForward(int steps) {
             statesBack.push(currentStep);
             currentStep = statesForward.pop();
             if (currentStep.var!="-") {
-                mapVariable[currentStep.var].value = currentStep.newValue;
+                mapVariables[currentStep.var]->value = currentStep.newValue;
             }
             if (currentStep.i_proc!=-1) {
                 mapProcess[currentStep.i_proc].line = currentStep.newLine;
@@ -336,7 +276,7 @@ void SimulationRun::goBackwards(int steps) {
     for (int i=0 ; i<steps ; i++) {
         if (!statesBack.isEmpty()) {
             if (currentStep.var!="-") {
-                mapVariable[currentStep.var].value = currentStep.oldValue;
+                mapVariables[currentStep.var]->value = currentStep.oldValue;
             }
             if (currentStep.i_proc!=-1) {
                 mapProcess[currentStep.i_proc].line = currentStep.oldLine;
@@ -347,10 +287,10 @@ void SimulationRun::goBackwards(int steps) {
     }
 }
 
-QList<SimulationRun::variable> SimulationRun::getVariables() {
-    QList<variable> list;
-    foreach(QString key , mapVariable.keys()) {
-        list << mapVariable[key];
+QList<Variable*> SimulationRun::getVariables() {
+    QList<Variable*> list;
+    foreach(QString key , mapVariables.keys()) {
+        list << mapVariables[key];
     }
     return list;
 }
@@ -372,11 +312,11 @@ bool SimulationRun::currentStepChangeVariable() {
 }
 
 int SimulationRun::getCurrentVarId() {
-    return mapVariable[currentStep.var].id;
+    return mapVariables[currentStep.var]->id;
 }
 
 QString SimulationRun::getCurrentVarValue() {
-    return mapVariable[currentStep.var].value;
+    return mapVariables[currentStep.var]->value;
 }
 
 QString SimulationRun::getCurrentVarName() {

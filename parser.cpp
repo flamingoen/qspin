@@ -67,7 +67,7 @@ namespace parser {
                         | no_case["CHAN"]   [_val = "CHAN"];
                         //| name              [_val = "UTYPE"] ;
 
-            active      = no_case["ACTIVE"] >> -cons;
+            active      = no_case["ACTIVE"] >> -('[' >> cons >> ']');
             priority    = no_case["PRIORITY"] >> cons;
             enabler     = no_case["PROVIDED"] >> '{' >> expr >> '}';
             visible     = no_case["HIDDEN"] | no_case["SHOW"];
@@ -83,7 +83,7 @@ namespace parser {
             iarray      = lit('[') >> cons >> ']';
             idecl       = lit('=') >> ( any_expr | ch_init );
             ch_init     = lit('[') >> cons >> no_case["OF"] >> '{' >> (type_name % ',');
-            varref      = name >> -('[' >> bin_expr >> ']') >> -('.' >> varref);
+            varref      = ( string("_") | "_last" | "_ne_pr" | "_pid" | name ) >> -('[' >> bin_expr >> ']') >> -('.' >> varref);
 
             send        = varref >> '!' >> send_args
                         | varref >> '!' >> '!' >> send_args;
@@ -121,6 +121,7 @@ namespace parser {
                         | expr >> *(andor >> expr)
                         | no_case["C_CODE"] >> '[' >> *char_ >> ']' >> '{' >> *char_ >> '}'
                         | no_case["C_EXPR"] >> '[' >> *char_ >> ']' >>'{' >> *char_ >> '}'
+                        | run
                         ;
 
             options     = string("::") >> sequence % string("::");
@@ -149,11 +150,10 @@ namespace parser {
             chanop      = no_case["FULL"] | no_case["EMPTY"] | no_case["NFULL"] | no_case["NEMPTY"];
 
             name        = lexeme[alpha >> *(alpha | int_ | '_')] - no_case[keyword];
-            _name       = lexeme[alpha >> *(alpha | int_ | '_')] - no_case[keyword];
 
             cons        = no_case["TRUE"] | no_case["FALSE"] | no_case["SKIP"]  | int_;
 
-            keyword     = string("_") | "_last" | "ne_pr" | "_pid" | "accept" | "active" | "arrays" | "assert" | "assign" | "atomic"
+            keyword     = string("accept") | "active" | "arrays" | "assert" | "assign" | "atomic"
                         | "bit" | "bool" | "break" | "byte" | "c_code" | "c_decl" | "c_expr" | "c_state" | "c_track" | "chan"
                         | "comments" | "cond_expr" | "condition" | "D_proctype" | "d_step" | "datatypes" | "do" | "else" | "empty"
                         | "enabled" | "end" | "eval" | "flase" | "fi" | "float" | "full" | "goto" | "hiden" | "hierarchy" | "if"
@@ -172,6 +172,10 @@ namespace parser {
                         | no_case["PROGRESS"] >> -name >> ':' >> stmt
                         | name >> ':' >> stmt;
 
+            run         = no_case["RUN"] >> name >> '(' >> -arg_lst >> ')';
+
+            init        = no_case["INIT"] >> '{' >> sequence >> '}';
+
 
 //            module.name("module");
 //            spec.name("spec");
@@ -182,38 +186,13 @@ namespace parser {
 
         }
 
-        qi::rule<Iterator, standard::space_type> init, never, trace, utype, mtype, active,assign,_name;
         qi::rule<Iterator, std::string(), standard::space_type> type_name, ivar, varref, name;
         qi::rule<Iterator, std::vector<std::string>, standard::space_type> one_decl, proctype, sequence, step, decl_lst;
         qi::rule<Iterator, std::vector<std::vector<std::string>>, standard::space_type> module, spec;
-        qi::rule<Iterator, standard::space_type> priority;
-        qi::rule<Iterator, standard::space_type> enabler;
-        qi::rule<Iterator, standard::space_type> visible;
-        qi::rule<Iterator, standard::space_type> iarray;
-        qi::rule<Iterator, standard::space_type> idecl;
-        qi::rule<Iterator, standard::space_type> ch_init;
-        qi::rule<Iterator, standard::space_type> send;
-        qi::rule<Iterator, standard::space_type> recieve;
-        qi::rule<Iterator, standard::space_type> recv_poll;
-        qi::rule<Iterator, standard::space_type> send_args;
-        qi::rule<Iterator, standard::space_type> arg_lst;
-        qi::rule<Iterator, standard::space_type> recv_args;
-        qi::rule<Iterator, standard::space_type> recv_arg;
-        qi::rule<Iterator, standard::space_type> stmt;
-        qi::rule<Iterator, standard::space_type> options;
-        qi::rule<Iterator, standard::space_type> andor;
-        qi::rule<Iterator, standard::space_type> binarop;
-        qi::rule<Iterator, standard::space_type> unarop;
-        qi::rule<Iterator, standard::space_type> any_expr;
-        qi::rule<Iterator, standard::space_type> expr;
-        qi::rule<Iterator, standard::space_type> chanop;
-        qi::rule<Iterator, standard::space_type> cons;
-        qi::rule<Iterator, standard::space_type> sep;
-        qi::rule<Iterator, standard::space_type> bin_expr;
-        qi::rule<Iterator, standard::space_type> keyword;
-        qi::rule<Iterator, standard::space_type> comment;
-        qi::rule<Iterator, standard::space_type> qstring;
-        qi::rule<Iterator, standard::space_type> ltl;
-        qi::rule<Iterator, standard::space_type> label;
+        qi::rule<Iterator, standard::space_type> init, never, trace, utype, mtype, assign, priority, enabler, visible, active,
+                    iarray, idecl, ch_init, send, recieve, recv_poll, send_args, arg_lst, recv_args, recv_arg, stmt, options,
+                    andor, binarop, unarop, any_expr, expr, chanop, cons, sep, bin_expr, keyword, comment, qstring, ltl,
+                    label, run;
+
     };
 }
