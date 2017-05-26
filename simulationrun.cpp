@@ -149,9 +149,21 @@ void SimulationRun::parseCode() {
             QString procName = QString::fromStdString(parseList[i][1]);
             QList<QString> varList;
             for ( uint j=2 ; j<parseList[i].size() ; j++) {
-                varList << QString::fromStdString(parseList[i][j]);
+                if (!parseList[i][j].compare("INLINE")) {
+                     QString funcName = QString::fromStdString(parseList[i][j+1]);
+                     QList<QString> funcVars = inlineTemplate[funcName];
+                     varList.append(funcVars);
+                     j++;
+                } else varList << QString::fromStdString(parseList[i][j]);
             }
             procTemplate.insert(procName,varList);
+        } else if (!parseList[i][0].compare("INLINE")) {
+            QString funcName = QString::fromStdString(parseList[i][1]);
+            QList<QString> varList;
+            for ( uint j=2 ; j<parseList[i].size() ; j++) {
+                varList << QString::fromStdString(parseList[i][j]);
+            }
+            inlineTemplate.insert(funcName,varList);
         } else {
             for ( uint j = start ; j<parseList[i].size() ; j++) {
                 QString tmp = QString::fromStdString(parseList[i][j]);

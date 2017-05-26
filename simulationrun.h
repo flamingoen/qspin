@@ -84,7 +84,7 @@ private:
     QMap<QString,Variable *> mapVariables;
     QList<choise> listChoises;
     QString filename;
-    QMap<QString,QList<QString>> procTemplate;
+    QMap<QString,QList<QString>> procTemplate,inlineTemplate;
 
 
     void randomSimulation();

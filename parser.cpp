@@ -39,7 +39,7 @@ namespace parser {
 
             spec %= +module >> eoi;//module >> eoi;
 
-            module %= utype | mtype | proctype | init | never | trace | decl_lst | ltl
+            module %= utype | mtype | proctype | init | never | trace | decl_lst | ltl | inlin
                     | no_case["C_CODE"] >> '{' >> *char_ >> '}'
                     | no_case["C_EXPR"] >> '{' >> *char_ >> '}'
                     | no_case["C_DECL"] >> lexeme[*char_] >> lexeme[*char_] >> -lexeme[*char_]
@@ -48,7 +48,7 @@ namespace parser {
             proctype    %= -active >> no_case["PROCTYPE"] [push_back(_val,(char*)"PROCTYPE")] >> name
                         >> '(' >> -decl_lst >> ')' >> -priority >> -enabler >> '{' >> sequence >> '}';
 
-            init        = no_case["INIT"] >> priority >> '{' >> sequence >> '}';
+            init        = no_case["INIT"] >> -priority >> '{' >> sequence >> '}';
             never       = no_case["NEVER"] >> '{' >> sequence >> '}';
             trace       = no_case["TRACE"] >> '{' >> sequence >> '}' | no_case["NOTRACE"] >> '{' >> sequence >> '}';
             utype       = no_case["TYPEDEF"] >> name >> '{' >> decl_lst >> '}' >> -lit(';');
@@ -75,7 +75,7 @@ namespace parser {
             sequence    %= step % -lit(';') >> -lit(';');
             step        %= decl_lst
                         | stmt >> -(no_case["UNLESS"] >> stmt)
-                        | label
+                        //| label
                         | no_case["XR"] >> varref % ','
                         | no_case["XS"] >> varref % ',';
 
@@ -102,8 +102,8 @@ namespace parser {
 
             assign      = varref >> '=' >> bin_expr | varref >> "++" | varref >> "--";
 
-            stmt        =  no_case["IF"] >> options >> no_case["FI"]
-                        | no_case["DO"] >> options >> no_case["OD"]
+            stmt        %=  no_case["IF"] >> "::" >>options >> no_case["FI"]
+                        | no_case["DO"] >> "::" >> options >> no_case["OD"]
                         | no_case["ATOMIC"] >> '{' >> sequence >> '}'
                         | no_case["D_STEP"] >> '{' >> sequence >> '}'
                         | bin_expr >> string("->") >> sequence
@@ -113,8 +113,9 @@ namespace parser {
                         | assign
                         | no_case["ELSE"]
                         | no_case["BREAK"]
+                        | func_call [push_back(_val,(char*)"INLINE")]
                         | no_case["GOTO"] >> name
-                        | name >> ':' >> stmt
+                        | label
                         | no_case["PRINTF"] >> '(' >> qstring >> -(',' >> arg_lst) >> ')'
                         | no_case["PRINTM"] >> '(' >> expr >> ')'
                         | no_case["ASSERT"] >> expr
@@ -124,7 +125,7 @@ namespace parser {
                         | run
                         ;
 
-            options     = string("::") >> sequence % string("::");
+            options     %= sequence % string("::");
 
             andor       = string("&&") | "||";
             binarop     = char_("*/%&^|<>") | "<=" | "=>" | "==" | "!=" | "<<" | ">>" | lit('+') | lit('-') | andor;
@@ -174,8 +175,9 @@ namespace parser {
 
             run         = no_case["RUN"] >> name >> '(' >> -arg_lst >> ')';
 
-            init        = no_case["INIT"] >> '{' >> sequence >> '}';
+            inlin       %= no_case["INLINE"] [push_back(_val,(char*)"INLINE")] >> name >> '(' >> -arg_lst >> ')' >> '{' >> sequence >> '}';
 
+            func_call   =  name >> '(' >> -arg_lst >> ')';
 
 //            module.name("module");
 //            spec.name("spec");
@@ -186,11 +188,11 @@ namespace parser {
 
         }
 
-        qi::rule<Iterator, std::string(), standard::space_type> type_name, ivar, varref, name;
-        qi::rule<Iterator, std::vector<std::string>, standard::space_type> one_decl, proctype, sequence, step, decl_lst;
+        qi::rule<Iterator, std::string(), standard::space_type> type_name, ivar, varref, name, func_call;
+        qi::rule<Iterator, std::vector<std::string>, standard::space_type> one_decl, proctype, sequence, step, decl_lst, inlin, stmt, options;
         qi::rule<Iterator, std::vector<std::vector<std::string>>, standard::space_type> module, spec;
         qi::rule<Iterator, standard::space_type> init, never, trace, utype, mtype, assign, priority, enabler, visible, active,
-                    iarray, idecl, ch_init, send, recieve, recv_poll, send_args, arg_lst, recv_args, recv_arg, stmt, options,
+                    iarray, idecl, ch_init, send, recieve, recv_poll, send_args, arg_lst, recv_args, recv_arg,
                     andor, binarop, unarop, any_expr, expr, chanop, cons, sep, bin_expr, keyword, comment, qstring, ltl,
                     label, run;
 
