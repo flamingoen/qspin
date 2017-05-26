@@ -605,8 +605,8 @@ void MainWindow::updateSimulationTab(SimulationRun *run, QTableWidget *variableT
     QList<SimulationRun::proc> procs = run->getProcs();
     // Variablse tab
     for (int i = 0 ; i < variables.length() ; i++) {
-        variableTable->setItem(variables[i]->id,0,new QTableWidgetItem(variables[i]->name));
-        variableTable->setItem(variables[i]->id,1,new QTableWidgetItem(variables[i]->value));
+        variableTable->setItem(variables[i]->getId(),0,new QTableWidgetItem(variables[i]->getName()));
+        variableTable->setItem(variables[i]->getId(),1,new QTableWidgetItem(variables[i]->getValueString()));
     }
     // Process tab
     for (int i = 0 ; i < procs.length() ; i++) {
@@ -660,8 +660,8 @@ void MainWindow::populateSimulationLists(SimulationRun* run, QTableWidget* varia
     stepList->clear();
     // Variablse tab
     for (int i = 0 ; i < variables.length() ; i++) {
-        variableTable->setItem(variables[i]->id,0,new QTableWidgetItem(variables[i]->name));
-        variableTable->setItem(variables[i]->id,1,new QTableWidgetItem(variables[i]->value));
+        variableTable->setItem(variables[i]->getId(),0,new QTableWidgetItem(variables[i]->getName()));
+        variableTable->setItem(variables[i]->getId(),1,new QTableWidgetItem(variables[i]->getValueString()));
     }
     // Process tab
     for (int i = 0 ; i < procs.length() ; i++) {

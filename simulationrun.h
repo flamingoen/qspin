@@ -29,21 +29,14 @@ public:
     int p_id = 0;
     bool firstRun = true;
 
-    struct variable {
-        int id;
-        QString name;
-        QString type;
-        QString value;
-        int process;
-    };
     struct step {
         int oldLine = -1;
         int newLine = -1;
         int i_proc = -1;
         int i_state = -1 ;
         QString var = "-";
-        QString newValue = "-";
-        QString oldValue = "-";
+        QList<QString> newValue;
+        QList<QString> oldValue;
         QString operation = "-";
     };
     struct proc {

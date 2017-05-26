@@ -218,30 +218,32 @@ bool SimulationRun::parseProc(QString _step) {
 
 // Tries to find af variable in the step. returns true if found, false otherwise
 bool SimulationRun::parseVar(QString _step) {
-    QRegularExpression reVariable("\\t\\t([a-zA-Z0-9]+)\\s+=\\s+(.*)"); //note: two tabs for variables, spaces for print stements.
-    QRegularExpression reLocVar("\\t\\t([a-zA-Z0-9]+)\\((\\d+)\\):([a-zA-Z0-9]+)\\s=\\s(.*)");
+    QRegularExpression reVariable("\\t\\t([a-zA-Z0-9]+)(\\[(\\d)\\])?\\s+=\\s+(.*)");
+    QRegularExpression reLocVar("\\t\\t([a-zA-Z0-9]+)\\((\\d+)\\):([a-zA-Z0-9]+)(\\[(\\d)\\])?\\s=\\s(.*)");
     QRegularExpressionMatch matchG = reVariable.match(_step);
     QRegularExpressionMatch matchL = reLocVar.match(_step);
-    bool matched = true;
-    QString varName, varValue;
+    bool matched = matchG.hasMatch() || matchL.hasMatch();
+    QString varName, varValue, varIndex;
 
     // match either global or local variable
     if (matchG.hasMatch()) {
         varName = matchG.captured(1);
-        varValue = matchG.captured(2);
+        varIndex = matchG.captured(3);
+        varValue = matchG.captured(4);
     } else if (matchL.hasMatch()) {
         varName = matchL.captured(1).append('[' + matchL.captured(2) + "]:" + matchL.captured(3));
-        varValue = matchL.captured(4);
-    } else matched = false;
+        varIndex = matchL.captured(5);
+        varValue = matchL.captured(6);
+    }
 
     // Add change to the step and replace in the map
     if (matched) {
         Variable *var = mapVariables[varName];
-        currentStep.newValue = varValue;
-        if (mapVariables.contains(varName)) currentStep.oldValue = var->value;
-        else currentStep.oldValue = "-";
+        currentStep.oldValue = var->getValue();
         currentStep.var = varName;
-        var->value = varValue;
+        if (!varIndex.compare("")) var->setValue(varValue);
+        else var->setValue(varValue,varIndex.toInt());
+        currentStep.newValue = var->getValue();;
     }
 
     return matched;
@@ -275,7 +277,7 @@ void SimulationRun::goForward(int steps) {
             statesBack.push(currentStep);
             currentStep = statesForward.pop();
             if (currentStep.var!="-") {
-                mapVariables[currentStep.var]->value = currentStep.newValue;
+                mapVariables[currentStep.var]->setValue(currentStep.newValue);
             }
             if (currentStep.i_proc!=-1) {
                 mapProcess[currentStep.i_proc].line = currentStep.newLine;
@@ -288,7 +290,7 @@ void SimulationRun::goBackwards(int steps) {
     for (int i=0 ; i<steps ; i++) {
         if (!statesBack.isEmpty()) {
             if (currentStep.var!="-") {
-                mapVariables[currentStep.var]->value = currentStep.oldValue;
+                mapVariables[currentStep.var]->setValue(currentStep.oldValue);
             }
             if (currentStep.i_proc!=-1) {
                 mapProcess[currentStep.i_proc].line = currentStep.oldLine;
@@ -325,10 +327,6 @@ bool SimulationRun::currentStepChangeVariable() {
 
 int SimulationRun::getCurrentVarId() {
     return mapVariables[currentStep.var]->id;
-}
-
-QString SimulationRun::getCurrentVarValue() {
-    return mapVariables[currentStep.var]->value;
 }
 
 QString SimulationRun::getCurrentVarName() {
