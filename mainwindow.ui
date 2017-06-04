@@ -98,8 +98,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>890</width>
-               <height>497</height>
+               <width>938</width>
+               <height>523</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -859,8 +859,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>890</width>
-               <height>497</height>
+               <width>938</width>
+               <height>523</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1121,7 +1121,7 @@
                 <item>
                  <widget class="QGroupBox" name="groupBox_8">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
@@ -1133,7 +1133,7 @@
                    <item row="0" column="0">
                     <widget class="QTableWidget" name="tableVariabels">
                      <property name="sizePolicy">
-                      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                      <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
                        <horstretch>0</horstretch>
                        <verstretch>0</verstretch>
                       </sizepolicy>
@@ -1174,7 +1174,7 @@
                 <item>
                  <widget class="QGroupBox" name="groupBox_9">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
@@ -1186,7 +1186,7 @@
                    <item row="0" column="0">
                     <widget class="QTableWidget" name="tableProceses">
                      <property name="sizePolicy">
-                      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                      <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
                        <horstretch>0</horstretch>
                        <verstretch>0</verstretch>
                       </sizepolicy>
@@ -1241,8 +1241,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>890</width>
-               <height>497</height>
+               <width>938</width>
+               <height>523</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -1454,7 +1454,7 @@
      <x>0</x>
      <y>0</y>
      <width>1352</width>
-     <height>18</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1517,6 +1517,7 @@
    </attribute>
    <addaction name="actionLoad"/>
    <addaction name="actionSave"/>
+   <addaction name="actionReload_File"/>
    <addaction name="actionAbort"/>
    <addaction name="actionCheck_syntax"/>
    <addaction name="actionParserTest"/>
@@ -1652,6 +1653,10 @@
    </property>
   </action>
   <action name="actionReload_File">
+   <property name="icon">
+    <iconset theme="view-refresh">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
    <property name="text">
     <string>&amp;Reload File</string>
    </property>
