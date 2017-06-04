@@ -852,22 +852,13 @@ bool MainWindow::parserTest() {
     std::string::const_iterator iter = value.begin();
     std::string::const_iterator end = value.end();
     std::vector<std::vector<std::string>> parseList;
-    bool res;
-    res  = phrase_parse(iter,end,grammar,space,parseList);
-    if (res) {
-        for (uint i=0 ; i<parseList.size() ; i++) {
-            cout << "[ ";
-            for(uint j=0 ; j<parseList[i].size() ; j++) {
-                   cout << parseList[i][j] << " ";
-            } cout << " ] ";
-        } cout << "\n";
-    }
-    if ( res ) {
+
+    if ( phrase_parse(iter,end,grammar,space,parseList) ) {
         outputLog->append("Parsing succesfull");
     } else {
         outputLog->append("Parsing failed");
     }
-    return res;
+    return true;
 }
 
 void MainWindow::editorTextChanged() {

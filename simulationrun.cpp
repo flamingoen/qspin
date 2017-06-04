@@ -19,16 +19,18 @@ void SimulationRun::terminateProcess(){
 }
 
 void SimulationRun::start() {
-    switch (simulationType) {
-    case Random:
-        randomSimulation();
-        break;
-    case Interactive:
-        interactiveSimulation();
-        break;
-    case Guided:
-        guidedSimulation();
-        break;
+    if (parseCode()) {
+        switch (simulationType) {
+        case Random:
+            randomSimulation();
+            break;
+        case Interactive:
+            interactiveSimulation();
+            break;
+        case Guided:
+            guidedSimulation();
+            break;
+        }
     }
 }
 
@@ -70,10 +72,8 @@ void SimulationRun::guidedSimulation() {
 void SimulationRun::setupProcess(){
     process = new QProcess(this);
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(finishedProcess()));
-    //connect(process, SIGNAL(readyReadStandardOutput()),this,SLOT(readReadyProcess()));
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), process, SLOT(deleteLater()));
     connect(process, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(error()));
-    parseCode();
     step newStep;
     newStep.operation="Simulation";
     statesBack.push(currentStep);
@@ -120,7 +120,7 @@ void SimulationRun::parseSimulation(QString input) {
     }
 }
 
-void SimulationRun::parseCode() {
+bool SimulationRun::parseCode() {
     QFile file(path+ QDir::separator() + fileName);
     QString codeText = "";
 
@@ -137,13 +137,15 @@ void SimulationRun::parseCode() {
     std::string::const_iterator iter = value.begin();
     std::string::const_iterator end = value.end();
     std::vector<std::vector<std::string>> parseList;
-
-    phrase_parse(iter,end,grammar,space,parseList);
-
-    for ( uint i=0 ; i<parseList.size() ; i++) {
-        createVariables(parseList[i]);
+    bool res = phrase_parse(iter,end,grammar,space,parseList);
+    if ( res ) {
+        for ( uint i=0 ; i<parseList.size() ; i++) {
+            createVariables(parseList[i]);
+        }
+    } else {
+        setStatus("QSpin could not parse file");
     }
-
+    return res;
 }
 
 bool SimulationRun::parseStep(QString _step) {

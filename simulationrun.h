@@ -87,7 +87,7 @@ private:
     bool parseStep(QString _step);
     bool parseProc(QString _step);
     bool parseVar(QString _step);
-    void parseCode();
+    bool parseCode();
     void createVariables(std::vector<std::string>);
     void setupProcess();
     void parseChoises(QString _step);

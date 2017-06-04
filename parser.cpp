@@ -149,19 +149,19 @@ namespace parser {
 
             chanop      = no_case["FULL"] | no_case["EMPTY"] | no_case["NFULL"] | no_case["NEMPTY"];
 
-            name        = lexeme[alpha >> *(alpha | char_('0','9') | '_')] - no_case[keyword];
+            name        = alpha >> *(alpha | char_('0','9') | '_');
 
             cons        = no_case["TRUE"] | no_case["FALSE"] | no_case["SKIP"]  | int_;
 
-            keyword     = string("accept") | "active" | "arrays" | "assert" | "assign" | "atomic"
-                        | "bit" | "bool" | "break" | "byte" | "c_code" | "c_decl" | "c_expr" | "c_state" | "c_track" | "chan"
-                        | "comments" | "cond_expr" | "condition" | "D_proctype" | "d_step" | "datatypes" | "do" | "else" | "empty"
-                        | "enabled" | "end" | "eval" | "flase" | "fi" | "float" | "full" | "goto" | "hiden" | "hierarchy" | "if"
-                        | "init" | "inline" | "int" | "labels" | "len" | "local" | "ltl" | "macros" | "mtype" | "nempty" | "never"
-                        | "nfull" | "notrace" | "np_" | "od" | "pc_value" | "pid" | "pointers" | "poll" | "printf" | "printm" | "priority"
-                        | "probabilities" | "procedures" | "proctype" | "progress" | "provided" | "rand" | "realtime" | "recieve"
-                        | "remoterefs" | "run" | "scanf" | "send" | "separators" | "sequence" | "short" | "show" | "skip" | "STDIN"
-                        | "timeout" | "trace" | "true" | "typedef" | "unless" | "unsigned" | "xr" | "xs";
+//            keyword     = string("accept") | "active" | "arrays" | "assert" | "assign" | "atomic"
+//                        | "bit" | "bool" | "break" | "byte" | "c_code" | "c_decl" | "c_expr" | "c_state" | "c_track" | "chan"
+//                        | "comments" | "cond_expr" | "condition" | "D_proctype" | "d_step" | "datatypes" | "do" | "else" | "empty"
+//                        | "enabled" | "end" | "eval" | "flase" | "fi" | "float" | "full" | "goto" | "hiden" | "hierarchy" | "if"
+//                        | "init" | "inline" | "int" | "labels" | "len" | "local" | "ltl" | "macros" | "mtype" | "nempty" | "never"
+//                        | "nfull" | "notrace" | "np_" | "od" | "pc_value" /*| "pid"*/ | "pointers" | "poll" | "printf" | "printm" | "priority"
+//                        | "probabilities" | "procedures" | "proctype" | "progress" | "provided" | "rand" | "realtime" | "recieve"
+//                        | "remoterefs" | "run" | "scanf" | "send" | "separators" | "sequence" | "short" | "show" | "skip" | "STDIN"
+//                        | "timeout" | "trace" | "true" | "typedef" | "unless" | "unsigned" | "xr" | "xs";
 
             qstring     = '"' >> *(char_ - '"') >> '"';
 
@@ -192,7 +192,7 @@ namespace parser {
         qi::rule<Iterator, std::vector<std::vector<std::string>>, standard::space_type> module, spec;
         qi::rule<Iterator, standard::space_type> init, never, trace, utype, mtype, assign, priority, enabler, visible, active,
                     iarray, idecl, ch_init, send, recieve, recv_poll, send_args, arg_lst, recv_args, recv_arg,
-                    andor, binarop, unarop, any_expr, expr, chanop, cons, sep, bin_expr, keyword, comment, qstring, ltl,
+                    andor, binarop, unarop, any_expr, expr, chanop, cons, sep, bin_expr, comment, qstring, ltl,
                     label, run;
 
     };
