@@ -63,6 +63,7 @@ void VerificationRun::runCompile(){
 
 void VerificationRun::runPan(){
     process = new QProcess();
+    process->setWorkingDirectory(path);
     setStatus(path);
     connect(process, SIGNAL(readyReadStandardOutput()),this,SLOT(readReadyVerification()));
     connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(finishedVerification()));

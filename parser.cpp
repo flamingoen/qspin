@@ -37,9 +37,9 @@ namespace parser {
             using phoenix::push_back;
             using phoenix::insert;
 
-            spec %= +module >> eoi;//module >> eoi;
+            spec %= +module >> eoi;
 
-            module %= utype | mtype | proctype | init | never | trace | decl_lst | ltl | inlin
+            module %= utype | mtype | proctype | init | never | trace | decl_lst | ltl | inlin | ';'
                     | no_case["C_CODE"] >> '{' >> *char_ >> '}'
                     | no_case["C_EXPR"] >> '{' >> *char_ >> '}'
                     | no_case["C_DECL"] >> lexeme[*char_] >> lexeme[*char_] >> -lexeme[*char_]
@@ -75,7 +75,6 @@ namespace parser {
             sequence    %= step % -lit(';') >> -lit(';');
             step        %= decl_lst
                         | stmt >> -(no_case["UNLESS"] >> stmt)
-                        //| label
                         | no_case["XR"] >> varref % ','
                         | no_case["XS"] >> varref % ',';
 
@@ -106,12 +105,12 @@ namespace parser {
                         | no_case["DO"] >> "::" >> options >> no_case["OD"]
                         | no_case["ATOMIC"] >> '{' >> sequence >> '}'
                         | no_case["D_STEP"] >> '{' >> sequence >> '}'
-                        | bin_expr >> string("->") >> sequence
+                        | bin_expr >> "->" >> sequence
                         | '{' >> sequence >> '}'
                         | send
                         | recieve
                         | assign
-                        | no_case["ELSE"]
+                        | no_case["ELSE"] >> "->" >> sequence
                         | no_case["BREAK"]
                         | func_call [push_back(_val,(char*)"INLINE")]
                         | no_case["GOTO"] >> name
@@ -150,7 +149,7 @@ namespace parser {
 
             chanop      = no_case["FULL"] | no_case["EMPTY"] | no_case["NFULL"] | no_case["NEMPTY"];
 
-            name        = lexeme[alpha >> *(alpha | int_ | '_')] - no_case[keyword];
+            name        = lexeme[alpha >> *(alpha | char_('0','9') | '_')] - no_case[keyword];
 
             cons        = no_case["TRUE"] | no_case["FALSE"] | no_case["SKIP"]  | int_;
 
@@ -168,10 +167,10 @@ namespace parser {
 
             ltl         = no_case["LTL"] >> -name >> '{' >> *(char_ - '}') >> '}';
 
-            label       = no_case["END"] >> -name >> lit(':') >> stmt
-                        | no_case["ACCEPT"]  >> -name >> ':' >> stmt
-                        | no_case["PROGRESS"] >> -name >> ':' >> stmt
-                        | name >> ':' >> stmt;
+            label       = no_case["END"] >> -name >> lit(':')
+                        | no_case["ACCEPT"]  >> -name >> ':'
+                        | no_case["PROGRESS"] >> -name >> ':'
+                        | name >> ':';
 
             run         = no_case["RUN"] >> name >> '(' >> -arg_lst >> ')';
 

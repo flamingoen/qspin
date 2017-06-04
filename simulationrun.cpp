@@ -141,37 +141,9 @@ void SimulationRun::parseCode() {
     phrase_parse(iter,end,grammar,space,parseList);
 
     for ( uint i=0 ; i<parseList.size() ; i++) {
-        uint start = 0;
-        QString varProc = "global";
-        QString varType;
-
-        if (!parseList[i][0].compare("PROCTYPE")) {
-            QString procName = QString::fromStdString(parseList[i][1]);
-            QList<QString> varList;
-            for ( uint j=2 ; j<parseList[i].size() ; j++) {
-                if (!parseList[i][j].compare("INLINE")) {
-                     QString funcName = QString::fromStdString(parseList[i][j+1]);
-                     QList<QString> funcVars = inlineTemplate[funcName];
-                     varList.append(funcVars);
-                     j++;
-                } else varList << QString::fromStdString(parseList[i][j]);
-            }
-            procTemplate.insert(procName,varList);
-        } else if (!parseList[i][0].compare("INLINE")) {
-            QString funcName = QString::fromStdString(parseList[i][1]);
-            QList<QString> varList;
-            for ( uint j=2 ; j<parseList[i].size() ; j++) {
-                varList << QString::fromStdString(parseList[i][j]);
-            }
-            inlineTemplate.insert(funcName,varList);
-        } else {
-            for ( uint j = start ; j<parseList[i].size() ; j++) {
-                QString tmp = QString::fromStdString(parseList[i][j]);
-                if (types.contains(tmp)) varType = tmp;
-                else mapVariables.insert( tmp , new Variable( varType , tmp , varProc));
-            }
-        }
+        createVariables(parseList[i]);
     }
+
 }
 
 bool SimulationRun::parseStep(QString _step) {
@@ -269,6 +241,45 @@ void SimulationRun::parseChoises(QString _step) {
             listChoises.append(_choise);
         }
     }
+}
+
+void SimulationRun::createVariables(std::vector<std::__cxx11::string> list) {
+    QString varProc = "global";
+    QString varType;
+
+    if (!list[0].compare("PROCTYPE")) {
+        QString procName = QString::fromStdString(list[1]);
+        QList<QString> varList;
+        for ( uint j=2 ; j<list.size() ; j++) {
+            if (!list[j].compare("INLINE")) {
+                 QString funcName = QString::fromStdString(list[j+1]);
+                 QList<QString> funcVars = inlineTemplate[funcName];
+                 varList.append(funcVars);
+                 j++;
+            } else varList << QString::fromStdString(list[j]);
+        }
+        procTemplate.insert(procName,varList);
+    } else if (!list[0].compare("INLINE")) {
+        inlineTemplate.insert(QString::fromStdString(list[1]),makeInlineVars(list));
+    } else {
+        for ( uint j = 0 ; j<list.size() ; j++) {
+            QString tmp = QString::fromStdString(list[j]);
+            if (types.contains(tmp)) varType = tmp;
+            else mapVariables.insert( tmp , new Variable( varType , tmp , varProc));
+        }
+    }
+}
+
+QList<QString> SimulationRun::makeInlineVars(std::vector<std::__cxx11::string> list) {
+    QList<QString> varList;
+    for ( uint j=2 ; j<list.size() ; j++) {
+        if (!list[j].compare("INLINE")) {
+            j++;
+            varList.append(inlineTemplate[QString::fromStdString(list[j])]);
+        } else
+            varList << QString::fromStdString(list[j]);
+    }
+    return varList;
 }
 
 void SimulationRun::goForward(int steps) {

@@ -88,9 +88,10 @@ private:
     bool parseProc(QString _step);
     bool parseVar(QString _step);
     void parseCode();
-    //void parseCode_old();
+    void createVariables(std::vector<std::string>);
     void setupProcess();
     void parseChoises(QString _step);
+    QList<QString> makeInlineVars(std::vector<std::string>);
     p_grammar grammar;
 
 private slots:
