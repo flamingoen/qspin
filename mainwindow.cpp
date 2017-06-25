@@ -534,7 +534,7 @@ void MainWindow::simulationStepForward() {
 
 void MainWindow::simulationStepBackwards() {
         simulationRun->goBackwards();
-        updateSimulationTab(interactiveRun,variableTable_I,processTable_I,simulationSteps_I);
+        updateSimulationTab(simulationRun,variableTable,processTable,simulationSteps);
 }
 
 void MainWindow::processFinished(SpinRun* run) {

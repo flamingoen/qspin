@@ -69,7 +69,7 @@ namespace parser {
 
             active      = no_case["ACTIVE"] >> -('[' >> cons >> ']');
             priority    = no_case["PRIORITY"] >> cons;
-            enabler     = no_case["PROVIDED"] >> '{' >> expr >> '}';
+            enabler     = no_case["PROVIDED"] >> '(' >> expr >> ')';
             visible     = no_case["HIDDEN"] | no_case["SHOW"];
 
             sequence    %= step % -lit(';') >> -lit(';');
@@ -82,7 +82,7 @@ namespace parser {
             iarray      = lit('[') >> cons >> ']';
             idecl       = lit('=') >> ( any_expr | ch_init );
             ch_init     = lit('[') >> cons >> no_case["OF"] >> '{' >> (type_name % ',');
-            varref      = ( string("_") | "_last" | "_ne_pr" | "_pid" | name ) >> -('[' >> bin_expr >> ']') >> -('.' >> varref);
+            varref      = name >> -('[' >> bin_expr >> ']') >> -('.' >> varref);
 
             send        = varref >> '!' >> send_args
                         | varref >> '!' >> '!' >> send_args;
@@ -101,7 +101,7 @@ namespace parser {
 
             assign      = varref >> '=' >> bin_expr | varref >> "++" | varref >> "--";
 
-            stmt        %=  no_case["IF"] >> "::" >>options >> no_case["FI"]
+            stmt        %=  no_case["IF"] >> "::" >> options >> no_case["FI"]
                         | no_case["DO"] >> "::" >> options >> no_case["OD"]
                         | no_case["ATOMIC"] >> '{' >> sequence >> '}'
                         | no_case["D_STEP"] >> '{' >> sequence >> '}'
@@ -121,13 +121,14 @@ namespace parser {
                         | expr >> *(andor >> expr)
                         | no_case["C_CODE"] >> '[' >> *char_ >> ']' >> '{' >> *char_ >> '}'
                         | no_case["C_EXPR"] >> '[' >> *char_ >> ']' >>'{' >> *char_ >> '}'
+                        | assign
                         | run
                         ;
 
             options     %= sequence % string("::");
 
             andor       = string("&&") | "||";
-            binarop     = char_("*/%&^|<>") | "<=" | "=>" | "==" | "!=" | "<<" | ">>" | lit('+') | lit('-') | andor;
+            binarop     = string("<=") | "=>" | "==" | "!=" | "<<" | ">>"  | andor| char_("*/%&^|<>+-");
             unarop      = lit('!') | lit('~') | lit('-');
 
             expr        = bin_expr | '(' >> bin_expr >> ')' | chanop >> '(' >> varref >> ')';
@@ -149,20 +150,21 @@ namespace parser {
 
             chanop      = no_case["FULL"] | no_case["EMPTY"] | no_case["NFULL"] | no_case["NEMPTY"];
 
-            name        = alpha >> *(alpha | char_('0','9') | '_');
+            name        = Predefines | ( lexeme[alpha >> *(alpha | char_("0-9") | '_')] - no_case[keyword] );
 
             cons        = no_case["TRUE"] | no_case["FALSE"] | no_case["SKIP"]  | int_;
 
-//            keyword     = string("accept") | "active" | "arrays" | "assert" | "assign" | "atomic"
-//                        | "bit" | "bool" | "break" | "byte" | "c_code" | "c_decl" | "c_expr" | "c_state" | "c_track" | "chan"
-//                        | "comments" | "cond_expr" | "condition" | "D_proctype" | "d_step" | "datatypes" | "do" | "else" | "empty"
-//                        | "enabled" | "end" | "eval" | "flase" | "fi" | "float" | "full" | "goto" | "hiden" | "hierarchy" | "if"
-//                        | "init" | "inline" | "int" | "labels" | "len" | "local" | "ltl" | "macros" | "mtype" | "nempty" | "never"
-//                        | "nfull" | "notrace" | "np_" | "od" | "pc_value" /*| "pid"*/ | "pointers" | "poll" | "printf" | "printm" | "priority"
-//                        | "probabilities" | "procedures" | "proctype" | "progress" | "provided" | "rand" | "realtime" | "recieve"
-//                        | "remoterefs" | "run" | "scanf" | "send" | "separators" | "sequence" | "short" | "show" | "skip" | "STDIN"
-//                        | "timeout" | "trace" | "true" | "typedef" | "unless" | "unsigned" | "xr" | "xs";
+           keyword     = string("accept") | "active" | "arrays" | "assert" | "assign" | "atomic"
+                        | "bit" | "bool" | "break" | "byte" | "c_code" | "c_decl" | "c_expr" | "c_state" | "c_track" | "chan"
+                        | "comments" | "cond_expr" | "condition" | "D_proctype" | "d_step" | "datatypes" | "do" | "else" | "empty"
+                        | "enabled" | "end" | "eval" | "flase" | "fi" | "float" | "full" | "goto" | "hiden" | "hierarchy" | "if"
+                        | "init" | "inline" | "int" | "labels" | "len" | "local" | "ltl" | "macros" | "mtype" | "nempty" | "never"
+                        | "nfull" | "notrace" | "np_" | "od" | "pc_value" | "pid" | "pointers" | "poll" | "printf" | "printm" | "priority"
+                        | "probabilities" | "procedures" | "proctype" | "progress" | "provided" | "rand" | "realtime" | "recieve"
+                        | "remoterefs" | "run" | "scanf" | "send" | "separators" | "sequence" | "short" | "show" | "skip" | "STDIN"
+                        | "timeout" | "trace" | "true" | "typedef" | "unless" | "unsigned" | "xr" | "xs";
 
+            Predefines  = string("_pid") | "_" | "_last" | "_nr_pr" | "np_";
             qstring     = '"' >> *(char_ - '"') >> '"';
 
             ltl         = no_case["LTL"] >> -name >> '{' >> *(char_ - '}') >> '}';
@@ -193,7 +195,7 @@ namespace parser {
         qi::rule<Iterator, standard::space_type> init, never, trace, utype, mtype, assign, priority, enabler, visible, active,
                     iarray, idecl, ch_init, send, recieve, recv_poll, send_args, arg_lst, recv_args, recv_arg,
                     andor, binarop, unarop, any_expr, expr, chanop, cons, sep, bin_expr, comment, qstring, ltl,
-                    label, run;
+                    label, run, keyword, Predefines;
 
     };
 }

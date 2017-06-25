@@ -182,8 +182,8 @@ bool SimulationRun::parseProc(QString _step) {
         QString procName = match.captured(2);
         QString procPid = match.captured(1);
         QList<QString> varList = procTemplate[procName];
-        for (int i = 0 ; i<varList.size() ; i+=2) {
-            QString varName = procName.append('['+procPid+"]:"+varList[i+1]);
+        for (int i = 0 ; i+1<varList.size() ; i+=2) {
+            QString varName = procName+'['+procPid+"]:"+varList[i+1];
             mapVariables.insert(varName,new Variable(varList[i],varName,procName));
         }
     }
@@ -245,7 +245,7 @@ void SimulationRun::parseChoises(QString _step) {
     }
 }
 
-void SimulationRun::createVariables(std::vector<std::__cxx11::string> list) {
+void SimulationRun::createVariables(std::vector<std::string> list) {
     QString varProc = "global";
     QString varType;
 
