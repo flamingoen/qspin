@@ -1520,7 +1520,6 @@
    <addaction name="actionReload_File"/>
    <addaction name="actionAbort"/>
    <addaction name="actionCheck_syntax"/>
-   <addaction name="actionParserTest"/>
   </widget>
   <action name="actionLoad">
    <property name="icon">

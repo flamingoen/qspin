@@ -272,7 +272,7 @@ void SimulationRun::createVariables(std::vector<std::string> list) {
     }
 }
 
-QList<QString> SimulationRun::makeInlineVars(std::vector<std::__cxx11::string> list) {
+QList<QString> SimulationRun::makeInlineVars(std::vector<std::string> list) {
     QList<QString> varList;
     for ( uint j=2 ; j<list.size() ; j++) {
         if (!list[j].compare("INLINE")) {

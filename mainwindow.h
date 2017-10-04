@@ -208,7 +208,7 @@ private slots:
     void showHideLog(bool show);
     void exit();
     bool parserTest();
-    void editorTextChanged();
+//    void editorTextChanged();
     void loadSettings();
     void saveSettings();
     void clearLog();

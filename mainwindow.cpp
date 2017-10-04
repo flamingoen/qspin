@@ -125,7 +125,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) , ui(new Ui::MainW
     status = this->findChild<QStatusBar *>("statusbar");
     outputLog = this->findChild<QTextEdit *>("log");
     editor = (CodeEditor*) this->findChild<QPlainTextEdit *>("editor");
-    connect(editor,SIGNAL(textChanged()),this,SLOT(editorTextChanged()));
+    //connect(editor,SIGNAL(textChanged()),this,SLOT(editorTextChanged()));
     groupBox_log = this->findChild<QGroupBox *>("logBox");
     connect(action_wordWrap, SIGNAL(triggered(bool)),editor,SLOT(setWordWrap(bool)));
     connect(action_showHideLog, SIGNAL(triggered(bool)),this,SLOT(showHideLog(bool)));
@@ -861,6 +861,6 @@ bool MainWindow::parserTest() {
     return true;
 }
 
-void MainWindow::editorTextChanged() {
-    parserTest();
-}
+//void MainWindow::editorTextChanged() {
+//    parserTest();
+//}
