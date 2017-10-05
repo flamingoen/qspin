@@ -1,5 +1,7 @@
 # qspin
 
+## For isntallation, see the release tap on top of the project!
+
 ## Changelog
 
 ### Planed
