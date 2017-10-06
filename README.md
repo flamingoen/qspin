@@ -1,6 +1,6 @@
 # qspin
 
-## For isntallation, see the release tap on top of the project!
+## For installation, see the release tap on top of the project!
 
 ## Changelog
 
